@@ -131,7 +131,7 @@ a {
   color: var(--muted);
   font-size: 0.92rem;
   font-weight: 700;
-  padding: 0.6rem 0.85rem;
+  padding: 0.6rem 0.7rem;
   text-decoration: none;
 }
 
@@ -359,7 +359,9 @@ h3 {
 .contact-card,
 .highlight-card,
 .honor-item,
-.service-card {
+.service-card,
+.activity-card,
+.activity-log article {
   background: var(--white);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -385,7 +387,9 @@ h3 {
 .post-row h2,
 .highlight-card h3,
 .honor-item h3,
-.service-card h3 {
+.service-card h3,
+.activity-card h3,
+.activity-log h3 {
   font-size: 1.25rem;
 }
 
@@ -395,7 +399,9 @@ h3 {
 .post-row p,
 .highlight-card p,
 .honor-item p,
-.service-card p {
+.service-card p,
+.activity-card p,
+.activity-log p {
   color: var(--muted);
 }
 
@@ -709,6 +715,165 @@ h3 {
   text-transform: uppercase;
 }
 
+.activity-intro {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.42fr) 1fr;
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: start;
+  padding-top: 2rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.activity-intro h2,
+.activity-section h2 {
+  font-size: clamp(2rem, 4vw, 3.6rem);
+}
+
+.activity-intro > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 1.08rem;
+}
+
+.activity-section {
+  border-top: 1px solid var(--line);
+}
+
+.activity-section:first-of-type {
+  border-top: 0;
+}
+
+.activity-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.activity-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  overflow: hidden;
+}
+
+.activity-card-featured {
+  grid-column: span 2;
+}
+
+.activity-visual {
+  position: relative;
+  display: grid;
+  align-items: end;
+  min-height: 230px;
+  padding: 1.1rem;
+  overflow: hidden;
+  background: var(--teal-dark);
+  aspect-ratio: 4 / 3;
+}
+
+.activity-card-featured .activity-visual {
+  aspect-ratio: 16 / 9;
+}
+
+.activity-photo {
+  width: 100%;
+  min-height: 230px;
+  object-fit: cover;
+  aspect-ratio: 4 / 3;
+}
+
+.activity-card-featured .activity-photo {
+  aspect-ratio: 16 / 9;
+}
+
+.activity-visual::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, transparent 18%, rgba(5, 26, 24, 0.68) 100%),
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0 1px, transparent 1px 16px);
+}
+
+.activity-visual span {
+  position: relative;
+  z-index: 1;
+  color: var(--white);
+  font-size: clamp(1.3rem, 3vw, 2.35rem);
+  font-weight: 850;
+  line-height: 1;
+}
+
+.activity-visual-poa {
+  background: #0b6f69;
+}
+
+.activity-visual-aha {
+  background: #b84232;
+}
+
+.activity-visual-talk {
+  background: #354a62;
+}
+
+.activity-visual-hypertension {
+  background: #c6922e;
+}
+
+.activity-visual-ebm {
+  background: #476a52;
+}
+
+.activity-visual-nycu {
+  background: #5e4968;
+}
+
+.activity-content {
+  display: grid;
+  gap: 0.65rem;
+  padding: 1.25rem;
+}
+
+.activity-content p {
+  margin: 0;
+}
+
+.activity-meta {
+  color: var(--coral);
+  font-size: 0.76rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.activity-log-section {
+  padding-top: 4.5rem;
+}
+
+.activity-log {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.activity-log article {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 1rem;
+  padding: 1.2rem;
+}
+
+.activity-log time {
+  color: var(--coral);
+  font-size: 0.76rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+}
+
+.activity-log h3,
+.activity-log p {
+  margin: 0;
+}
+
 .contact-layout {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -763,7 +928,7 @@ h3 {
   overflow-wrap: anywhere;
 }
 
-@media (max-width: 820px) {
+@media (max-width: 960px) {
   .site-header {
     min-height: 68px;
     padding: 0 1rem;
@@ -829,7 +994,10 @@ h3 {
   .contact-layout,
   .highlight-grid,
   .service-grid,
-  .honor-item {
+  .honor-item,
+  .activity-intro,
+  .activity-gallery,
+  .activity-log article {
     grid-template-columns: 1fr;
   }
 
@@ -846,6 +1014,18 @@ h3 {
   .post-row time,
   .honor-year {
     margin-bottom: 0;
+  }
+
+  .activity-card-featured {
+    grid-column: auto;
+  }
+
+  .activity-card-featured .activity-visual,
+  .activity-visual,
+  .activity-card-featured .activity-photo,
+  .activity-photo {
+    aspect-ratio: 16 / 10;
+    min-height: 220px;
   }
 }
 

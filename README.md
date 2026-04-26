@@ -8,6 +8,7 @@
 - `research.html`: 研究介紹與最新研究入口
 - `publications.html`: 完整已發表論文清單
 - `honors.html`: 學術獎項、受邀演講、會議報告、媒體報導與專業服務
+- `activities.html`: 研討會、受邀演講、工作坊等活動照片與簡短心得
 - `blog.html`: 文章列表
 - `contact.html`: 聯繫方式頁面
 - `posts/welcome.html`: 範例文章
@@ -35,6 +36,17 @@
 3. 複製一段 `<article class="honor-item">...</article>` 或 `<article class="service-card">...</article>`。
 4. 依年份排序後更新年份、標題、機構與說明。
 5. 若是特別重要的近期成果，也可以同步更新 `index.html` 的 `highlight-section`。
+
+## 更新 Activities
+
+活動照片與簡短心得整理在 `activities.html`。這頁適合補足 CV 沒有照片與現場脈絡的部分：
+
+1. 把公開可放的活動照片放到 `assets/activities/`，檔名建議使用日期與活動名稱，例如 `2026-pulse-of-asia.jpg`。
+2. 打開 `activities.html`。
+3. 搜尋 `ACTIVITIES: replace each activity-visual placeholder`。
+4. 複製一段 `<article class="activity-card">...</article>`，更新年份、活動類型、地點、標題與心得。
+5. 若已有照片，把 `<div class="activity-visual ...">...</div>` 換成 `<img class="activity-photo" src="assets/activities/檔名.jpg" alt="照片描述">`，並保留清楚的 alt 文字。
+6. 若該活動也需要正式列在 CV 式清單，同步更新 `honors.html`。
 
 ## 寫 Blog
 

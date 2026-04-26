@@ -45,6 +45,29 @@ if (adminApp) {
 
   const cloneContent = (content) => JSON.parse(JSON.stringify(content || {}));
 
+  const getFriendlyPublishError = (error) => {
+    const rawMessage = error?.message || "";
+    let details = null;
+
+    try {
+      details = JSON.parse(rawMessage);
+    } catch {
+      details = null;
+    }
+
+    const message = details?.message || rawMessage;
+
+    if (/Resource not accessible by personal access token/i.test(message)) {
+      return "GitHub token 權限不足。請重新產生或編輯 fine-grained token：Repository access 選 Personal-Website，Repository permissions 的 Contents 設為 Read and write，然後把新 token 貼回 GitHub 發布設定。";
+    }
+
+    if (/Bad credentials/i.test(message)) {
+      return "GitHub token 無效或已過期。請重新產生 token，並確認沒有多貼空白。";
+    }
+
+    return rawMessage || "請檢查設定與權限。";
+  };
+
   const slugify = (value) =>
     String(value || "item")
       .trim()
@@ -1014,7 +1037,7 @@ if (adminApp) {
       render();
     } catch (error) {
       console.error(error);
-      setStatus(`發布失敗：${error.message || "請檢查設定與權限。"}`, "error");
+      setStatus(`發布失敗：${getFriendlyPublishError(error)}`, "error");
     }
   };
 

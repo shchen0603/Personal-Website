@@ -180,6 +180,18 @@ if (adminApp) {
     return `assets/${folder}/${safeName}`;
   };
 
+  const saveFileAtPath = async (file, path) => {
+    if (!file || !path) {
+      return;
+    }
+
+    const fileHandle = await getFileHandle(path, true);
+    const writable = await fileHandle.createWritable();
+
+    await writable.write(file);
+    await writable.close();
+  };
+
   const makeAssetPath = (file, folder) => {
     if (!file) {
       return "";
@@ -1024,7 +1036,30 @@ if (adminApp) {
         await publishToGitHub(nextContent, extraFiles, `Publish ${item.title || "website content"}`);
         state.content = nextContent;
         setDirty(false);
-        setStatus("已發布到 GitHub。GitHub Pages 會在稍後自動部署。", "success");
+
+        if (state.rootHandle) {
+          try {
+            if (type === "activities") {
+              await saveFileAtPath(coverFile, coverPath);
+
+              for (const [index, file] of galleryFiles.entries()) {
+                await saveFileAtPath(file, galleryPaths[index]);
+              }
+            } else {
+              for (const [index, file] of imageFiles.entries()) {
+                await saveFileAtPath(file, imagePaths[index]);
+              }
+            }
+
+            await writeContentFile();
+            setStatus("已發布到 GitHub，並同步寫回本機資料夾。GitHub Pages 會在稍後自動部署。", "success");
+          } catch (localError) {
+            console.error(localError);
+            setStatus("已發布到 GitHub，但本機同步失敗。請確認網站資料夾權限仍有效，或之後用 git pull 同步本機。", "error");
+          }
+        } else {
+          setStatus("已發布到 GitHub。尚未選擇網站資料夾，所以本機未同步；需要本機同步時可再用 git pull。", "success");
+        }
       } else {
         state.content = nextContent;
         await writeContentFile();
@@ -1052,7 +1087,7 @@ if (adminApp) {
       state.content = await response.json();
       sortActivities(state.content.activities ||= []);
       setDirty(false);
-      setStatus("內容已載入。可以直接快速發布；若要寫入本機檔案，請選擇網站資料夾。", "success");
+      setStatus("內容已載入。可以直接快速發布；若要 GitHub 發布後也同步本機，請先選擇網站資料夾。", "success");
       render();
     } catch (error) {
       console.warn(error);

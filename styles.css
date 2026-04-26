@@ -271,6 +271,16 @@ h3 {
   color: var(--white);
 }
 
+.button-outline {
+  border-color: var(--line);
+  color: var(--teal-dark);
+}
+
+.button-outline:hover,
+.button-outline:focus-visible {
+  background: var(--wash);
+}
+
 .section {
   width: min(1120px, 90vw);
   margin: 0 auto;
@@ -346,7 +356,10 @@ h3 {
 .timeline-item,
 .publication-item,
 .post-row,
-.contact-card {
+.contact-card,
+.highlight-card,
+.honor-item,
+.service-card {
   background: var(--white);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -369,14 +382,20 @@ h3 {
 .timeline-item h3,
 .post-card h3,
 .publication-item h3,
-.post-row h2 {
+.post-row h2,
+.highlight-card h3,
+.honor-item h3,
+.service-card h3 {
   font-size: 1.25rem;
 }
 
 .focus-card p,
 .timeline-item p,
 .post-card p,
-.post-row p {
+.post-row p,
+.highlight-card p,
+.honor-item p,
+.service-card p {
   color: var(--muted);
 }
 
@@ -403,6 +422,27 @@ h3 {
 
 .writing-section {
   border-top: 1px solid var(--line);
+}
+
+.highlight-section {
+  padding-top: 4.5rem;
+}
+
+.highlight-grid,
+.service-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.highlight-card,
+.service-card {
+  padding: 1.35rem;
+}
+
+.section-action {
+  display: flex;
+  margin-top: 1.2rem;
 }
 
 .post-card {
@@ -640,6 +680,35 @@ h3 {
   font-size: 1.08rem;
 }
 
+.honors-section {
+  border-top: 1px solid var(--line);
+}
+
+.honors-section:first-of-type {
+  border-top: 0;
+}
+
+.honor-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.honor-item {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 1rem;
+  padding: 1.2rem;
+}
+
+.honor-year {
+  margin: 0;
+  color: var(--coral);
+  font-size: 0.76rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .contact-layout {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -757,7 +826,10 @@ h3 {
   .research-layout,
   .publication-item,
   .post-row,
-  .contact-layout {
+  .contact-layout,
+  .highlight-grid,
+  .service-grid,
+  .honor-item {
     grid-template-columns: 1fr;
   }
 
@@ -771,7 +843,8 @@ h3 {
   }
 
   .publication-year,
-  .post-row time {
+  .post-row time,
+  .honor-year {
     margin-bottom: 0;
   }
 }

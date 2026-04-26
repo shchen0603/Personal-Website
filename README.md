@@ -7,6 +7,7 @@
 - `index.html`: 首頁
 - `research.html`: 研究介紹與最新研究入口
 - `publications.html`: 完整已發表論文清單
+- `honors.html`: 學術獎項、受邀演講、會議報告、媒體報導與專業服務
 - `blog.html`: 文章列表
 - `contact.html`: 聯繫方式頁面
 - `posts/welcome.html`: 範例文章
@@ -24,6 +25,16 @@
 3. 複製一整段 `<article class="publication-item">...</article>`。
 4. 貼到正確年份位置，更新年份、標題、作者、期刊 citation 與 DOI 連結。
 5. 若要在 Research 頁露出最新代表作，也同步更新 `research.html` 底部的 Publications 區塊。
+
+## 更新 Honors
+
+學術獎項與活動整理在 `honors.html`。之後有新的 award、invited talk、conference presentation、media coverage 或 reviewer service：
+
+1. 打開 `honors.html`。
+2. 找到對應區塊，例如 `Honors & Awards`、`Invited Speeches & Lectures`、`Conference Oral Presentations` 或 `Media & Academic Service`。
+3. 複製一段 `<article class="honor-item">...</article>` 或 `<article class="service-card">...</article>`。
+4. 依年份排序後更新年份、標題、機構與說明。
+5. 若是特別重要的近期成果，也可以同步更新 `index.html` 的 `highlight-section`。
 
 ## 寫 Blog
 

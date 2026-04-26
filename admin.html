@@ -40,7 +40,7 @@
         <p class="eyebrow">Admin</p>
         <h1>網站內容管理</h1>
         <p>
-          本機管理模式：選擇這個網站資料夾後，就能新增或更新 Blog、Publications、Honors 與 Activities。
+          像發文一樣新增 Blog、Activities、Honors 與 Publications；可先儲存到本機，也可直接發布到 GitHub Pages。
         </p>
       </section>
 
@@ -57,6 +57,54 @@
         </div>
 
         <p class="admin-status" data-admin-status>尚未選擇網站資料夾。</p>
+
+        <div class="quick-publish" data-quick-publish>
+          <div class="quick-publish-heading">
+            <div>
+              <p class="eyebrow">Quick Publish</p>
+              <h2>快速發布</h2>
+            </div>
+            <label class="admin-field quick-type-field">
+              <span>內容類型</span>
+              <select data-quick-type>
+                <option value="blogPosts">Blog / 心得</option>
+                <option value="activities">Activity / 活動照片</option>
+                <option value="honors">Honor / 獎項與演講</option>
+                <option value="publications">Publication / 論文</option>
+              </select>
+            </label>
+          </div>
+
+          <form class="quick-form" data-quick-form>
+            <div class="quick-fields" data-quick-fields></div>
+            <div class="quick-actions">
+              <button class="button button-outline" type="button" data-quick-save-local disabled>儲存到本機</button>
+              <button class="button button-primary" type="button" data-quick-publish-github disabled>直接發布到 GitHub</button>
+            </div>
+          </form>
+
+          <details class="github-panel">
+            <summary>GitHub 發布設定</summary>
+            <div class="github-settings">
+              <label class="admin-field">
+                <span>Owner</span>
+                <input type="text" value="shchen0603" data-github-owner>
+              </label>
+              <label class="admin-field">
+                <span>Repository</span>
+                <input type="text" value="Personal-Website" data-github-repo>
+              </label>
+              <label class="admin-field">
+                <span>Branch</span>
+                <input type="text" value="main" data-github-branch>
+              </label>
+              <label class="admin-field">
+                <span>Fine-grained token</span>
+                <input type="password" autocomplete="off" placeholder="只需要 Contents: Read and write" data-github-token>
+              </label>
+            </div>
+          </details>
+        </div>
 
         <div class="admin-layout">
           <aside class="admin-sidebar">

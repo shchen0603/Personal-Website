@@ -29,12 +29,12 @@
 
 1. 用本機伺服器開網站，不要直接雙擊 HTML 檔。
 2. 前往 `http://localhost:8000/admin.html`。
-3. 使用 Chrome 或 Edge，按「選擇網站資料夾」，選取這個 repository 的根目錄。
-4. 在 Blog、Publications、Honors、Activities 分頁新增或編輯內容。
-5. 圖片可在 Blog 或 Activities 編輯欄位上傳，會自動寫入 `assets/blog/` 或 `assets/activities/`。
-6. 按「儲存內容」後，檢查前台頁面，再 commit 並 push 到 GitHub Pages。
+3. 在 Quick Publish 選擇 Blog、Activity、Honor 或 Publication。
+4. 填文字、附圖片，按「直接發布到 GitHub」即可 commit 到 repository，GitHub Pages 會稍後自動部署。
+5. 若只想先改本機檔案，按「選擇網站資料夾」，選取 repository 根目錄，再按「儲存到本機」。
+6. 下方的 Content Studio 是進階編輯區，可用來修改既有項目或做比較細的整理。
 
-這個版本不把 GitHub token 放進瀏覽器，也不需要額外後端；它透過瀏覽器的 File System Access API 寫入本機檔案。Safari/Firefox 對這個 API 支援有限，建議使用 Chrome 或 Edge。
+直接發布到 GitHub 需要一個 fine-grained personal access token。建議建立只限 `shchen0603/Personal-Website` 的 token，權限只開 `Contents: Read and write`。Token 不會寫進 repository，也不會被放進網頁檔案；它只存在你當下開啟的瀏覽器欄位中。Safari/Firefox 對本機檔案寫入支援有限，建議使用 Chrome 或 Edge。
 
 ## 更新 Publications
 

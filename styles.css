@@ -986,7 +986,8 @@ h3 {
 .admin-toolbar,
 .admin-layout,
 .admin-sidebar,
-.admin-editor {
+.admin-editor,
+.quick-publish {
   background: var(--white);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -1002,16 +1003,63 @@ h3 {
 }
 
 .admin-toolbar h2,
-.admin-editor h2 {
+.admin-editor h2,
+.quick-publish h2 {
   font-size: clamp(1.45rem, 3vw, 2.3rem);
 }
 
 .admin-actions,
 .admin-list-actions,
-.admin-check-row {
+.admin-check-row,
+.quick-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.65rem;
+}
+
+.quick-publish {
+  display: grid;
+  gap: 1rem;
+  margin: 1rem 0;
+  padding: 1.2rem;
+}
+
+.quick-publish-heading {
+  display: grid;
+  grid-template-columns: 1fr minmax(220px, 0.32fr);
+  gap: 1rem;
+  align-items: end;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.quick-form,
+.quick-fields {
+  display: grid;
+  gap: 1rem;
+}
+
+.quick-actions {
+  justify-content: flex-end;
+}
+
+.github-panel {
+  border-top: 1px solid var(--line);
+  padding-top: 0.2rem;
+}
+
+.github-panel summary {
+  color: var(--teal-dark);
+  cursor: pointer;
+  font-weight: 850;
+  padding: 0.7rem 0;
+}
+
+.github-settings {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  padding-top: 0.5rem;
 }
 
 .admin-status {
@@ -1246,11 +1294,14 @@ h3 {
   .activity-log article,
   .admin-layout,
   .admin-grid.two,
-  .admin-image-row {
+  .admin-image-row,
+  .quick-publish-heading,
+  .github-settings {
     grid-template-columns: 1fr;
   }
 
-  .admin-toolbar {
+  .admin-toolbar,
+  .quick-actions {
     align-items: stretch;
     flex-direction: column;
   }

@@ -7,7 +7,8 @@ if (adminApp) {
     section: "blogPosts",
     honorCategory: "awards",
     selectedIndex: 0,
-    dirty: false
+    dirty: false,
+    quickImageFile: null
   };
 
   const status = adminApp.querySelector("[data-admin-status]");
@@ -20,6 +21,15 @@ if (adminApp) {
   const tabs = adminApp.querySelectorAll("[data-admin-section]");
   const honorCategoryField = adminApp.querySelector(".admin-honor-category");
   const honorCategorySelect = adminApp.querySelector("[data-admin-honor-category]");
+  const quickForm = adminApp.querySelector("[data-quick-form]");
+  const quickType = adminApp.querySelector("[data-quick-type]");
+  const quickFields = adminApp.querySelector("[data-quick-fields]");
+  const quickSaveLocalButton = adminApp.querySelector("[data-quick-save-local]");
+  const quickPublishGitHubButton = adminApp.querySelector("[data-quick-publish-github]");
+  const githubOwner = adminApp.querySelector("[data-github-owner]");
+  const githubRepo = adminApp.querySelector("[data-github-repo]");
+  const githubBranch = adminApp.querySelector("[data-github-branch]");
+  const githubToken = adminApp.querySelector("[data-github-token]");
 
   const setStatus = (message, tone = "") => {
     status.textContent = message;
@@ -29,7 +39,11 @@ if (adminApp) {
   const setDirty = (dirty) => {
     state.dirty = dirty;
     saveButton.disabled = !state.content || !dirty;
+    quickSaveLocalButton.disabled = !state.content;
+    quickPublishGitHubButton.disabled = !state.content;
   };
+
+  const cloneContent = (content) => JSON.parse(JSON.stringify(content || {}));
 
   const slugify = (value) =>
     String(value || "item")
@@ -91,13 +105,19 @@ if (adminApp) {
     await writable.close();
   };
 
+  const getAssetFileName = (file) => {
+    const extension = file.name.includes(".") ? file.name.split(".").pop().toLowerCase() : "jpg";
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+
+    return `${timestamp}-${slugify(file.name.replace(/\.[^.]+$/, ""))}.${extension}`;
+  };
+
   const saveImage = async (file, folder) => {
     if (!file) {
       return "";
     }
 
-    const extension = file.name.includes(".") ? file.name.split(".").pop().toLowerCase() : "jpg";
-    const safeName = `${new Date().toISOString().slice(0, 10)}-${slugify(file.name.replace(/\.[^.]+$/, ""))}.${extension}`;
+    const safeName = getAssetFileName(file);
     const directory = await getDirectoryHandle(`assets/${folder}`, true);
     const fileHandle = await directory.getFileHandle(safeName, { create: true });
     const writable = await fileHandle.createWritable();
@@ -106,6 +126,107 @@ if (adminApp) {
     await writable.close();
 
     return `assets/${folder}/${safeName}`;
+  };
+
+  const makeAssetPath = (file, folder) => {
+    if (!file) {
+      return "";
+    }
+
+    return `assets/${folder}/${getAssetFileName(file)}`;
+  };
+
+  const fileToBase64 = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.addEventListener("load", () => {
+        resolve(String(reader.result).split(",")[1] || "");
+      });
+      reader.addEventListener("error", () => reject(reader.error));
+      reader.readAsDataURL(file);
+    });
+
+  const githubRequest = async (path, options = {}) => {
+    const owner = githubOwner.value.trim();
+    const repo = githubRepo.value.trim();
+    const token = githubToken.value.trim();
+
+    if (!owner || !repo || !token) {
+      throw new Error("請先填 GitHub owner、repository 和 token。");
+    }
+
+    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}${path}`, {
+      ...options,
+      headers: {
+        Accept: "application/vnd.github+json",
+        Authorization: `Bearer ${token}`,
+        "X-GitHub-Api-Version": "2022-11-28",
+        ...(options.headers || {})
+      }
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `GitHub request failed: ${response.status}`);
+    }
+
+    return response.json();
+  };
+
+  const publishToGitHub = async (nextContent, extraFiles = [], message = "Update website content") => {
+    const branch = githubBranch.value.trim() || "main";
+    const ref = await githubRequest(`/git/ref/heads/${encodeURIComponent(branch)}`);
+    const baseCommitSha = ref.object.sha;
+    const baseCommit = await githubRequest(`/git/commits/${baseCommitSha}`);
+    const treeItems = [
+      {
+        path: "data/site-content.json",
+        mode: "100644",
+        type: "blob",
+        content: `${JSON.stringify(nextContent, null, 2)}\n`
+      }
+    ];
+
+    for (const file of extraFiles) {
+      const blob = await githubRequest("/git/blobs", {
+        method: "POST",
+        body: JSON.stringify({
+          content: file.content,
+          encoding: "base64"
+        })
+      });
+
+      treeItems.push({
+        path: file.path,
+        mode: "100644",
+        type: "blob",
+        sha: blob.sha
+      });
+    }
+
+    const tree = await githubRequest("/git/trees", {
+      method: "POST",
+      body: JSON.stringify({
+        base_tree: baseCommit.tree.sha,
+        tree: treeItems
+      })
+    });
+    const commit = await githubRequest("/git/commits", {
+      method: "POST",
+      body: JSON.stringify({
+        message,
+        tree: tree.sha,
+        parents: [baseCommitSha]
+      })
+    });
+
+    await githubRequest(`/git/refs/heads/${encodeURIComponent(branch)}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        sha: commit.sha
+      })
+    });
   };
 
   const parseTags = (value) =>
@@ -235,6 +356,171 @@ if (adminApp) {
       title: "New honor",
       description: ""
     };
+  };
+
+  const renderQuickFields = () => {
+    const type = quickType.value;
+
+    state.quickImageFile = null;
+
+    if (type === "blogPosts") {
+      quickFields.innerHTML = `
+        <div class="admin-grid two">
+          ${field("title", "標題", "")}
+          ${field("category", "分類", "Research Notes")}
+        </div>
+        ${textarea("body", "你想發布的文字", "", 7)}
+        <label class="admin-field">
+          <span>附加圖片</span>
+          <input type="file" name="imageFile" accept="image/*" data-quick-image>
+        </label>
+      `;
+      return;
+    }
+
+    if (type === "activities") {
+      quickFields.innerHTML = `
+        <div class="admin-grid two">
+          ${field("title", "活動名稱", "")}
+          ${field("meta", "活動資訊", `${new Date().getFullYear()} · Activity`)}
+        </div>
+        ${textarea("summary", "簡短心得", "", 6)}
+        <label class="admin-field">
+          <span>附加圖片</span>
+          <input type="file" name="imageFile" accept="image/*" data-quick-image>
+        </label>
+        <div class="admin-check-row">
+          ${checkbox("log", "加入 Activity Log", true)}
+          ${checkbox("featured", "放大為首張活動卡", false)}
+        </div>
+      `;
+      return;
+    }
+
+    if (type === "honors") {
+      quickFields.innerHTML = `
+        <div class="admin-grid two">
+          <label class="admin-field">
+            <span>類型</span>
+            <select name="honorCategory">
+              <option value="awards">Awards</option>
+              <option value="talks">Invited Talks</option>
+              <option value="presentations">Conference Presentations</option>
+              <option value="services">Media & Service</option>
+            </select>
+          </label>
+          ${field("year", "年份", new Date().getFullYear().toString())}
+        </div>
+        ${field("title", "標題", "")}
+        ${textarea("description", "說明", "", 5)}
+      `;
+      return;
+    }
+
+    quickFields.innerHTML = `
+      <div class="admin-grid two">
+        ${field("year", "年份", new Date().getFullYear().toString())}
+        ${field("doi", "DOI / 連結", "")}
+      </div>
+      ${field("title", "論文標題", "")}
+      ${textarea("authors", "作者", "Szu-Han Chen.", 3)}
+      ${textarea("venue", "期刊 citation", "", 3)}
+      ${textarea("tags", "Tags（slug|Label，每行一個）", "", 4)}
+      ${checkbox("featured", "設為 Research 頁代表作", false)}
+    `;
+  };
+
+  const splitParagraphs = (value) =>
+    value
+      .split(/\n\s*\n/)
+      .map((paragraph) => paragraph.trim())
+      .filter(Boolean);
+
+  const buildQuickItem = (type, formData, imagePath = "") => {
+    const today = new Date().toISOString().slice(0, 10);
+
+    if (type === "blogPosts") {
+      const title = formData.get("title") || "新文章";
+      const body = splitParagraphs(formData.get("body") || "");
+
+      return {
+        id: `${today}-${slugify(title)}`,
+        status: "published",
+        date: today,
+        dateLabel: today.replaceAll("-", "."),
+        category: formData.get("category") || "Research Notes",
+        title,
+        excerpt: body[0] || "",
+        image: imagePath,
+        imageAlt: title,
+        body
+      };
+    }
+
+    if (type === "activities") {
+      const title = formData.get("title") || "New activity";
+
+      return {
+        year: today.slice(0, 4),
+        meta: formData.get("meta") || `${today.slice(0, 4)} · Activity`,
+        title,
+        summary: formData.get("summary") || "",
+        visualLabel: title,
+        visualTheme: "poa",
+        image: imagePath,
+        imageAlt: title,
+        featured: formData.get("featured") === "on",
+        log: formData.get("log") === "on"
+      };
+    }
+
+    if (type === "honors") {
+      return {
+        year: formData.get("year") || today.slice(0, 4),
+        title: formData.get("title") || "New honor",
+        description: formData.get("description") || "",
+        honorCategory: formData.get("honorCategory") || "awards"
+      };
+    }
+
+    return {
+      year: formData.get("year") || today.slice(0, 4),
+      title: formData.get("title") || "New publication",
+      authors: formData.get("authors") || "Szu-Han Chen.",
+      venue: formData.get("venue") || "",
+      doi: formData.get("doi") || "",
+      tags: parseTags(formData.get("tags") || ""),
+      featured: formData.get("featured") === "on"
+    };
+  };
+
+  const insertQuickItem = (content, type, item) => {
+    if (type === "honors") {
+      const category = item.honorCategory || "awards";
+      const honorItem = { ...item };
+
+      delete honorItem.honorCategory;
+      content.honors ||= {};
+      content.honors[category] ||= [];
+      content.honors[category].unshift(honorItem);
+      return;
+    }
+
+    content[type] ||= [];
+
+    if (type === "publications" && item.featured) {
+      content.publications.forEach((publication) => {
+        publication.featured = false;
+      });
+    }
+
+    if (type === "activities" && item.featured) {
+      content.activities.forEach((activity) => {
+        activity.featured = false;
+      });
+    }
+
+    content[type].unshift(item);
   };
 
   const renderList = () => {
@@ -442,6 +728,86 @@ if (adminApp) {
     renderList();
   };
 
+  const getQuickImageFile = () => quickForm.querySelector("[data-quick-image]")?.files?.[0] || null;
+
+  const handleQuickPublish = async (mode) => {
+    if (!state.content) {
+      setStatus("內容尚未載入，請稍等或選擇網站資料夾。", "error");
+      return;
+    }
+
+    const type = quickType.value;
+    const imageFile = getQuickImageFile();
+    const imageFolder = type === "activities" ? "activities" : "blog";
+
+    try {
+      if (mode === "local" && imageFile && !state.rootHandle) {
+        setStatus("要儲存圖片到本機，請先按「選擇網站資料夾」。", "error");
+        return;
+      }
+
+      if (mode === "local" && !state.rootHandle) {
+        setStatus("要寫入本機檔案，請先按「選擇網站資料夾」。", "error");
+        return;
+      }
+
+      const nextContent = cloneContent(state.content);
+      const imagePath = mode === "local"
+        ? await saveImage(imageFile, imageFolder)
+        : makeAssetPath(imageFile, imageFolder);
+      const item = buildQuickItem(type, new FormData(quickForm), imagePath);
+      const extraFiles = [];
+
+      insertQuickItem(nextContent, type, item);
+
+      if (mode === "github") {
+        if (imageFile && imagePath) {
+          extraFiles.push({
+            path: imagePath,
+            content: await fileToBase64(imageFile)
+          });
+        }
+
+        setStatus("正在發布到 GitHub...", "");
+        await publishToGitHub(nextContent, extraFiles, `Publish ${item.title || "website content"}`);
+        state.content = nextContent;
+        setDirty(false);
+        setStatus("已發布到 GitHub。GitHub Pages 會在稍後自動部署。", "success");
+      } else {
+        state.content = nextContent;
+        await writeContentFile();
+        setDirty(false);
+        setStatus("已儲存到本機 data/site-content.json。", "success");
+      }
+
+      quickForm.reset();
+      renderQuickFields();
+      render();
+    } catch (error) {
+      console.error(error);
+      setStatus(`發布失敗：${error.message || "請檢查設定與權限。"}`, "error");
+    }
+  };
+
+  const loadInitialContent = async () => {
+    try {
+      const response = await fetch("data/site-content.json", { cache: "no-store" });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      state.content = await response.json();
+      setDirty(false);
+      setStatus("內容已載入。可以直接快速發布；若要寫入本機檔案，請選擇網站資料夾。", "success");
+      render();
+    } catch (error) {
+      console.warn(error);
+      setStatus("尚未載入內容。請用本機伺服器開啟，或按「選擇網站資料夾」。", "error");
+      render();
+    }
+  };
+
   openFolderButton.addEventListener("click", async () => {
     if (!window.showDirectoryPicker) {
       setStatus("這個瀏覽器不支援資料夾寫入。請使用 Chrome 或 Edge 開啟 admin.html。", "error");
@@ -510,7 +876,12 @@ if (adminApp) {
 
   editor.addEventListener("input", updateCurrentItem);
   editor.addEventListener("change", updateCurrentItem);
+  quickType.addEventListener("change", renderQuickFields);
+  quickSaveLocalButton.addEventListener("click", () => handleQuickPublish("local"));
+  quickPublishGitHubButton.addEventListener("click", () => handleQuickPublish("github"));
 
   setStatus("尚未選擇網站資料夾。");
+  renderQuickFields();
   render();
+  loadInitialContent();
 }

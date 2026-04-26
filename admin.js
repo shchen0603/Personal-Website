@@ -354,9 +354,19 @@ if (adminApp) {
   `;
 
   const activityImagesField = (item) => `
-    ${imageField(item.image, "activities", { multiple: true })}
-    <p class="admin-help">上傳多張照片時，第一張會成為封面；下面的圖片集可用「路徑|替代文字|照片說明」每行編輯一張。</p>
-    ${textarea("images", "圖片集", stringifyImages(item.images), 5)}
+    <div class="admin-image-row">
+      ${field("image", "封面圖片路徑", item.image)}
+      <label class="admin-field">
+        <span>上傳封面照</span>
+        <input type="file" name="coverImageFile" accept="image/*" data-admin-cover-upload="activities">
+      </label>
+    </div>
+    <label class="admin-field">
+      <span>上傳其他活動照片</span>
+      <input type="file" name="galleryImageFiles" accept="image/*" data-admin-gallery-upload="activities" multiple>
+    </label>
+    <p class="admin-help">封面照會顯示在 Activities 卡片；其他活動照片會放進完整頁的圖片集。已上傳的圖片集仍可用「路徑|替代文字|照片說明」每行編輯一張。</p>
+    ${textarea("images", "其他照片圖片集", stringifyImages(item.images), 5)}
   `;
 
   const defaultItem = () => {
@@ -457,10 +467,17 @@ if (adminApp) {
         </div>
         ${textarea("summary", "卡片摘要", "", 4)}
         ${textarea("body", "完整心得（每一段用空行分開）", "", 8)}
-        <label class="admin-field">
-          <span>活動照片</span>
-          <input type="file" name="imageFile" accept="image/*" data-quick-image multiple>
-        </label>
+        <div class="admin-grid two">
+          <label class="admin-field">
+            <span>封面照</span>
+            <input type="file" name="coverImageFile" accept="image/*" data-quick-cover-image>
+          </label>
+          <label class="admin-field">
+            <span>其他活動照片</span>
+            <input type="file" name="galleryImageFiles" accept="image/*" data-quick-gallery-images multiple>
+          </label>
+        </div>
+        <p class="admin-help">封面照會顯示在 Activities 卡片；其他活動照片會放進完整頁的圖片集。</p>
         <div class="admin-check-row">
           ${checkbox("log", "加入 Activity Log", true)}
           ${checkbox("featured", "放大活動卡", false)}
@@ -508,9 +525,9 @@ if (adminApp) {
       .map((paragraph) => paragraph.trim())
       .filter(Boolean);
 
-  const buildQuickItem = (type, formData, imagePaths = []) => {
+  const buildQuickItem = (type, formData, imageInput = []) => {
     const today = new Date().toISOString().slice(0, 10);
-    const paths = Array.isArray(imagePaths) ? imagePaths.filter(Boolean) : [imagePaths].filter(Boolean);
+    const paths = Array.isArray(imageInput) ? imageInput.filter(Boolean) : [imageInput].filter(Boolean);
 
     if (type === "blogPosts") {
       const title = formData.get("title") || "新文章";
@@ -536,7 +553,13 @@ if (adminApp) {
       const year = formData.get("year") || date.slice(0, 4);
       const body = splitParagraphs(formData.get("body") || "");
       const summary = formData.get("summary") || body[0] || "";
-      const images = paths.map((path) => ({
+      const coverPath = Array.isArray(imageInput)
+        ? paths[0] || ""
+        : imageInput.coverPath || "";
+      const galleryPaths = Array.isArray(imageInput)
+        ? paths.slice(1)
+        : adminNormalizeList(imageInput.galleryPaths).filter(Boolean);
+      const images = galleryPaths.map((path) => ({
         src: path,
         alt: title,
         caption: ""
@@ -553,7 +576,7 @@ if (adminApp) {
         body: body.length ? body : [summary].filter(Boolean),
         visualLabel: title,
         visualTheme: "poa",
-        image: paths[0] || "",
+        image: coverPath || galleryPaths[0] || "",
         images,
         imageAlt: title,
         featured: formData.get("featured") === "on",
@@ -781,8 +804,21 @@ if (adminApp) {
       return;
     }
 
-    if (event.target.name === "imageFile") {
-      const folder = event.target.dataset.adminImageUpload || "blog";
+    if (event.target.name === "coverImageFile") {
+      const path = await saveImage(event.target.files?.[0], event.target.dataset.adminCoverUpload || "activities");
+
+      if (path) {
+        item.image = path;
+        setStatus(`封面照已加入：${path}`, "success");
+      }
+
+      setDirty(true);
+      render();
+      return;
+    }
+
+    if (event.target.name === "galleryImageFiles") {
+      const folder = event.target.dataset.adminGalleryUpload || "activities";
       const files = [...(event.target.files || [])];
       const paths = [];
 
@@ -794,7 +830,7 @@ if (adminApp) {
         }
       }
 
-      if (paths.length && state.section === "activities") {
+      if (paths.length) {
         item.images ||= [];
         paths.forEach((path) => {
           item.images.push({
@@ -803,11 +839,26 @@ if (adminApp) {
             caption: ""
           });
         });
-        item.image ||= paths[0];
-        setStatus(`已加入 ${paths.length} 張活動照片。`, "success");
-      } else if (paths[0]) {
-        item.image = paths[0];
-        setStatus(`圖片已加入：${paths[0]}`, "success");
+
+        if (!item.image) {
+          item.image = paths[0];
+          setStatus(`已加入 ${paths.length} 張其他活動照片，並用第一張作為封面。`, "success");
+        } else {
+          setStatus(`已加入 ${paths.length} 張其他活動照片。`, "success");
+        }
+      }
+
+      setDirty(true);
+      render();
+      return;
+    }
+
+    if (event.target.name === "imageFile") {
+      const path = await saveImage(event.target.files?.[0], event.target.dataset.adminImageUpload || "blog");
+
+      if (path) {
+        item.image = path;
+        setStatus(`圖片已加入：${path}`, "success");
       }
 
       setDirty(true);
@@ -859,6 +910,8 @@ if (adminApp) {
   };
 
   const getQuickImageFiles = () => [...(quickForm.querySelector("[data-quick-image]")?.files || [])];
+  const getQuickCoverImageFile = () => quickForm.querySelector("[data-quick-cover-image]")?.files?.[0] || null;
+  const getQuickGalleryImageFiles = () => [...(quickForm.querySelector("[data-quick-gallery-images]")?.files || [])];
 
   const handleQuickPublish = async (mode) => {
     if (!state.content) {
@@ -867,7 +920,11 @@ if (adminApp) {
     }
 
     const type = quickType.value;
-    const imageFiles = getQuickImageFiles();
+    const coverFile = type === "activities" ? getQuickCoverImageFile() : null;
+    const galleryFiles = type === "activities" ? getQuickGalleryImageFiles() : [];
+    const imageFiles = type === "activities"
+      ? [coverFile, ...galleryFiles].filter(Boolean)
+      : getQuickImageFiles();
     const imageFolder = type === "activities" ? "activities" : "blog";
 
     try {
@@ -883,26 +940,61 @@ if (adminApp) {
 
       const nextContent = cloneContent(state.content);
       const imagePaths = [];
+      let coverPath = "";
+      const galleryPaths = [];
 
-      if (mode === "local") {
-        for (const file of imageFiles) {
-          imagePaths.push(await saveImage(file, imageFolder));
+      if (type === "activities") {
+        if (mode === "local") {
+          coverPath = await saveImage(coverFile, imageFolder);
+
+          for (const file of galleryFiles) {
+            galleryPaths.push(await saveImage(file, imageFolder));
+          }
+        } else {
+          coverPath = makeAssetPath(coverFile, imageFolder);
+          galleryPaths.push(...galleryFiles.map((file) => makeAssetPath(file, imageFolder)));
         }
       } else {
-        imagePaths.push(...imageFiles.map((file) => makeAssetPath(file, imageFolder)));
+        if (mode === "local") {
+          for (const file of imageFiles) {
+            imagePaths.push(await saveImage(file, imageFolder));
+          }
+        } else {
+          imagePaths.push(...imageFiles.map((file) => makeAssetPath(file, imageFolder)));
+        }
       }
 
-      const item = buildQuickItem(type, new FormData(quickForm), imagePaths);
+      const item = buildQuickItem(
+        type,
+        new FormData(quickForm),
+        type === "activities" ? { coverPath, galleryPaths } : imagePaths
+      );
       const extraFiles = [];
 
       insertQuickItem(nextContent, type, item);
 
       if (mode === "github") {
-        for (const [index, file] of imageFiles.entries()) {
-          extraFiles.push({
-            path: imagePaths[index],
-            content: await fileToBase64(file)
-          });
+        if (type === "activities") {
+          if (coverFile && coverPath) {
+            extraFiles.push({
+              path: coverPath,
+              content: await fileToBase64(coverFile)
+            });
+          }
+
+          for (const [index, file] of galleryFiles.entries()) {
+            extraFiles.push({
+              path: galleryPaths[index],
+              content: await fileToBase64(file)
+            });
+          }
+        } else {
+          for (const [index, file] of imageFiles.entries()) {
+            extraFiles.push({
+              path: imagePaths[index],
+              content: await fileToBase64(file)
+            });
+          }
         }
 
         setStatus("正在發布到 GitHub...", "");

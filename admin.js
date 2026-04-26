@@ -55,6 +55,35 @@ if (adminApp) {
 
   const adminNormalizeList = (value) => (Array.isArray(value) ? value : []);
 
+  const formatDateForDisplay = (date) => String(date || "").replaceAll("-", ".");
+
+  const getActivitySortTime = (activity) => {
+    if (activity.date) {
+      const parsed = Date.parse(activity.date);
+
+      if (!Number.isNaN(parsed)) {
+        return parsed;
+      }
+    }
+
+    const yearMatch = String(activity.year || activity.meta || "").match(/\d{4}/);
+    const yearValue = yearMatch ? Number(yearMatch[0]) : 0;
+
+    return yearValue ? Date.UTC(yearValue, 0, 1) : 0;
+  };
+
+  const sortActivities = (activities) => {
+    activities.sort((first, second) => {
+      const timeDifference = getActivitySortTime(second) - getActivitySortTime(first);
+
+      if (timeDifference !== 0) {
+        return timeDifference;
+      }
+
+      return String(first.title || "").localeCompare(String(second.title || ""));
+    });
+  };
+
   const getCollection = () => {
     if (!state.content) {
       return [];
@@ -267,6 +296,32 @@ if (adminApp) {
       .map((link) => `${link.label || ""}|${link.href || ""}`)
       .join("\n");
 
+  const parseImages = (value) =>
+    value
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const [src, alt, caption] = line.split("|").map((part) => part.trim());
+
+        return {
+          src,
+          alt: alt || "",
+          caption: caption || ""
+        };
+      });
+
+  const stringifyImages = (images) =>
+    adminNormalizeList(images)
+      .map((image) => {
+        if (typeof image === "string") {
+          return image;
+        }
+
+        return [image.src || "", image.alt || "", image.caption || ""].join("|");
+      })
+      .join("\n");
+
   const field = (name, label, value = "", type = "text") => `
     <label class="admin-field">
       <span>${label}</span>
@@ -288,14 +343,20 @@ if (adminApp) {
     </label>
   `;
 
-  const imageField = (pathValue = "", folder = "blog") => `
+  const imageField = (pathValue = "", folder = "blog", options = {}) => `
     <div class="admin-image-row">
       ${field("image", "圖片路徑", pathValue)}
       <label class="admin-field">
         <span>上傳圖片</span>
-        <input type="file" name="imageFile" accept="image/*" data-admin-image-upload="${folder}">
+        <input type="file" name="imageFile" accept="image/*" data-admin-image-upload="${folder}" ${options.multiple ? "multiple" : ""}>
       </label>
     </div>
+  `;
+
+  const activityImagesField = (item) => `
+    ${imageField(item.image, "activities", { multiple: true })}
+    <p class="admin-help">上傳多張照片時，第一張會成為封面；下面的圖片集可用「路徑|替代文字|照片說明」每行編輯一張。</p>
+    ${textarea("images", "圖片集", stringifyImages(item.images), 5)}
   `;
 
   const defaultItem = () => {
@@ -330,13 +391,18 @@ if (adminApp) {
 
     if (state.section === "activities") {
       return {
-        year: new Date().getFullYear().toString(),
-        meta: `${new Date().getFullYear()} · Activity`,
+        id: `activity-${today}`,
+        date: today,
+        dateLabel: formatDateForDisplay(today),
+        year: today.slice(0, 4),
+        meta: `${today.slice(0, 4)} · Activity`,
         title: "New activity",
         summary: "",
+        body: [""],
         visualLabel: "Activity",
         visualTheme: "poa",
         image: "",
+        images: [],
         imageAlt: "",
         featured: false,
         log: true
@@ -379,19 +445,25 @@ if (adminApp) {
     }
 
     if (type === "activities") {
+      const today = new Date().toISOString().slice(0, 10);
+
       quickFields.innerHTML = `
         <div class="admin-grid two">
           ${field("title", "活動名稱", "")}
-          ${field("meta", "活動資訊", `${new Date().getFullYear()} · Activity`)}
+          ${field("date", "活動日期", today, "date")}
+          ${field("year", "年份", today.slice(0, 4))}
+          ${field("dateLabel", "顯示日期", formatDateForDisplay(today))}
+          ${field("meta", "活動資訊", `${today.slice(0, 4)} · Activity`)}
         </div>
-        ${textarea("summary", "簡短心得", "", 6)}
+        ${textarea("summary", "卡片摘要", "", 4)}
+        ${textarea("body", "完整心得（每一段用空行分開）", "", 8)}
         <label class="admin-field">
-          <span>附加圖片</span>
-          <input type="file" name="imageFile" accept="image/*" data-quick-image>
+          <span>活動照片</span>
+          <input type="file" name="imageFile" accept="image/*" data-quick-image multiple>
         </label>
         <div class="admin-check-row">
           ${checkbox("log", "加入 Activity Log", true)}
-          ${checkbox("featured", "放大為首張活動卡", false)}
+          ${checkbox("featured", "放大活動卡", false)}
         </div>
       `;
       return;
@@ -436,8 +508,9 @@ if (adminApp) {
       .map((paragraph) => paragraph.trim())
       .filter(Boolean);
 
-  const buildQuickItem = (type, formData, imagePath = "") => {
+  const buildQuickItem = (type, formData, imagePaths = []) => {
     const today = new Date().toISOString().slice(0, 10);
+    const paths = Array.isArray(imagePaths) ? imagePaths.filter(Boolean) : [imagePaths].filter(Boolean);
 
     if (type === "blogPosts") {
       const title = formData.get("title") || "新文章";
@@ -451,7 +524,7 @@ if (adminApp) {
         category: formData.get("category") || "Research Notes",
         title,
         excerpt: body[0] || "",
-        image: imagePath,
+        image: paths[0] || "",
         imageAlt: title,
         body
       };
@@ -459,15 +532,29 @@ if (adminApp) {
 
     if (type === "activities") {
       const title = formData.get("title") || "New activity";
+      const date = formData.get("date") || today;
+      const year = formData.get("year") || date.slice(0, 4);
+      const body = splitParagraphs(formData.get("body") || "");
+      const summary = formData.get("summary") || body[0] || "";
+      const images = paths.map((path) => ({
+        src: path,
+        alt: title,
+        caption: ""
+      }));
 
       return {
-        year: today.slice(0, 4),
-        meta: formData.get("meta") || `${today.slice(0, 4)} · Activity`,
+        id: `${date}-${slugify(title)}`,
+        date,
+        dateLabel: formData.get("dateLabel") || formatDateForDisplay(date),
+        year,
+        meta: formData.get("meta") || `${year} · Activity`,
         title,
-        summary: formData.get("summary") || "",
+        summary,
+        body: body.length ? body : [summary].filter(Boolean),
         visualLabel: title,
         visualTheme: "poa",
-        image: imagePath,
+        image: paths[0] || "",
+        images,
         imageAlt: title,
         featured: formData.get("featured") === "on",
         log: formData.get("log") === "on"
@@ -521,6 +608,10 @@ if (adminApp) {
     }
 
     content[type].unshift(item);
+
+    if (type === "activities") {
+      sortActivities(content.activities);
+    }
   };
 
   const renderList = () => {
@@ -532,7 +623,7 @@ if (adminApp) {
     list.innerHTML = collection
       .map((item, index) => {
         const label = item.title || item.category || "Untitled";
-        const meta = item.year || item.dateLabel || item.date || item.status || "";
+        const meta = item.dateLabel || item.date || item.year || item.status || "";
 
         return `
           <button class="${index === state.selectedIndex ? "is-active" : ""}" type="button" data-admin-index="${index}">
@@ -618,6 +709,9 @@ if (adminApp) {
           <h2>${escapeHTML(item.title || "Untitled")}</h2>
         </div>
         <div class="admin-grid two">
+          ${field("id", "活動 ID", item.id)}
+          ${field("date", "活動日期", item.date, "date")}
+          ${field("dateLabel", "顯示日期", item.dateLabel)}
           ${field("year", "年份", item.year)}
           ${field("meta", "Meta", item.meta)}
           ${field("visualLabel", "占位視覺文字", item.visualLabel)}
@@ -629,11 +723,12 @@ if (adminApp) {
           </label>
         </div>
         ${field("title", "標題", item.title)}
-        ${textarea("summary", "心得 / 說明", item.summary, 5)}
-        ${imageField(item.image, "activities")}
+        ${textarea("summary", "卡片摘要", item.summary, 4)}
+        ${textarea("body", "完整心得（每一段用空行分開）", adminNormalizeList(item.body).join("\n\n"), 12)}
+        ${activityImagesField(item)}
         ${field("imageAlt", "圖片替代文字", item.imageAlt)}
         <div class="admin-check-row">
-          ${checkbox("featured", "放大為首張活動卡", item.featured)}
+          ${checkbox("featured", "放大活動卡", item.featured)}
           ${checkbox("log", "加入 Activity Log", item.log)}
         </div>
       `;
@@ -688,11 +783,31 @@ if (adminApp) {
 
     if (event.target.name === "imageFile") {
       const folder = event.target.dataset.adminImageUpload || "blog";
-      const path = await saveImage(event.target.files[0], folder);
+      const files = [...(event.target.files || [])];
+      const paths = [];
 
-      if (path) {
-        item.image = path;
-        setStatus(`圖片已加入：${path}`, "success");
+      for (const file of files) {
+        const path = await saveImage(file, folder);
+
+        if (path) {
+          paths.push(path);
+        }
+      }
+
+      if (paths.length && state.section === "activities") {
+        item.images ||= [];
+        paths.forEach((path) => {
+          item.images.push({
+            src: path,
+            alt: item.title || "活動照片",
+            caption: ""
+          });
+        });
+        item.image ||= paths[0];
+        setStatus(`已加入 ${paths.length} 張活動照片。`, "success");
+      } else if (paths[0]) {
+        item.image = paths[0];
+        setStatus(`圖片已加入：${paths[0]}`, "success");
       }
 
       setDirty(true);
@@ -707,6 +822,8 @@ if (adminApp) {
       item.tags = parseTags(value);
     } else if (name === "links") {
       item.links = parseLinks(value);
+    } else if (name === "images") {
+      item.images = parseImages(value);
     } else if (name === "body") {
       item.body = value
         .split(/\n\s*\n/)
@@ -724,11 +841,24 @@ if (adminApp) {
       });
     }
 
+    if (state.section === "activities" && name === "featured" && value) {
+      state.content.activities.forEach((activity) => {
+        if (activity !== item) {
+          activity.featured = false;
+        }
+      });
+    }
+
+    if (state.section === "activities" && ["date", "year", "title"].includes(name)) {
+      sortActivities(state.content.activities);
+      state.selectedIndex = state.content.activities.indexOf(item);
+    }
+
     setDirty(true);
     renderList();
   };
 
-  const getQuickImageFile = () => quickForm.querySelector("[data-quick-image]")?.files?.[0] || null;
+  const getQuickImageFiles = () => [...(quickForm.querySelector("[data-quick-image]")?.files || [])];
 
   const handleQuickPublish = async (mode) => {
     if (!state.content) {
@@ -737,11 +867,11 @@ if (adminApp) {
     }
 
     const type = quickType.value;
-    const imageFile = getQuickImageFile();
+    const imageFiles = getQuickImageFiles();
     const imageFolder = type === "activities" ? "activities" : "blog";
 
     try {
-      if (mode === "local" && imageFile && !state.rootHandle) {
+      if (mode === "local" && imageFiles.length && !state.rootHandle) {
         setStatus("要儲存圖片到本機，請先按「選擇網站資料夾」。", "error");
         return;
       }
@@ -752,19 +882,26 @@ if (adminApp) {
       }
 
       const nextContent = cloneContent(state.content);
-      const imagePath = mode === "local"
-        ? await saveImage(imageFile, imageFolder)
-        : makeAssetPath(imageFile, imageFolder);
-      const item = buildQuickItem(type, new FormData(quickForm), imagePath);
+      const imagePaths = [];
+
+      if (mode === "local") {
+        for (const file of imageFiles) {
+          imagePaths.push(await saveImage(file, imageFolder));
+        }
+      } else {
+        imagePaths.push(...imageFiles.map((file) => makeAssetPath(file, imageFolder)));
+      }
+
+      const item = buildQuickItem(type, new FormData(quickForm), imagePaths);
       const extraFiles = [];
 
       insertQuickItem(nextContent, type, item);
 
       if (mode === "github") {
-        if (imageFile && imagePath) {
+        for (const [index, file] of imageFiles.entries()) {
           extraFiles.push({
-            path: imagePath,
-            content: await fileToBase64(imageFile)
+            path: imagePaths[index],
+            content: await fileToBase64(file)
           });
         }
 
@@ -798,6 +935,7 @@ if (adminApp) {
       }
 
       state.content = await response.json();
+      sortActivities(state.content.activities ||= []);
       setDirty(false);
       setStatus("內容已載入。可以直接快速發布；若要寫入本機檔案，請選擇網站資料夾。", "success");
       render();
@@ -817,6 +955,7 @@ if (adminApp) {
     try {
       state.rootHandle = await window.showDirectoryPicker({ mode: "readwrite" });
       state.content = await readContentFile();
+      sortActivities(state.content.activities ||= []);
       state.selectedIndex = 0;
       setDirty(false);
       setStatus("內容已載入，可以開始編輯。", "success");

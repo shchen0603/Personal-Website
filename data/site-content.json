@@ -274,85 +274,137 @@
   },
   "activities": [
     {
+      "id": "2026-03-15-2026-aha-epi-lifestyle-scientific-sessions",
+      "date": "2026-03-15",
+      "dateLabel": "2026.03.15-03.21",
       "year": "2026",
-      "meta": "2026 · Activity",
+      "meta": "2026 · Conference Presentation · Boston",
       "title": "2026 AHA EPI | Lifestyle Scientific Sessions",
-      "summary": "2026 AHA EPI | Lifestyle（2026/3/15～3/21）\n\n本次參加美國心臟學會（AHA）在波士頓舉辦的科學研討會，主題聚焦於epidemiology, lifestyle, and cardiometabolic health。\n\n首先感謝我在哈佛大學的老師Prof. Frank B. Hu，大力建議我參加這個與我們研究內容非常相關的高水準研討會。\n而我也尤其感謝我的導師鄭浩民教授，全力支持我將我們團隊的研究成果也整理投稿到這個研討會，並且在各種資源上給予許多幫忙。\n\n本次研討會大有斬獲：\n1. 我們投稿的三篇摘要中，兩篇獲得moderated poster的機會，在對應領域專業教授帶領下，會有持麥克風向大家統一分享並問答討論的時間。\n2. 我在去年暑假哈佛進行的第二篇研究，有幸得到本會國際學者獎Paul Dudley White International Scholar Award，並在omics session大獲好評。\n3. 我們在鄭教授帶領下，關於中心型肥胖與心衰竭的研究，大獲媒體青睞。包含AHA官方媒體、Medical News Today、Medscape等醫學媒體、和其他美國主流媒體如CBS, NBC。提升了陽明與臺灣的國際知名度。\n4. 恰好因為在波士頓舉辦的緣故，得以見到許多哈佛的長官與朋友，包含Drs. Frank Hu, Qi Sun, Binkai, Mengxi, Danielle, Tong, Kenny, Xinxiu, Han, Siyue等人，不勝枚舉，超級開心。明年AHA EPI|LCH以及總會也都將在波士頓舉行，非常期待。\n5. 藉機將鄭浩民教授團隊的強勁研究動能推廣給其他國際學者，促成多條未來可能的國際合作。\n期待能保持這樣的動能繼續堅持努力下去，時刻牢記鄭老師的教誨：perserverance and grit！",
+      "summary": "參加 AHA EPI | Lifestyle Scientific Sessions，報告研究、得到 Paul Dudley White International Scholar Award，也把這段在 Boston 的交流與收穫整理成完整紀錄。",
+      "body": [
+        "2026 AHA EPI | Lifestyle（2026/3/15～3/21）",
+        "本次參加美國心臟學會（AHA）在波士頓舉辦的科學研討會，主題聚焦於epidemiology, lifestyle, and cardiometabolic health。",
+        "首先感謝我在哈佛大學的老師Prof. Frank B. Hu，大力建議我參加這個與我們研究內容非常相關的高水準研討會。而我也尤其感謝我的導師鄭浩民教授，全力支持我將我們團隊的研究成果也整理投稿到這個研討會，並且在各種資源上給予許多幫忙。",
+        "本次研討會大有斬獲：",
+        "1. 我們投稿的三篇摘要中，兩篇獲得moderated poster的機會，在對應領域專業教授帶領下，會有持麥克風向大家統一分享並問答討論的時間。",
+        "2. 我在去年暑假哈佛進行的第二篇研究，有幸得到本會國際學者獎Paul Dudley White International Scholar Award，並在omics session大獲好評。",
+        "3. 我們在鄭教授帶領下，關於中心型肥胖與心衰竭的研究，大獲媒體青睞。包含AHA官方媒體、Medical News Today、Medscape等醫學媒體、和其他美國主流媒體如CBS, NBC。提升了陽明與臺灣的國際知名度。",
+        "4. 恰好因為在波士頓舉辦的緣故，得以見到許多哈佛的長官與朋友，包含Drs. Frank Hu, Qi Sun, Binkai, Mengxi, Danielle, Tong, Kenny, Xinxiu, Han, Siyue等人，不勝枚舉，超級開心。明年AHA EPI|LCH以及總會也都將在波士頓舉行，非常期待。",
+        "5. 藉機將鄭浩民教授團隊的強勁研究動能推廣給其他國際學者，促成多條未來可能的國際合作。",
+        "期待能保持這樣的動能繼續堅持努力下去，時刻牢記鄭老師的教誨：perserverance and grit！"
+      ],
       "visualLabel": "2026 AHA EPI | Lifestyle Scientific Sessions",
       "visualTheme": "poa",
       "image": "assets/activities/2026-04-26T06-30-26-img-4750.heic",
+      "images": [
+        {
+          "src": "assets/activities/2026-04-26T06-30-26-img-4750.heic",
+          "alt": "2026 AHA EPI | Lifestyle Scientific Sessions",
+          "caption": "AHA EPI | Lifestyle Scientific Sessions 現場交流。"
+        }
+      ],
       "imageAlt": "2026 AHA EPI | Lifestyle Scientific Sessions",
       "featured": true,
       "log": true
     },
     {
+      "id": "2026-pulse-of-asia-international-conference",
       "year": "2026",
       "meta": "2026 · Conference Presentation · Taipei",
       "title": "Pulse of Asia International Conference",
       "summary": "報告 population-stratified sodium 與 blood pressure dose-response 的分析，也很適合把方法學結果轉譯成臨床與公共衛生都能理解的討論。",
+      "body": [
+        "報告 population-stratified sodium 與 blood pressure dose-response 的分析，也很適合把方法學結果轉譯成臨床與公共衛生都能理解的討論。"
+      ],
       "visualLabel": "Pulse of Asia",
       "visualTheme": "poa",
       "image": "",
+      "images": [],
       "imageAlt": "",
       "featured": false,
       "log": true
     },
     {
+      "id": "2026-paul-dudley-white-international-scholar-award",
       "year": "2026",
       "meta": "2026 · Award · Scientific Sessions",
       "title": "Paul Dudley White International Scholar Award",
       "summary": "這段經驗提醒我，好的流行病學研究需要同時經得起統計檢驗，也能回到具體、可溝通的預防問題。",
+      "body": [
+        "這段經驗提醒我，好的流行病學研究需要同時經得起統計檢驗，也能回到具體、可溝通的預防問題。"
+      ],
       "visualLabel": "AHA EPI|Lifestyle",
       "visualTheme": "aha",
       "image": "",
+      "images": [],
       "imageAlt": "",
       "featured": false,
       "log": true
     },
     {
+      "id": "2026-from-ckhs-nycu-to-harvard",
       "year": "2026",
       "meta": "2026 · Invited Talk · Taipei",
       "title": "From CKHS, NYCU, to Harvard",
       "summary": "回到高中分享醫學生的研究旅程時，最想傳達的是：研究不是很遠的事，而是一種持續把好奇心變成問題的訓練。",
+      "body": [
+        "回到高中分享醫學生的研究旅程時，最想傳達的是：研究不是很遠的事，而是一種持續把好奇心變成問題的訓練。"
+      ],
       "visualLabel": "Career Sharing",
       "visualTheme": "talk",
       "image": "",
+      "images": [],
       "imageAlt": "",
       "featured": false,
       "log": false
     },
     {
+      "id": "2025-taiwan-society-of-hypertension-annual-scientific-meeting",
       "year": "2025",
       "meta": "2025 · Oral Presentation · Taipei",
       "title": "Taiwan Society of Hypertension Annual Scientific Meeting",
       "summary": "從 salt sensitivity 的 systematic review 與 meta-regression 出發，整理個體差異如何影響鈉攝取與血壓反應的證據。",
+      "body": [
+        "從 salt sensitivity 的 systematic review 與 meta-regression 出發，整理個體差異如何影響鈉攝取與血壓反應的證據。"
+      ],
       "visualLabel": "Hypertension",
       "visualTheme": "hypertension",
       "image": "",
+      "images": [],
       "imageAlt": "",
       "featured": false,
       "log": false
     },
     {
+      "id": "2025-introduction-to-evidence-based-medicine",
       "year": "2025",
       "meta": "2025 · Workshop · Federation of Medical Students in Taiwan",
       "title": "Introduction to Evidence-based Medicine",
       "summary": "教 EBM 時最有趣的地方，是把「如何相信一篇論文」拆成可以被練習的步驟，也把不確定性變成能被討論的材料。",
+      "body": [
+        "教 EBM 時最有趣的地方，是把「如何相信一篇論文」拆成可以被練習的步驟，也把不確定性變成能被討論的材料。"
+      ],
       "visualLabel": "EBM Workshop",
       "visualTheme": "ebm",
       "image": "",
+      "images": [],
       "imageAlt": "",
       "featured": false,
       "log": true
     },
     {
+      "id": "2025-my-research-journey-as-a-medical-student",
       "year": "2025",
       "meta": "2025 · Guest Lecture · NYCU",
       "title": "My Research Journey as a Medical Student",
       "summary": "對醫學生談研究經驗時，我會特別想保留那些還不成熟但很真實的部分：怎麼開始、怎麼卡住、以及怎麼慢慢找到題目。",
+      "body": [
+        "對醫學生談研究經驗時，我會特別想保留那些還不成熟但很真實的部分：怎麼開始、怎麼卡住、以及怎麼慢慢找到題目。"
+      ],
       "visualLabel": "NYCU Medicine",
       "visualTheme": "nycu",
       "image": "",
+      "images": [],
       "imageAlt": "",
       "featured": false,
       "log": false

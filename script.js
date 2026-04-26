@@ -20,6 +20,78 @@ const normalizeList = (value) => (Array.isArray(value) ? value : []);
 const getPublishedPosts = (content) =>
   normalizeList(content.blogPosts).filter((post) => post.status !== "draft");
 
+const slugify = (value) =>
+  String(value || "item")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 72) || "item";
+
+const getActivityId = (activity) =>
+  activity.id || `${activity.date || activity.year || "activity"}-${slugify(activity.title)}`;
+
+const getActivitySortTime = (activity) => {
+  if (activity.date) {
+    const parsed = Date.parse(activity.date);
+
+    if (!Number.isNaN(parsed)) {
+      return parsed;
+    }
+  }
+
+  const yearMatch = String(activity.year || activity.meta || "").match(/\d{4}/);
+  const yearValue = yearMatch ? Number(yearMatch[0]) : 0;
+
+  return yearValue ? Date.UTC(yearValue, 0, 1) : 0;
+};
+
+const getSortedActivities = (content) =>
+  [...normalizeList(content.activities)].sort((first, second) => {
+    const timeDifference = getActivitySortTime(second) - getActivitySortTime(first);
+
+    if (timeDifference !== 0) {
+      return timeDifference;
+    }
+
+    return String(first.title || "").localeCompare(String(second.title || ""));
+  });
+
+const getActivityDateLabel = (activity) =>
+  activity.dateLabel || activity.date || activity.year || "";
+
+const getActivityImages = (activity) => {
+  const images = normalizeList(activity.images)
+    .map((image) => (typeof image === "string" ? { src: image } : image))
+    .filter((image) => image && image.src);
+  const cover = activity.image;
+
+  if (cover && !images.some((image) => image.src === cover)) {
+    images.unshift({
+      src: cover,
+      alt: activity.imageAlt || activity.title || "活動照片"
+    });
+  }
+
+  return images;
+};
+
+const getActivityCover = (activity) =>
+  activity.image || getActivityImages(activity)[0]?.src || "";
+
+const getActivityBody = (activity) => {
+  const body = normalizeList(activity.body);
+
+  if (body.length) {
+    return body;
+  }
+
+  return String(activity.summary || "")
+    .split(/\n\s*\n/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+};
+
 if (year) {
   year.textContent = new Date().getFullYear();
 }
@@ -107,17 +179,22 @@ const renderServiceCard = (item) => {
 const renderActivityCard = (activity) => {
   const featuredClass = activity.featured ? " activity-card-featured" : "";
   const visualTheme = activity.visualTheme || "poa";
-  const image = activity.image
-    ? `<img class="activity-photo" src="${escapeHTML(activity.image)}" alt="${escapeHTML(activity.imageAlt || activity.title || "活動照片")}">`
+  const cover = getActivityCover(activity);
+  const href = `activity.html?id=${encodeURIComponent(getActivityId(activity))}`;
+  const image = cover
+    ? `<img class="activity-photo" src="${escapeHTML(cover)}" alt="${escapeHTML(activity.imageAlt || activity.title || "活動照片")}">`
     : `<div class="activity-visual activity-visual-${escapeHTML(visualTheme)}" role="img" aria-label="${escapeHTML(activity.title || "活動")}活動視覺"><span>${escapeHTML(activity.visualLabel || activity.title || "Activity")}</span></div>`;
 
   return `
     <article class="activity-card${featuredClass}">
-      ${image}
+      <a class="activity-media-link" href="${href}" aria-label="閱讀 ${escapeHTML(activity.title || "活動")} 完整紀錄">
+        ${image}
+      </a>
       <div class="activity-content">
         <p class="activity-meta">${escapeHTML(activity.meta || "")}</p>
-        <h3>${escapeHTML(activity.title || "")}</h3>
+        <h3><a href="${href}">${escapeHTML(activity.title || "")}</a></h3>
         <p>${escapeHTML(activity.summary || "")}</p>
+        <a class="activity-read-more" href="${href}">Read full notes</a>
       </div>
     </article>
   `;
@@ -125,9 +202,9 @@ const renderActivityCard = (activity) => {
 
 const renderActivityLogItem = (activity) => `
   <article>
-    <time datetime="${escapeHTML(activity.year || "")}">${escapeHTML(activity.year || "")}</time>
+    <time datetime="${escapeHTML(activity.date || activity.year || "")}">${escapeHTML(getActivityDateLabel(activity))}</time>
     <div>
-      <h3>${escapeHTML(activity.title || "")}</h3>
+      <h3><a href="activity.html?id=${encodeURIComponent(getActivityId(activity))}">${escapeHTML(activity.title || "")}</a></h3>
       <p>${escapeHTML(activity.summary || activity.meta || "")}</p>
     </div>
   </article>
@@ -197,6 +274,66 @@ const renderBlogPost = (content) => {
   `;
 };
 
+const renderActivityPost = (content) => {
+  const container = document.querySelector("[data-render='activity-post']");
+
+  if (!container) {
+    return;
+  }
+
+  const activityId = new URLSearchParams(window.location.search).get("id");
+  const activity = normalizeList(content.activities).find((item) => getActivityId(item) === activityId);
+
+  if (!activity) {
+    container.innerHTML = `
+      <header class="article-header">
+        <a class="back-link" href="activities.html">Back to Activities</a>
+        <p class="post-category">Activities</p>
+        <h1>找不到這篇活動紀錄</h1>
+        <p class="article-dek">這篇活動紀錄可能尚未發布，或網址中的 id 不正確。</p>
+      </header>
+    `;
+    return;
+  }
+
+  document.title = `${activity.title} | Activities | 陳思翰 Szu-Han Chen`;
+
+  const dateLabel = getActivityDateLabel(activity);
+  const meta = activity.meta || dateLabel || "Activity";
+  const compactMeta = dateLabel && activity.year && meta.startsWith(`${activity.year} · `)
+    ? meta.slice(`${activity.year} · `.length)
+    : meta;
+  const body = getActivityBody(activity)
+    .map((paragraph) => `<p>${escapeHTML(paragraph)}</p>`)
+    .join("");
+  const images = getActivityImages(activity);
+  const gallery = images.length
+    ? `
+      <div class="article-gallery" aria-label="活動照片">
+        ${images.map((image) => `
+          <figure>
+            <img src="${escapeHTML(image.src)}" alt="${escapeHTML(image.alt || activity.imageAlt || activity.title || "活動照片")}">
+            ${image.caption ? `<figcaption>${escapeHTML(image.caption)}</figcaption>` : ""}
+          </figure>
+        `).join("")}
+      </div>
+    `
+    : "";
+
+  container.innerHTML = `
+    <header class="article-header">
+      <a class="back-link" href="activities.html">Back to Activities</a>
+      <p class="post-category">${escapeHTML(dateLabel ? `${dateLabel} · ${compactMeta}` : compactMeta)}</p>
+      <h1>${escapeHTML(activity.title || "")}</h1>
+      <p class="article-dek">${escapeHTML(activity.summary || "")}</p>
+    </header>
+    <div class="article-body">
+      ${body}
+      ${gallery}
+    </div>
+  `;
+};
+
 const getPublicationTagFilters = (publications) => {
   const preferredOrder = [
     "heart-failure",
@@ -234,6 +371,7 @@ const renderContent = (content) => {
   const publications = normalizeList(content.publications);
   const publishedPosts = getPublishedPosts(content);
   const honors = content.honors || {};
+  const activities = getSortedActivities(content);
 
   document.querySelectorAll("[data-render='publication-filters']").forEach((container) => {
     const filters = getPublicationTagFilters(publications);
@@ -293,11 +431,11 @@ const renderContent = (content) => {
   });
 
   document.querySelectorAll("[data-render='activity-gallery']").forEach((container) => {
-    container.innerHTML = normalizeList(content.activities).map(renderActivityCard).join("");
+    container.innerHTML = activities.map(renderActivityCard).join("");
   });
 
   document.querySelectorAll("[data-render='activity-log']").forEach((container) => {
-    container.innerHTML = normalizeList(content.activities)
+    container.innerHTML = activities
       .filter((activity) => activity.log)
       .map(renderActivityLogItem)
       .join("");
@@ -312,6 +450,7 @@ const renderContent = (content) => {
   });
 
   renderBlogPost(content);
+  renderActivityPost(content);
   setupPublicationFilters();
 };
 

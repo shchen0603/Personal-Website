@@ -35,6 +35,10 @@ img {
   display: block;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 a {
   color: inherit;
 }
@@ -1022,7 +1026,8 @@ h3 {
   color: var(--teal-dark);
   font-size: 0.96rem;
   line-height: 1.25;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .admin-shell {

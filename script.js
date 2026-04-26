@@ -15,6 +15,9 @@ const escapeHTML = (value = "") =>
     return entities[character];
   });
 
+const renderTextWithBreaks = (value = "") =>
+  escapeHTML(value).replace(/\r\n?/g, "\n").replace(/\n/g, "<br>");
+
 const normalizeList = (value) => (Array.isArray(value) ? value : []);
 
 const getPublishedPosts = (content) =>
@@ -193,7 +196,7 @@ const renderActivityCard = (activity) => {
       <div class="activity-content">
         <p class="activity-meta">${escapeHTML(activity.meta || "")}</p>
         <h3><a href="${href}">${escapeHTML(activity.title || "")}</a></h3>
-        <p>${escapeHTML(activity.summary || "")}</p>
+        <p>${renderTextWithBreaks(activity.summary || "")}</p>
         <a class="activity-read-more" href="${href}">Read full notes</a>
       </div>
     </article>
@@ -205,7 +208,7 @@ const renderActivityLogItem = (activity) => `
     <time datetime="${escapeHTML(activity.date || activity.year || "")}">${escapeHTML(getActivityDateLabel(activity))}</time>
     <div>
       <h3><a href="activity.html?id=${encodeURIComponent(getActivityId(activity))}">${escapeHTML(activity.title || "")}</a></h3>
-      <p>${escapeHTML(activity.summary || activity.meta || "")}</p>
+      <p>${renderTextWithBreaks(activity.summary || activity.meta || "")}</p>
     </div>
   </article>
 `;
@@ -216,7 +219,7 @@ const renderBlogRow = (post) => `
     <div>
       <p class="post-category">${escapeHTML(post.category || "Blog")}</p>
       <h2><a href="post.html?id=${encodeURIComponent(post.id || "")}">${escapeHTML(post.title || "")}</a></h2>
-      <p>${escapeHTML(post.excerpt || "")}</p>
+      <p>${renderTextWithBreaks(post.excerpt || "")}</p>
     </div>
   </article>
 `;
@@ -225,7 +228,7 @@ const renderHomePostCard = (post) => `
   <article class="post-card">
     <p class="post-meta">${escapeHTML(post.dateLabel || post.date || "")} · ${escapeHTML(post.category || "Blog")}</p>
     <h3><a href="post.html?id=${encodeURIComponent(post.id || "")}">${escapeHTML(post.title || "")}</a></h3>
-    <p>${escapeHTML(post.excerpt || "")}</p>
+    <p>${renderTextWithBreaks(post.excerpt || "")}</p>
   </article>
 `;
 
@@ -257,7 +260,7 @@ const renderBlogPost = (content) => {
     ? `<img class="article-image" src="${escapeHTML(post.image)}" alt="${escapeHTML(post.imageAlt || post.title)}">`
     : "";
   const body = normalizeList(post.body)
-    .map((paragraph) => `<p>${escapeHTML(paragraph)}</p>`)
+    .map((paragraph) => `<p>${renderTextWithBreaks(paragraph)}</p>`)
     .join("");
 
   container.innerHTML = `
@@ -265,7 +268,7 @@ const renderBlogPost = (content) => {
       <a class="back-link" href="blog.html">Back to Blog</a>
       <p class="post-category">${escapeHTML(post.dateLabel || post.date || "")} · ${escapeHTML(post.category || "Blog")}</p>
       <h1>${escapeHTML(post.title || "")}</h1>
-      <p class="article-dek">${escapeHTML(post.excerpt || "")}</p>
+      <p class="article-dek">${renderTextWithBreaks(post.excerpt || "")}</p>
     </header>
     <div class="article-body">
       ${image}
@@ -304,7 +307,7 @@ const renderActivityPost = (content) => {
     ? meta.slice(`${activity.year} · `.length)
     : meta;
   const body = getActivityBody(activity)
-    .map((paragraph) => `<p>${escapeHTML(paragraph)}</p>`)
+    .map((paragraph) => `<p>${renderTextWithBreaks(paragraph)}</p>`)
     .join("");
   const images = getActivityImages(activity);
   const gallery = images.length
@@ -325,7 +328,7 @@ const renderActivityPost = (content) => {
       <a class="back-link" href="activities.html">Back to Activities</a>
       <p class="post-category">${escapeHTML(dateLabel ? `${dateLabel} · ${compactMeta}` : compactMeta)}</p>
       <h1>${escapeHTML(activity.title || "")}</h1>
-      <p class="article-dek">${escapeHTML(activity.summary || "")}</p>
+      <p class="article-dek">${renderTextWithBreaks(activity.summary || "")}</p>
     </header>
     <div class="article-body">
       ${body}

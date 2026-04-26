@@ -274,6 +274,71 @@
   },
   "activities": [
     {
+      "id": "2026-04-10-from-ckhs-nycu-to-harvard-my-research-journey-as-a-medical-student",
+      "date": "2026-04-10",
+      "dateLabel": "2026.04.10",
+      "year": "2026",
+      "meta": "2026 · Activity",
+      "title": "From CKHS, NYCU, to Harvard: My Research Journey as a Medical Student",
+      "summary": "本人有幸在大四的階段就回到我最愛的母校建國中學演講，和學弟分享我的醫學生研究之路。",
+      "body": [
+        "在醫學系四年級的這個階段\n本人有幸受建國中學，我最愛的母校，的邀請回來和學弟們分享我從高中到大四這短短幾年內的研究經驗\n除了感動受到母校建國中學的肯定之外\n許多我的老師也特地來參加這場演講，包含我的導師林元祥老師和我的生物老師童禕珊老師，以及辦理此活動的輔導科姜懿芸老師，非常感動\n林老師首先帶來了一段開場白，介紹了他眼中的我，從我高中時的點點滴滴到為什麼他希望促成此演講\n而演講的過程我也滔滔不絕地講了45分鐘左右，更重要的則是回答學弟問題的部分\n大家的互動比我想像地踴躍，看來大家都非常有興趣這次的內容，預先提出的問題加上現場提出的，大概也有三四十題\n童老師也在互動環節，和學弟分享了他作為我高中科展指導老師，看到我從高中到現在的成長\n我感動於兩位老師都以最細膩的觀察，真摯地說出來我作為一位學生，他們看到我的成長歷程\n另外感謝廖致翔和莊承昌，我兩位高中最好的朋友，在這次演講也來友情支持\n還有一直陪伴著我的女朋友，坐在台下陪伴著我訴說這幾年的經歷，儘管每一件事件他都是第一個知悉並支持著我的\n事後我收到學弟們填寫的回饋，更為感動，以前念建中時這種會後表單都是隨便填寫的，但卻在這次演講後收到許多學弟的溫暖打氣以及正面回覆\n希望很快還有機會回來，再和學弟們聊聊那天因時間緣故無法分享完全的內容，為母校貢獻微薄之力\n高二高三要上學時，都會走經過紅樓上斗大的兩排話：「今日我以建中為榮，明日建中以我為榮」\n我愛建中，永遠永遠"
+      ],
+      "visualLabel": "From CKHS, NYCU, to Harvard: My Research Journey as a Medical Student",
+      "visualTheme": "poa",
+      "image": "assets/activities/2026-04-26T08-09-13-img-9667.jpg",
+      "images": [
+        {
+          "src": "assets/activities/2026-04-26T08-09-13-img-5382.jpg",
+          "alt": "From CKHS, NYCU, to Harvard: My Research Journey as a Medical Student",
+          "caption": ""
+        },
+        {
+          "src": "assets/activities/2026-04-26T08-09-13-img-9684.jpg",
+          "alt": "From CKHS, NYCU, to Harvard: My Research Journey as a Medical Student",
+          "caption": ""
+        },
+        {
+          "src": "assets/activities/2026-04-26T08-09-13-img-9676.jpg",
+          "alt": "From CKHS, NYCU, to Harvard: My Research Journey as a Medical Student",
+          "caption": ""
+        },
+        {
+          "src": "assets/activities/2026-04-26T08-09-13-img-9659.jpg",
+          "alt": "From CKHS, NYCU, to Harvard: My Research Journey as a Medical Student",
+          "caption": ""
+        },
+        {
+          "src": "assets/activities/2026-04-26T08-09-13-img-9643.jpg",
+          "alt": "From CKHS, NYCU, to Harvard: My Research Journey as a Medical Student",
+          "caption": ""
+        },
+        {
+          "src": "assets/activities/2026-04-26T08-09-13-img-9622.jpg",
+          "alt": "From CKHS, NYCU, to Harvard: My Research Journey as a Medical Student",
+          "caption": ""
+        },
+        {
+          "src": "assets/activities/2026-04-26T08-09-13-img-9602.jpg",
+          "alt": "From CKHS, NYCU, to Harvard: My Research Journey as a Medical Student",
+          "caption": ""
+        },
+        {
+          "src": "assets/activities/2026-04-26T08-09-13-img-9594.jpg",
+          "alt": "From CKHS, NYCU, to Harvard: My Research Journey as a Medical Student",
+          "caption": ""
+        },
+        {
+          "src": "assets/activities/2026-04-26T08-09-13-img-9591.jpg",
+          "alt": "From CKHS, NYCU, to Harvard: My Research Journey as a Medical Student",
+          "caption": ""
+        }
+      ],
+      "imageAlt": "From CKHS, NYCU, to Harvard: My Research Journey as a Medical Student",
+      "featured": true,
+      "log": true
+    },
+    {
       "id": "2026-03-15-2026-aha-epi-lifestyle-scientific-sessions",
       "date": "2026-03-15",
       "dateLabel": "2026.03.15-03.21",
@@ -304,40 +369,6 @@
         }
       ],
       "imageAlt": "2026 AHA EPI | Lifestyle Scientific Sessions",
-      "featured": true,
-      "log": true
-    },
-    {
-      "id": "2026-pulse-of-asia-international-conference",
-      "year": "2026",
-      "meta": "2026 · Conference Presentation · Taipei",
-      "title": "Pulse of Asia International Conference",
-      "summary": "報告 population-stratified sodium 與 blood pressure dose-response 的分析，也很適合把方法學結果轉譯成臨床與公共衛生都能理解的討論。",
-      "body": [
-        "報告 population-stratified sodium 與 blood pressure dose-response 的分析，也很適合把方法學結果轉譯成臨床與公共衛生都能理解的討論。"
-      ],
-      "visualLabel": "Pulse of Asia",
-      "visualTheme": "poa",
-      "image": "",
-      "images": [],
-      "imageAlt": "",
-      "featured": false,
-      "log": true
-    },
-    {
-      "id": "2026-paul-dudley-white-international-scholar-award",
-      "year": "2026",
-      "meta": "2026 · Award · Scientific Sessions",
-      "title": "Paul Dudley White International Scholar Award",
-      "summary": "這段經驗提醒我，好的流行病學研究需要同時經得起統計檢驗，也能回到具體、可溝通的預防問題。",
-      "body": [
-        "這段經驗提醒我，好的流行病學研究需要同時經得起統計檢驗，也能回到具體、可溝通的預防問題。"
-      ],
-      "visualLabel": "AHA EPI|Lifestyle",
-      "visualTheme": "aha",
-      "image": "",
-      "images": [],
-      "imageAlt": "",
       "featured": false,
       "log": true
     },
@@ -359,21 +390,38 @@
       "log": false
     },
     {
-      "id": "2025-taiwan-society-of-hypertension-annual-scientific-meeting",
-      "year": "2025",
-      "meta": "2025 · Oral Presentation · Taipei",
-      "title": "Taiwan Society of Hypertension Annual Scientific Meeting",
-      "summary": "從 salt sensitivity 的 systematic review 與 meta-regression 出發，整理個體差異如何影響鈉攝取與血壓反應的證據。",
+      "id": "2026-paul-dudley-white-international-scholar-award",
+      "year": "2026",
+      "meta": "2026 · Award · Scientific Sessions",
+      "title": "Paul Dudley White International Scholar Award",
+      "summary": "這段經驗提醒我，好的流行病學研究需要同時經得起統計檢驗，也能回到具體、可溝通的預防問題。",
       "body": [
-        "從 salt sensitivity 的 systematic review 與 meta-regression 出發，整理個體差異如何影響鈉攝取與血壓反應的證據。"
+        "這段經驗提醒我，好的流行病學研究需要同時經得起統計檢驗，也能回到具體、可溝通的預防問題。"
       ],
-      "visualLabel": "Hypertension",
-      "visualTheme": "hypertension",
+      "visualLabel": "AHA EPI|Lifestyle",
+      "visualTheme": "aha",
       "image": "",
       "images": [],
       "imageAlt": "",
       "featured": false,
-      "log": false
+      "log": true
+    },
+    {
+      "id": "2026-pulse-of-asia-international-conference",
+      "year": "2026",
+      "meta": "2026 · Conference Presentation · Taipei",
+      "title": "Pulse of Asia International Conference",
+      "summary": "報告 population-stratified sodium 與 blood pressure dose-response 的分析，也很適合把方法學結果轉譯成臨床與公共衛生都能理解的討論。",
+      "body": [
+        "報告 population-stratified sodium 與 blood pressure dose-response 的分析，也很適合把方法學結果轉譯成臨床與公共衛生都能理解的討論。"
+      ],
+      "visualLabel": "Pulse of Asia",
+      "visualTheme": "poa",
+      "image": "",
+      "images": [],
+      "imageAlt": "",
+      "featured": false,
+      "log": true
     },
     {
       "id": "2025-introduction-to-evidence-based-medicine",
@@ -403,6 +451,23 @@
       ],
       "visualLabel": "NYCU Medicine",
       "visualTheme": "nycu",
+      "image": "",
+      "images": [],
+      "imageAlt": "",
+      "featured": false,
+      "log": false
+    },
+    {
+      "id": "2025-taiwan-society-of-hypertension-annual-scientific-meeting",
+      "year": "2025",
+      "meta": "2025 · Oral Presentation · Taipei",
+      "title": "Taiwan Society of Hypertension Annual Scientific Meeting",
+      "summary": "從 salt sensitivity 的 systematic review 與 meta-regression 出發，整理個體差異如何影響鈉攝取與血壓反應的證據。",
+      "body": [
+        "從 salt sensitivity 的 systematic review 與 meta-regression 出發，整理個體差異如何影響鈉攝取與血壓反應的證據。"
+      ],
+      "visualLabel": "Hypertension",
+      "visualTheme": "hypertension",
       "image": "",
       "images": [],
       "imageAlt": "",

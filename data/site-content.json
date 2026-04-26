@@ -7,10 +7,22 @@
       "venue": "Diabetes, Obesity and Metabolism. 2026;28(4):3137-3145.",
       "doi": "https://doi.org/10.1111/dom.70503",
       "tags": [
-        { "slug": "heart-failure", "label": "Heart Failure" },
-        { "slug": "ckm-health", "label": "CKM Health" },
-        { "slug": "evidence-synthesis", "label": "Evidence Synthesis" },
-        { "slug": "network-meta-analysis", "label": "Network Meta-analysis" }
+        {
+          "slug": "heart-failure",
+          "label": "Heart Failure"
+        },
+        {
+          "slug": "ckm-health",
+          "label": "CKM Health"
+        },
+        {
+          "slug": "evidence-synthesis",
+          "label": "Evidence Synthesis"
+        },
+        {
+          "slug": "network-meta-analysis",
+          "label": "Network Meta-analysis"
+        }
       ],
       "featured": true
     },
@@ -21,9 +33,18 @@
       "venue": "Disability and Health Journal. 2026;19(2):102022.",
       "doi": "https://doi.org/10.1016/j.dhjo.2025.102022",
       "tags": [
-        { "slug": "disability-health", "label": "Disability Health" },
-        { "slug": "health-services-research", "label": "Health Services Research" },
-        { "slug": "nationwide-data", "label": "Nationwide Data" }
+        {
+          "slug": "disability-health",
+          "label": "Disability Health"
+        },
+        {
+          "slug": "health-services-research",
+          "label": "Health Services Research"
+        },
+        {
+          "slug": "nationwide-data",
+          "label": "Nationwide Data"
+        }
       ],
       "featured": false
     },
@@ -34,9 +55,18 @@
       "venue": "International Journal for Quality in Health Care. 2025;37(3):mzaf082.",
       "doi": "https://doi.org/10.1093/intqhc/mzaf082",
       "tags": [
-        { "slug": "health-equity", "label": "Health Equity" },
-        { "slug": "disability-health", "label": "Disability Health" },
-        { "slug": "health-services-research", "label": "Health Services Research" }
+        {
+          "slug": "health-equity",
+          "label": "Health Equity"
+        },
+        {
+          "slug": "disability-health",
+          "label": "Disability Health"
+        },
+        {
+          "slug": "health-services-research",
+          "label": "Health Services Research"
+        }
       ],
       "featured": false
     },
@@ -47,9 +77,18 @@
       "venue": "Children. 2024;11(10):1209.",
       "doi": "https://doi.org/10.3390/children11101209",
       "tags": [
-        { "slug": "rare-disease", "label": "Rare Disease" },
-        { "slug": "rehabilitation", "label": "Rehabilitation" },
-        { "slug": "evidence-synthesis", "label": "Evidence Synthesis" }
+        {
+          "slug": "rare-disease",
+          "label": "Rare Disease"
+        },
+        {
+          "slug": "rehabilitation",
+          "label": "Rehabilitation"
+        },
+        {
+          "slug": "evidence-synthesis",
+          "label": "Evidence Synthesis"
+        }
       ],
       "featured": false
     },
@@ -60,9 +99,18 @@
       "venue": "Disability and Health Journal. 2024;17(3):101596.",
       "doi": "https://doi.org/10.1016/j.dhjo.2024.101596",
       "tags": [
-        { "slug": "disability-health", "label": "Disability Health" },
-        { "slug": "nationwide-data", "label": "Nationwide Data" },
-        { "slug": "mortality", "label": "Mortality" }
+        {
+          "slug": "disability-health",
+          "label": "Disability Health"
+        },
+        {
+          "slug": "nationwide-data",
+          "label": "Nationwide Data"
+        },
+        {
+          "slug": "mortality",
+          "label": "Mortality"
+        }
       ],
       "featured": false
     },
@@ -73,10 +121,22 @@
       "venue": "BMC Medicine. 2024;22:102.",
       "doi": "https://doi.org/10.1186/s12916-024-03324-z",
       "tags": [
-        { "slug": "diabetes-care", "label": "Diabetes Care" },
-        { "slug": "disability-health", "label": "Disability Health" },
-        { "slug": "methods", "label": "Methods" },
-        { "slug": "nationwide-data", "label": "Nationwide Data" }
+        {
+          "slug": "diabetes-care",
+          "label": "Diabetes Care"
+        },
+        {
+          "slug": "disability-health",
+          "label": "Disability Health"
+        },
+        {
+          "slug": "methods",
+          "label": "Methods"
+        },
+        {
+          "slug": "nationwide-data",
+          "label": "Nationwide Data"
+        }
       ],
       "featured": false
     },
@@ -87,9 +147,18 @@
       "venue": "Journal of Food and Drug Analysis. 2022;30(3):357-368.",
       "doi": "https://doi.org/10.38212/2224-6614.3416",
       "tags": [
-        { "slug": "nutrition", "label": "Nutrition" },
-        { "slug": "metabolic-health", "label": "Metabolic Health" },
-        { "slug": "basic-science", "label": "Basic Science" }
+        {
+          "slug": "nutrition",
+          "label": "Nutrition"
+        },
+        {
+          "slug": "metabolic-health",
+          "label": "Metabolic Health"
+        },
+        {
+          "slug": "basic-science",
+          "label": "Basic Science"
+        }
       ],
       "featured": false
     }
@@ -206,6 +275,18 @@
   "activities": [
     {
       "year": "2026",
+      "meta": "2026 · Activity",
+      "title": "2026 AHA EPI | Lifestyle Scientific Sessions",
+      "summary": "2026 AHA EPI | Lifestyle（2026/3/15～3/21）\n\n本次參加美國心臟學會（AHA）在波士頓舉辦的科學研討會，主題聚焦於epidemiology, lifestyle, and cardiometabolic health。\n\n首先感謝我在哈佛大學的老師Prof. Frank B. Hu，大力建議我參加這個與我們研究內容非常相關的高水準研討會。\n而我也尤其感謝我的導師鄭浩民教授，全力支持我將我們團隊的研究成果也整理投稿到這個研討會，並且在各種資源上給予許多幫忙。\n\n本次研討會大有斬獲：\n1. 我們投稿的三篇摘要中，兩篇獲得moderated poster的機會，在對應領域專業教授帶領下，會有持麥克風向大家統一分享並問答討論的時間。\n2. 我在去年暑假哈佛進行的第二篇研究，有幸得到本會國際學者獎Paul Dudley White International Scholar Award，並在omics session大獲好評。\n3. 我們在鄭教授帶領下，關於中心型肥胖與心衰竭的研究，大獲媒體青睞。包含AHA官方媒體、Medical News Today、Medscape等醫學媒體、和其他美國主流媒體如CBS, NBC。提升了陽明與臺灣的國際知名度。\n4. 恰好因為在波士頓舉辦的緣故，得以見到許多哈佛的長官與朋友，包含Drs. Frank Hu, Qi Sun, Binkai, Mengxi, Danielle, Tong, Kenny, Xinxiu, Han, Siyue等人，不勝枚舉，超級開心。明年AHA EPI|LCH以及總會也都將在波士頓舉行，非常期待。\n5. 藉機將鄭浩民教授團隊的強勁研究動能推廣給其他國際學者，促成多條未來可能的國際合作。\n期待能保持這樣的動能繼續堅持努力下去，時刻牢記鄭老師的教誨：perserverance and grit！",
+      "visualLabel": "2026 AHA EPI | Lifestyle Scientific Sessions",
+      "visualTheme": "poa",
+      "image": "assets/activities/2026-04-26T06-30-26-img-4750.heic",
+      "imageAlt": "2026 AHA EPI | Lifestyle Scientific Sessions",
+      "featured": true,
+      "log": true
+    },
+    {
+      "year": "2026",
       "meta": "2026 · Conference Presentation · Taipei",
       "title": "Pulse of Asia International Conference",
       "summary": "報告 population-stratified sodium 與 blood pressure dose-response 的分析，也很適合把方法學結果轉譯成臨床與公共衛生都能理解的討論。",
@@ -213,7 +294,7 @@
       "visualTheme": "poa",
       "image": "",
       "imageAlt": "",
-      "featured": true,
+      "featured": false,
       "log": true
     },
     {

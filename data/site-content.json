@@ -1,0 +1,298 @@
+{
+  "publications": [
+    {
+      "year": "2026",
+      "title": "Comparative effectiveness of pharmacotherapy for heart failure with preserved ejection fraction: A systematic review and network meta-analysis",
+      "authors": "Szu-Han Chen, Yu-Wen Tseng, Chi-Jung Huang, Shu-Mei Yang, Marat Fudim, Shao-Yuan Chuang, Shih-Hsien Sung, Hao-Min Cheng.",
+      "venue": "Diabetes, Obesity and Metabolism. 2026;28(4):3137-3145.",
+      "doi": "https://doi.org/10.1111/dom.70503",
+      "tags": [
+        { "slug": "heart-failure", "label": "Heart Failure" },
+        { "slug": "ckm-health", "label": "CKM Health" },
+        { "slug": "evidence-synthesis", "label": "Evidence Synthesis" },
+        { "slug": "network-meta-analysis", "label": "Network Meta-analysis" }
+      ],
+      "featured": true
+    },
+    {
+      "year": "2026",
+      "title": "Health-care utilization after domestic violence: A nationwide study in Taiwan comparing individuals with and without intellectual disability",
+      "authors": "Szu-Han Chen, Yu-Wen Tseng, Christy Pu.",
+      "venue": "Disability and Health Journal. 2026;19(2):102022.",
+      "doi": "https://doi.org/10.1016/j.dhjo.2025.102022",
+      "tags": [
+        { "slug": "disability-health", "label": "Disability Health" },
+        { "slug": "health-services-research", "label": "Health Services Research" },
+        { "slug": "nationwide-data", "label": "Nationwide Data" }
+      ],
+      "featured": false
+    },
+    {
+      "year": "2025",
+      "title": "Equity in universal health coverage: do individuals with disabilities benefit equally?",
+      "authors": "Szu-Han Chen, Meng Jie Hsu, Christy Pu.",
+      "venue": "International Journal for Quality in Health Care. 2025;37(3):mzaf082.",
+      "doi": "https://doi.org/10.1093/intqhc/mzaf082",
+      "tags": [
+        { "slug": "health-equity", "label": "Health Equity" },
+        { "slug": "disability-health", "label": "Disability Health" },
+        { "slug": "health-services-research", "label": "Health Services Research" }
+      ],
+      "featured": false
+    },
+    {
+      "year": "2024",
+      "title": "Effectiveness of Respiratory Muscle Training in Pompe Disease: A Systematic Review and Meta-Analysis",
+      "authors": "Mu-Yun Lin, Szu-Han Chen, Jen-Ting Lee, Po-Cheng Hsu.",
+      "venue": "Children. 2024;11(10):1209.",
+      "doi": "https://doi.org/10.3390/children11101209",
+      "tags": [
+        { "slug": "rare-disease", "label": "Rare Disease" },
+        { "slug": "rehabilitation", "label": "Rehabilitation" },
+        { "slug": "evidence-synthesis", "label": "Evidence Synthesis" }
+      ],
+      "featured": false
+    },
+    {
+      "year": "2024",
+      "title": "Medical care use and mortality rate after the onset of disability: A 6-year follow-up study based on national data in Taiwan",
+      "authors": "Szu-Han Chen, Christy Pu.",
+      "venue": "Disability and Health Journal. 2024;17(3):101596.",
+      "doi": "https://doi.org/10.1016/j.dhjo.2024.101596",
+      "tags": [
+        { "slug": "disability-health", "label": "Disability Health" },
+        { "slug": "nationwide-data", "label": "Nationwide Data" },
+        { "slug": "mortality", "label": "Mortality" }
+      ],
+      "featured": false
+    },
+    {
+      "year": "2024",
+      "title": "Medication adherence in patients with type 2 diabetes after disability onset: a difference-in-differences analysis using nationwide data",
+      "authors": "Szu-Han Chen, Miaw-Chwen Lee, Christy Pu.",
+      "venue": "BMC Medicine. 2024;22:102.",
+      "doi": "https://doi.org/10.1186/s12916-024-03324-z",
+      "tags": [
+        { "slug": "diabetes-care", "label": "Diabetes Care" },
+        { "slug": "disability-health", "label": "Disability Health" },
+        { "slug": "methods", "label": "Methods" },
+        { "slug": "nationwide-data", "label": "Nationwide Data" }
+      ],
+      "featured": false
+    },
+    {
+      "year": "2022",
+      "title": "Bromelain activates the AMP-activated protein kinase-autophagy pathway to alleviate hepatic lipid accumulation",
+      "authors": "Po-An Hu, Man-Chen Hsu, Szu-Han Chen, Chia-Hui Chen, Yu Ru Kou, Jenq-Wen Huang, Tzong-Shyuan Lee.",
+      "venue": "Journal of Food and Drug Analysis. 2022;30(3):357-368.",
+      "doi": "https://doi.org/10.38212/2224-6614.3416",
+      "tags": [
+        { "slug": "nutrition", "label": "Nutrition" },
+        { "slug": "metabolic-health", "label": "Metabolic Health" },
+        { "slug": "basic-science", "label": "Basic Science" }
+      ],
+      "featured": false
+    }
+  ],
+  "publicationFeatures": [
+    {
+      "year": "2026",
+      "title": "Outside Front Cover",
+      "authors": "Szu-Han Chen, Yu-Wen Tseng, Chi-Jung Huang, Shu-Mei Yang, Marat Fudim, Shao-Yuan Chuang, Shih-Hsien Sung, Hao-Min Cheng.",
+      "venue": "Diabetes, Obesity and Metabolism. 2026;28(4).",
+      "doi": "https://doi.org/10.1111/dom.70679"
+    }
+  ],
+  "honors": {
+    "awards": [
+      {
+        "year": "2026",
+        "title": "Abstract Review Ranking 1st",
+        "description": "Pulse of Asia International Conference."
+      },
+      {
+        "year": "2026",
+        "title": "Paul Dudley White International Scholar Award",
+        "description": "American Heart Association EPI|Lifestyle Scientific Sessions."
+      },
+      {
+        "year": "2024-2026",
+        "title": "Scholarship for Outstanding Medical Talent",
+        "description": "Taipei Veterans General Hospital & National Yang Ming Chiao Tung University. Awarded four times."
+      },
+      {
+        "year": "2025",
+        "title": "Second Place, Oral Research Presentation Award",
+        "description": "Taiwan Society of Hypertension Annual Scientific Meeting."
+      },
+      {
+        "year": "2025",
+        "title": "Incentives for Students' Excellent Research",
+        "description": "National Yang Ming Chiao Tung University. Awarded twice."
+      },
+      {
+        "year": "2025",
+        "title": "Undergraduate Research Project Scholarship",
+        "description": "Ministry of Science and Technology, Taiwan."
+      },
+      {
+        "year": "2024",
+        "title": "Gen. & Mrs. M.C. Peng Fellowship",
+        "description": "National Yang Ming Chiao Tung University School of Medicine. Awarded twice."
+      },
+      {
+        "year": "2024",
+        "title": "2024 Outstanding Paper Award",
+        "description": "National Yang Ming Chiao Tung University College of Medicine."
+      },
+      {
+        "year": "2024",
+        "title": "2024 Q1 Distinguished Journal Article Award",
+        "description": "National Yang Ming Chiao Tung University."
+      }
+    ],
+    "talks": [
+      {
+        "year": "2026",
+        "title": "From CKHS, NYCU, to Harvard: My Research Journey as a Medical Student",
+        "description": "Invited Speaker, Alumni Career Sharing Seminar, Taipei Municipal Chien Kuo High School, Taipei, Taiwan."
+      },
+      {
+        "year": "2025",
+        "title": "My Research Journey as a Medical Student",
+        "description": "Guest Lecturer, Introduction to Physician-Scientist Research, School of Medicine, National Yang Ming Chiao Tung University."
+      },
+      {
+        "year": "2025",
+        "title": "Introduction to Evidence-based Medicine",
+        "description": "Lecturer, Evidence-based Medicine Workshop, Federation of Medical Students in Taiwan."
+      }
+    ],
+    "presentations": [
+      {
+        "year": "2026",
+        "title": "Beyond Uniform Sodium Targets: Population-stratified evidence for personalised blood pressure-sodium dose-response relationships from 16,443 participants",
+        "description": "Pulse of Asia International Conference, Taipei, Taiwan."
+      },
+      {
+        "year": "2025",
+        "title": "Modifiers, Threshold, and Prevalence of Salt Sensitivity: A systematic review and meta-regression",
+        "description": "Taiwan Society of Hypertension Annual Scientific Meeting, Taipei, Taiwan."
+      }
+    ],
+    "services": [
+      {
+        "title": "Media Coverage",
+        "description": "Research on abdominal adiposity, inflammation, and heart failure risk was featured by the American Heart Association Newsroom.",
+        "links": [
+          {
+            "label": "AHA Newsroom",
+            "href": "https://newsroom.heart.org/news/extra-belly-weight-not-bmi-was-a-stronger-predictor-of-heart-failure-risk-inflammation"
+          }
+        ]
+      },
+      {
+        "title": "Invited Reviewer",
+        "description": "Invited reviewer for international journals including BMC Public Health, Scientific Reports, European Journal of Preventive Cardiology, Diabetes Research and Clinical Practice, and The American Journal of Clinical Nutrition.",
+        "links": []
+      },
+      {
+        "title": "Professional Memberships",
+        "description": "Member of the American Heart Association and Taiwan Hypertension Society since 2025.",
+        "links": []
+      }
+    ]
+  },
+  "activities": [
+    {
+      "year": "2026",
+      "meta": "2026 · Conference Presentation · Taipei",
+      "title": "Pulse of Asia International Conference",
+      "summary": "報告 population-stratified sodium 與 blood pressure dose-response 的分析，也很適合把方法學結果轉譯成臨床與公共衛生都能理解的討論。",
+      "visualLabel": "Pulse of Asia",
+      "visualTheme": "poa",
+      "image": "",
+      "imageAlt": "",
+      "featured": true,
+      "log": true
+    },
+    {
+      "year": "2026",
+      "meta": "2026 · Award · Scientific Sessions",
+      "title": "Paul Dudley White International Scholar Award",
+      "summary": "這段經驗提醒我，好的流行病學研究需要同時經得起統計檢驗，也能回到具體、可溝通的預防問題。",
+      "visualLabel": "AHA EPI|Lifestyle",
+      "visualTheme": "aha",
+      "image": "",
+      "imageAlt": "",
+      "featured": false,
+      "log": true
+    },
+    {
+      "year": "2026",
+      "meta": "2026 · Invited Talk · Taipei",
+      "title": "From CKHS, NYCU, to Harvard",
+      "summary": "回到高中分享醫學生的研究旅程時，最想傳達的是：研究不是很遠的事，而是一種持續把好奇心變成問題的訓練。",
+      "visualLabel": "Career Sharing",
+      "visualTheme": "talk",
+      "image": "",
+      "imageAlt": "",
+      "featured": false,
+      "log": false
+    },
+    {
+      "year": "2025",
+      "meta": "2025 · Oral Presentation · Taipei",
+      "title": "Taiwan Society of Hypertension Annual Scientific Meeting",
+      "summary": "從 salt sensitivity 的 systematic review 與 meta-regression 出發，整理個體差異如何影響鈉攝取與血壓反應的證據。",
+      "visualLabel": "Hypertension",
+      "visualTheme": "hypertension",
+      "image": "",
+      "imageAlt": "",
+      "featured": false,
+      "log": false
+    },
+    {
+      "year": "2025",
+      "meta": "2025 · Workshop · Federation of Medical Students in Taiwan",
+      "title": "Introduction to Evidence-based Medicine",
+      "summary": "教 EBM 時最有趣的地方，是把「如何相信一篇論文」拆成可以被練習的步驟，也把不確定性變成能被討論的材料。",
+      "visualLabel": "EBM Workshop",
+      "visualTheme": "ebm",
+      "image": "",
+      "imageAlt": "",
+      "featured": false,
+      "log": true
+    },
+    {
+      "year": "2025",
+      "meta": "2025 · Guest Lecture · NYCU",
+      "title": "My Research Journey as a Medical Student",
+      "summary": "對醫學生談研究經驗時，我會特別想保留那些還不成熟但很真實的部分：怎麼開始、怎麼卡住、以及怎麼慢慢找到題目。",
+      "visualLabel": "NYCU Medicine",
+      "visualTheme": "nycu",
+      "image": "",
+      "imageAlt": "",
+      "featured": false,
+      "log": false
+    }
+  ],
+  "blogPosts": [
+    {
+      "id": "welcome",
+      "status": "published",
+      "date": "2026-04-26",
+      "dateLabel": "2026.04.26",
+      "category": "Research Notes",
+      "title": "為什麼我想寫一個心血管流行病學網站",
+      "excerpt": "以開站文章作為範例，說明研究、臨床與公共討論之間的橋樑。",
+      "image": "",
+      "imageAlt": "",
+      "body": [
+        "心血管疾病常被理解成單一個人的風險選擇，但流行病學提醒我們，風險從來不只存在於個人身上。它也存在於環境、制度、照護可近性、飲食與生活型態的長期累積中。",
+        "我想用這個網站整理自己的研究脈絡，也練習把論文、資料與臨床問題說得更清楚。這裡會放研究筆記、方法學觀察、論文導讀，以及我在醫學與公共衛生交界處慢慢形成的問題意識。",
+        "如果研究最終要回到病人與族群，文字就不只是發表後的附屬品，而是讓證據被理解、被討論、被使用的一部分。"
+      ]
+    }
+  ]
+}

@@ -53,86 +53,137 @@
           <h2 id="full-publications-title">All Publications</h2>
         </div>
 
-        <div class="publication-list">
+        <div class="publication-filter" data-render="publication-filters" aria-label="依主題篩選論文">
+          <button class="tag-button is-active" type="button" data-publication-filter="all" aria-pressed="true">All</button>
+          <button class="tag-button" type="button" data-publication-filter="heart-failure" aria-pressed="false">Heart Failure</button>
+          <button class="tag-button" type="button" data-publication-filter="ckm-health" aria-pressed="false">CKM Health</button>
+          <button class="tag-button" type="button" data-publication-filter="disability-health" aria-pressed="false">Disability Health</button>
+          <button class="tag-button" type="button" data-publication-filter="health-equity" aria-pressed="false">Health Equity</button>
+          <button class="tag-button" type="button" data-publication-filter="health-services-research" aria-pressed="false">Health Services Research</button>
+          <button class="tag-button" type="button" data-publication-filter="diabetes-care" aria-pressed="false">Diabetes Care</button>
+          <button class="tag-button" type="button" data-publication-filter="nutrition" aria-pressed="false">Nutrition</button>
+          <button class="tag-button" type="button" data-publication-filter="evidence-synthesis" aria-pressed="false">Evidence Synthesis</button>
+          <button class="tag-button" type="button" data-publication-filter="methods" aria-pressed="false">Methods</button>
+          <button class="tag-button" type="button" data-publication-filter="nationwide-data" aria-pressed="false">Nationwide Data</button>
+        </div>
+
+        <div class="publication-list" data-render="publications" data-publication-list>
           <!-- PUBLICATIONS: EDIT BELOW. Copy one publication-item block, paste it in chronological order, and edit year/title/authors/venue/DOI. -->
-          <article class="publication-item">
+          <article class="publication-item" data-publication-item data-tags="heart-failure ckm-health evidence-synthesis network-meta-analysis">
             <p class="publication-year">2026</p>
             <div>
               <h3><a href="https://doi.org/10.1111/dom.70503" rel="noreferrer">Comparative effectiveness of pharmacotherapy for heart failure with preserved ejection fraction: A systematic review and network meta-analysis</a></h3>
               <p class="publication-authors">Szu-Han Chen, Yu-Wen Tseng, Chi-Jung Huang, Shu-Mei Yang, Marat Fudim, Shao-Yuan Chuang, Shih-Hsien Sung, Hao-Min Cheng.</p>
               <p class="publication-venue">Diabetes, Obesity and Metabolism. 2026;28(4):3137-3145.</p>
+              <div class="publication-tags" aria-label="論文標籤">
+                <button class="tag-button" type="button" data-publication-filter="heart-failure">Heart Failure</button>
+                <button class="tag-button" type="button" data-publication-filter="ckm-health">CKM Health</button>
+                <button class="tag-button" type="button" data-publication-filter="evidence-synthesis">Evidence Synthesis</button>
+                <button class="tag-button" type="button" data-publication-filter="network-meta-analysis">Network Meta-analysis</button>
+              </div>
               <div class="publication-links" aria-label="論文連結">
                 <a href="https://doi.org/10.1111/dom.70503" rel="noreferrer">DOI</a>
               </div>
             </div>
           </article>
 
-          <article class="publication-item">
+          <article class="publication-item" data-publication-item data-tags="disability-health health-services-research nationwide-data">
             <p class="publication-year">2026</p>
             <div>
               <h3><a href="https://doi.org/10.1016/j.dhjo.2025.102022" rel="noreferrer">Health-care utilization after domestic violence: A nationwide study in Taiwan comparing individuals with and without intellectual disability</a></h3>
               <p class="publication-authors">Szu-Han Chen, Yu-Wen Tseng, Christy Pu.</p>
               <p class="publication-venue">Disability and Health Journal. 2026;19(2):102022.</p>
+              <div class="publication-tags" aria-label="論文標籤">
+                <button class="tag-button" type="button" data-publication-filter="disability-health">Disability Health</button>
+                <button class="tag-button" type="button" data-publication-filter="health-services-research">Health Services Research</button>
+                <button class="tag-button" type="button" data-publication-filter="nationwide-data">Nationwide Data</button>
+              </div>
               <div class="publication-links" aria-label="論文連結">
                 <a href="https://doi.org/10.1016/j.dhjo.2025.102022" rel="noreferrer">DOI</a>
               </div>
             </div>
           </article>
 
-          <article class="publication-item">
+          <article class="publication-item" data-publication-item data-tags="health-equity disability-health health-services-research">
             <p class="publication-year">2025</p>
             <div>
               <h3><a href="https://doi.org/10.1093/intqhc/mzaf082" rel="noreferrer">Equity in universal health coverage: do individuals with disabilities benefit equally?</a></h3>
               <p class="publication-authors">Szu-Han Chen, Meng Jie Hsu, Christy Pu.</p>
               <p class="publication-venue">International Journal for Quality in Health Care. 2025;37(3):mzaf082.</p>
+              <div class="publication-tags" aria-label="論文標籤">
+                <button class="tag-button" type="button" data-publication-filter="health-equity">Health Equity</button>
+                <button class="tag-button" type="button" data-publication-filter="disability-health">Disability Health</button>
+                <button class="tag-button" type="button" data-publication-filter="health-services-research">Health Services Research</button>
+              </div>
               <div class="publication-links" aria-label="論文連結">
                 <a href="https://doi.org/10.1093/intqhc/mzaf082" rel="noreferrer">DOI</a>
               </div>
             </div>
           </article>
 
-          <article class="publication-item">
+          <article class="publication-item" data-publication-item data-tags="rare-disease rehabilitation evidence-synthesis">
             <p class="publication-year">2024</p>
             <div>
               <h3><a href="https://doi.org/10.3390/children11101209" rel="noreferrer">Effectiveness of Respiratory Muscle Training in Pompe Disease: A Systematic Review and Meta-Analysis</a></h3>
               <p class="publication-authors">Mu-Yun Lin, Szu-Han Chen, Jen-Ting Lee, Po-Cheng Hsu.</p>
               <p class="publication-venue">Children. 2024;11(10):1209.</p>
+              <div class="publication-tags" aria-label="論文標籤">
+                <button class="tag-button" type="button" data-publication-filter="rare-disease">Rare Disease</button>
+                <button class="tag-button" type="button" data-publication-filter="rehabilitation">Rehabilitation</button>
+                <button class="tag-button" type="button" data-publication-filter="evidence-synthesis">Evidence Synthesis</button>
+              </div>
               <div class="publication-links" aria-label="論文連結">
                 <a href="https://doi.org/10.3390/children11101209" rel="noreferrer">DOI</a>
               </div>
             </div>
           </article>
 
-          <article class="publication-item">
+          <article class="publication-item" data-publication-item data-tags="disability-health nationwide-data mortality health-services-research">
             <p class="publication-year">2024</p>
             <div>
               <h3><a href="https://doi.org/10.1016/j.dhjo.2024.101596" rel="noreferrer">Medical care use and mortality rate after the onset of disability: A 6-year follow-up study based on national data in Taiwan</a></h3>
               <p class="publication-authors">Szu-Han Chen, Christy Pu.</p>
               <p class="publication-venue">Disability and Health Journal. 2024;17(3):101596.</p>
+              <div class="publication-tags" aria-label="論文標籤">
+                <button class="tag-button" type="button" data-publication-filter="disability-health">Disability Health</button>
+                <button class="tag-button" type="button" data-publication-filter="nationwide-data">Nationwide Data</button>
+                <button class="tag-button" type="button" data-publication-filter="mortality">Mortality</button>
+              </div>
               <div class="publication-links" aria-label="論文連結">
                 <a href="https://doi.org/10.1016/j.dhjo.2024.101596" rel="noreferrer">DOI</a>
               </div>
             </div>
           </article>
 
-          <article class="publication-item">
+          <article class="publication-item" data-publication-item data-tags="diabetes-care disability-health methods nationwide-data">
             <p class="publication-year">2024</p>
             <div>
               <h3><a href="https://doi.org/10.1186/s12916-024-03324-z" rel="noreferrer">Medication adherence in patients with type 2 diabetes after disability onset: a difference-in-differences analysis using nationwide data</a></h3>
               <p class="publication-authors">Szu-Han Chen, Miaw-Chwen Lee, Christy Pu.</p>
               <p class="publication-venue">BMC Medicine. 2024;22:102.</p>
+              <div class="publication-tags" aria-label="論文標籤">
+                <button class="tag-button" type="button" data-publication-filter="diabetes-care">Diabetes Care</button>
+                <button class="tag-button" type="button" data-publication-filter="disability-health">Disability Health</button>
+                <button class="tag-button" type="button" data-publication-filter="methods">Methods</button>
+                <button class="tag-button" type="button" data-publication-filter="nationwide-data">Nationwide Data</button>
+              </div>
               <div class="publication-links" aria-label="論文連結">
                 <a href="https://doi.org/10.1186/s12916-024-03324-z" rel="noreferrer">DOI</a>
               </div>
             </div>
           </article>
 
-          <article class="publication-item">
+          <article class="publication-item" data-publication-item data-tags="nutrition metabolic-health basic-science">
             <p class="publication-year">2022</p>
             <div>
               <h3><a href="https://doi.org/10.38212/2224-6614.3416" rel="noreferrer">Bromelain activates the AMP-activated protein kinase-autophagy pathway to alleviate hepatic lipid accumulation</a></h3>
               <p class="publication-authors">Po-An Hu, Man-Chen Hsu, Szu-Han Chen, Chia-Hui Chen, Yu Ru Kou, Jenq-Wen Huang, Tzong-Shyuan Lee.</p>
               <p class="publication-venue">Journal of Food and Drug Analysis. 2022;30(3):357-368.</p>
+              <div class="publication-tags" aria-label="論文標籤">
+                <button class="tag-button" type="button" data-publication-filter="nutrition">Nutrition</button>
+                <button class="tag-button" type="button" data-publication-filter="metabolic-health">Metabolic Health</button>
+                <button class="tag-button" type="button" data-publication-filter="basic-science">Basic Science</button>
+              </div>
               <div class="publication-links" aria-label="論文連結">
                 <a href="https://doi.org/10.38212/2224-6614.3416" rel="noreferrer">DOI</a>
               </div>
@@ -140,6 +191,7 @@
           </article>
           <!-- PUBLICATIONS: EDIT ABOVE. -->
         </div>
+        <p class="publication-empty" data-publication-empty hidden>目前沒有符合這個 tag 的論文。</p>
       </section>
 
       <section class="section publication-section" aria-labelledby="publication-features-title">
@@ -147,7 +199,7 @@
           <p class="eyebrow">Features</p>
           <h2 id="publication-features-title">Publication Features</h2>
         </div>
-        <div class="publication-list">
+        <div class="publication-list" data-render="publication-features">
           <article class="publication-item publication-cta">
             <p class="publication-year">2026</p>
             <div>

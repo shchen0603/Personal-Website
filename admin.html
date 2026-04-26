@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin | 陳思翰 Szu-Han Chen</title>
+    <meta name="description" content="Local content editor for the personal website.">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳到主要內容</a>
+
+    <header class="site-header" data-header>
+      <a class="brand" href="index.html" aria-label="回到首頁">
+        <span class="brand-mark" aria-hidden="true">SC</span>
+        <span class="brand-text">
+          <strong>陳思翰 · Szu-Han Chen</strong>
+          <span>MD · Cardiovascular Epidemiology</span>
+        </span>
+      </a>
+      <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">
+        <span class="nav-toggle-line"></span>
+        <span class="nav-toggle-line"></span>
+        <span class="nav-toggle-line"></span>
+        <span class="sr-only">開合選單</span>
+      </button>
+      <nav class="site-nav" id="site-nav" data-nav>
+        <a href="index.html">Home</a>
+        <a href="research.html">Research</a>
+        <a href="publications.html">Publications</a>
+        <a href="honors.html">Honors</a>
+        <a href="activities.html">Activities</a>
+        <a href="blog.html">Blog</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="page-hero compact">
+        <p class="eyebrow">Admin</p>
+        <h1>網站內容管理</h1>
+        <p>
+          本機管理模式：選擇這個網站資料夾後，就能新增或更新 Blog、Publications、Honors 與 Activities。
+        </p>
+      </section>
+
+      <section class="section admin-shell" data-admin-app>
+        <div class="admin-toolbar">
+          <div>
+            <p class="eyebrow">Workspace</p>
+            <h2>Content Studio</h2>
+          </div>
+          <div class="admin-actions">
+            <button class="button button-outline" type="button" data-admin-open-folder>選擇網站資料夾</button>
+            <button class="button button-primary" type="button" data-admin-save disabled>儲存內容</button>
+          </div>
+        </div>
+
+        <p class="admin-status" data-admin-status>尚未選擇網站資料夾。</p>
+
+        <div class="admin-layout">
+          <aside class="admin-sidebar">
+            <div class="admin-tabs" role="tablist" aria-label="內容類型">
+              <button class="is-active" type="button" data-admin-section="blogPosts">Blog</button>
+              <button type="button" data-admin-section="publications">Publications</button>
+              <button type="button" data-admin-section="honors">Honors</button>
+              <button type="button" data-admin-section="activities">Activities</button>
+            </div>
+
+            <label class="admin-field admin-honor-category" hidden>
+              <span>Honor 類型</span>
+              <select data-admin-honor-category>
+                <option value="awards">Awards</option>
+                <option value="talks">Invited Talks</option>
+                <option value="presentations">Conference Presentations</option>
+                <option value="services">Media & Service</option>
+              </select>
+            </label>
+
+            <div class="admin-list-actions">
+              <button class="button button-outline" type="button" data-admin-new disabled>新增項目</button>
+              <button class="button button-outline" type="button" data-admin-delete disabled>刪除項目</button>
+            </div>
+
+            <div class="admin-item-list" data-admin-list></div>
+          </aside>
+
+          <form class="admin-editor" data-admin-editor>
+            <div class="admin-empty-state">
+              <h2>選擇或新增一個項目</h2>
+              <p>內容載入後，這裡會出現可編輯欄位。</p>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>© <span data-year></span> 陳思翰 Szu-Han Chen. All rights reserved.</p>
+      <p>
+        <a href="contact.html">Contact</a>
+        <span aria-hidden="true">/</span>
+        <a href="https://github.com/shchen0603/Personal-Website" rel="noreferrer">GitHub</a>
+        <span aria-hidden="true">/</span>
+        <a href="https://orcid.org/0009-0006-4557-9097" rel="noreferrer">ORCID</a>
+      </p>
+    </footer>
+
+    <script src="script.js"></script>
+    <script src="admin.js"></script>
+  </body>
+</html>

@@ -10,55 +10,53 @@
 - `honors.html`: 學術獎項、受邀演講、會議報告、媒體報導與專業服務
 - `activities.html`: 研討會、受邀演講、工作坊等活動照片與簡短心得
 - `blog.html`: 文章列表
+- `post.html`: 由 `data/site-content.json` 動態產生的 Blog 文章頁
+- `admin.html`: 本機內容管理頁，可新增與更新 Blog、Publications、Honors、Activities
+- `data/site-content.json`: 全站可維護內容資料來源
 - `contact.html`: 聯繫方式頁面
 - `posts/welcome.html`: 範例文章
 - `posts/_template.html`: Blog 文章模板，新增文章時可以複製
 - `styles.css`: 全站樣式
-- `script.js`: 手機選單與年份
+- `script.js`: 手機選單、年份與內容渲染
+- `admin.js`: 管理頁的本機讀寫、表單與圖片上傳邏輯
 - `assets/cardiovascular-epidemiology-hero.png`: 首頁主視覺
+- `assets/blog/`: Blog 圖片
+- `assets/activities/`: Activities 圖片
+
+## 管理員模式
+
+目前網站已改成「資料檔 + 前台渲染」：Blog、Publications、Honors、Activities 的主要內容都集中在 `data/site-content.json`。平常更新內容時建議使用 `admin.html`：
+
+1. 用本機伺服器開網站，不要直接雙擊 HTML 檔。
+2. 前往 `http://localhost:8000/admin.html`。
+3. 使用 Chrome 或 Edge，按「選擇網站資料夾」，選取這個 repository 的根目錄。
+4. 在 Blog、Publications、Honors、Activities 分頁新增或編輯內容。
+5. 圖片可在 Blog 或 Activities 編輯欄位上傳，會自動寫入 `assets/blog/` 或 `assets/activities/`。
+6. 按「儲存內容」後，檢查前台頁面，再 commit 並 push 到 GitHub Pages。
+
+這個版本不把 GitHub token 放進瀏覽器，也不需要額外後端；它透過瀏覽器的 File System Access API 寫入本機檔案。Safari/Firefox 對這個 API 支援有限，建議使用 Chrome 或 Edge。
 
 ## 更新 Publications
 
-目前完整論文清單放在 `publications.html`，依 ORCID public record 與 DOI metadata 校對後排序。之後有新論文時：
+目前完整論文清單由 `data/site-content.json` 產生，建議用 `admin.html` 更新。若要手動編輯 JSON，新論文需放入 `publications` 陣列：
 
-1. 打開 `publications.html`。
-2. 搜尋 `PUBLICATIONS: EDIT BELOW`。
-3. 複製一整段 `<article class="publication-item">...</article>`。
-4. 貼到正確年份位置，更新年份、標題、作者、期刊 citation 與 DOI 連結。
-5. 若要在 Research 頁露出最新代表作，也同步更新 `research.html` 底部的 Publications 區塊。
+1. 更新 `year`、`title`、`authors`、`venue`、`doi`。
+2. 在 `tags` 中加入 `{ "slug": "heart-failure", "label": "Heart Failure" }` 這種格式。
+3. 若要在 Research 頁露出代表作，把該篇的 `featured` 設為 `true`，其他篇設為 `false`。
 
 ## 更新 Honors
 
-學術獎項與活動整理在 `honors.html`。之後有新的 award、invited talk、conference presentation、media coverage 或 reviewer service：
-
-1. 打開 `honors.html`。
-2. 找到對應區塊，例如 `Honors & Awards`、`Invited Speeches & Lectures`、`Conference Oral Presentations` 或 `Media & Academic Service`。
-3. 複製一段 `<article class="honor-item">...</article>` 或 `<article class="service-card">...</article>`。
-4. 依年份排序後更新年份、標題、機構與說明。
-5. 若是特別重要的近期成果，也可以同步更新 `index.html` 的 `highlight-section`。
+學術獎項與活動整理在 `data/site-content.json` 的 `honors` 物件中，包含 `awards`、`talks`、`presentations`、`services`。建議用 `admin.html` 的 Honors 分頁更新。
 
 ## 更新 Activities
 
-活動照片與簡短心得整理在 `activities.html`。這頁適合補足 CV 沒有照片與現場脈絡的部分：
-
-1. 把公開可放的活動照片放到 `assets/activities/`，檔名建議使用日期與活動名稱，例如 `2026-pulse-of-asia.jpg`。
-2. 打開 `activities.html`。
-3. 搜尋 `ACTIVITIES: replace each activity-visual placeholder`。
-4. 複製一段 `<article class="activity-card">...</article>`，更新年份、活動類型、地點、標題與心得。
-5. 若已有照片，把 `<div class="activity-visual ...">...</div>` 換成 `<img class="activity-photo" src="assets/activities/檔名.jpg" alt="照片描述">`，並保留清楚的 alt 文字。
-6. 若該活動也需要正式列在 CV 式清單，同步更新 `honors.html`。
+活動照片與簡短心得由 `data/site-content.json` 的 `activities` 陣列產生。用 `admin.html` 更新時，圖片會自動放到 `assets/activities/`。沒有照片時會使用 `visualLabel` 與 `visualTheme` 產生占位視覺。
 
 ## 寫 Blog
 
-這個網站目前是靜態網站，所以 Blog 的管理方式是「新增一個 HTML 文章檔，再把它加入文章列表」。步驟如下：
+Blog 文章由 `data/site-content.json` 的 `blogPosts` 陣列產生，建議用 `admin.html` 更新。每篇文章會由 `post.html?id=文章ID` 顯示。
 
-1. 複製 `posts/_template.html`，改名成清楚的檔名，例如 `posts/2026-05-01-risk-prediction.html`。
-2. 在新檔案裡更新 `<title>`、`meta description`、日期、分類、文章標題、導言與正文。
-3. 打開 `blog.html`，在 `BLOG INDEX` 註解下面新增一段 `<article class="post-row">`，連到新的文章檔。
-4. 如果這篇文章也想放到首頁「最新文章」，同步更新 `index.html` 的 `writing-section`。
-5. 本機預覽確認連結後，commit 並 push 到 GitHub Pages。
-
-如果之後想要像後台一樣直接在瀏覽器登入寫文章，可以再升級成 Decap CMS、CloudCannon 或改用 Astro/Next.js 這類支援 Markdown 內容集合的架構。目前這版先保留最輕量、最不容易壞的檔案式管理。
+舊的 `posts/` HTML 檔先保留作為備份與範例；新的文章不需要再手動複製 HTML。
 
 ## 更新 Contact
 
@@ -75,13 +73,13 @@
 
 ## 本機預覽
 
-直接用瀏覽器打開 `index.html` 即可。若想用本機伺服器預覽：
+因為前台會讀取 `data/site-content.json`，建議使用本機伺服器預覽：
 
 ```bash
 python3 -m http.server 8000
 ```
 
-然後開啟 `http://localhost:8000`。
+然後開啟 `http://localhost:8000`。管理頁在 `http://localhost:8000/admin.html`。
 
 ## 部署到 GitHub Pages
 

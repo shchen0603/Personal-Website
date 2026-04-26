@@ -290,7 +290,8 @@ h3 {
 .split-section h2,
 .page-hero h1,
 .research-block h2,
-.publication-section h2 {
+.publication-section h2,
+.contact-card h2 {
   font-size: clamp(2rem, 4vw, 3.6rem);
 }
 
@@ -298,9 +299,17 @@ h3 {
 .split-section p,
 .page-hero p,
 .research-block p,
-.publication-item p {
+.publication-item p,
+.section-heading > p:not(.eyebrow),
+.contact-card > p:not(.eyebrow) {
   color: var(--muted);
   font-size: 1.06rem;
+}
+
+.publication-year {
+  color: var(--coral);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
 }
 
 .feature-band {
@@ -336,7 +345,8 @@ h3 {
 .profile-panel,
 .timeline-item,
 .publication-item,
-.post-row {
+.post-row,
+.contact-card {
   background: var(--white);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -534,11 +544,19 @@ h3 {
   gap: 0.85rem;
 }
 
+.publication-page {
+  padding-top: 2rem;
+}
+
 .publication-item {
   display: grid;
   grid-template-columns: 90px 1fr;
   gap: 1rem;
   padding: 1.2rem;
+}
+
+.publication-cta {
+  background: var(--wash);
 }
 
 .publication-authors,
@@ -622,6 +640,60 @@ h3 {
   font-size: 1.08rem;
 }
 
+.contact-layout {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  padding-top: 2rem;
+}
+
+.contact-card {
+  align-content: start;
+  display: grid;
+  gap: 1.2rem;
+  padding: 1.35rem;
+}
+
+.contact-card h2 {
+  font-size: clamp(1.45rem, 2.8vw, 2.2rem);
+}
+
+.contact-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.contact-list a,
+.contact-static {
+  display: grid;
+  gap: 0.15rem;
+  min-height: 76px;
+  padding: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  text-decoration: none;
+}
+
+.contact-list a:hover,
+.contact-list a:focus-visible {
+  background: var(--wash);
+}
+
+.contact-list span,
+.contact-static span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 760;
+}
+
+.contact-list strong,
+.contact-static strong {
+  color: var(--teal-dark);
+  font-size: 0.96rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 820px) {
   .site-header {
     min-height: 68px;
@@ -684,7 +756,8 @@ h3 {
   .split-section,
   .research-layout,
   .publication-item,
-  .post-row {
+  .post-row,
+  .contact-layout {
     grid-template-columns: 1fr;
   }
 

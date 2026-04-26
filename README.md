@@ -5,12 +5,41 @@
 ## 檔案結構
 
 - `index.html`: 首頁
-- `research.html`: 研究介紹與代表著作
+- `research.html`: 研究介紹與最新研究入口
+- `publications.html`: 完整已發表論文清單
 - `blog.html`: 文章列表
+- `contact.html`: 聯繫方式頁面
 - `posts/welcome.html`: 範例文章
+- `posts/_template.html`: Blog 文章模板，新增文章時可以複製
 - `styles.css`: 全站樣式
 - `script.js`: 手機選單與年份
 - `assets/cardiovascular-epidemiology-hero.png`: 首頁主視覺
+
+## 更新 Publications
+
+目前完整論文清單放在 `publications.html`，依 ORCID public record 與 DOI metadata 校對後排序。之後有新論文時：
+
+1. 打開 `publications.html`。
+2. 搜尋 `PUBLICATIONS: EDIT BELOW`。
+3. 複製一整段 `<article class="publication-item">...</article>`。
+4. 貼到正確年份位置，更新年份、標題、作者、期刊 citation 與 DOI 連結。
+5. 若要在 Research 頁露出最新代表作，也同步更新 `research.html` 底部的 Publications 區塊。
+
+## 寫 Blog
+
+這個網站目前是靜態網站，所以 Blog 的管理方式是「新增一個 HTML 文章檔，再把它加入文章列表」。步驟如下：
+
+1. 複製 `posts/_template.html`，改名成清楚的檔名，例如 `posts/2026-05-01-risk-prediction.html`。
+2. 在新檔案裡更新 `<title>`、`meta description`、日期、分類、文章標題、導言與正文。
+3. 打開 `blog.html`，在 `BLOG INDEX` 註解下面新增一段 `<article class="post-row">`，連到新的文章檔。
+4. 如果這篇文章也想放到首頁「最新文章」，同步更新 `index.html` 的 `writing-section`。
+5. 本機預覽確認連結後，commit 並 push 到 GitHub Pages。
+
+如果之後想要像後台一樣直接在瀏覽器登入寫文章，可以再升級成 Decap CMS、CloudCannon 或改用 Astro/Next.js 這類支援 Markdown 內容集合的架構。目前這版先保留最輕量、最不容易壞的檔案式管理。
+
+## 更新 Contact
+
+導覽列的 Contact 已改成 `contact.html`，不再直接打開個人 email。之後要更新聯繫方式時，直接編輯 `contact.html` 的 Email、Academic Profiles 或 Professional Links 區塊。
 
 ## 個人連結
 

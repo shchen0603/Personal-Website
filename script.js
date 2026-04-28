@@ -1,6 +1,6 @@
 const navToggle = document.querySelector("[data-nav-toggle]");
 const nav = document.querySelector("[data-nav]");
-const year = document.querySelector("[data-year]");
+const yearElements = document.querySelectorAll("[data-year]");
 
 const escapeHTML = (value = "") =>
   String(value).replace(/[&<>"']/g, (character) => {
@@ -95,9 +95,9 @@ const getActivityBody = (activity) => {
     .filter(Boolean);
 };
 
-if (year) {
-  year.textContent = new Date().getFullYear();
-}
+yearElements.forEach((el) => {
+  el.textContent = new Date().getFullYear();
+});
 
 if (navToggle && nav) {
   navToggle.addEventListener("click", () => {
@@ -523,3 +523,119 @@ const loadSiteContent = async () => {
 };
 
 loadSiteContent();
+
+// ===== Dark Mode Toggle =====
+const setupThemeToggle = () => {
+  const toggles = document.querySelectorAll("[data-theme-toggle]");
+  const updateIcon = () => {
+    const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+    toggles.forEach((btn) => {
+      btn.textContent = isDark ? "☾" : "☀";
+    });
+  };
+  updateIcon();
+  toggles.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+      const newTheme = isDark ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", newTheme);
+      localStorage.setItem("theme", newTheme);
+      updateIcon();
+    });
+  });
+};
+setupThemeToggle();
+
+// ===== Scroll Reveal Animations =====
+const setupScrollReveal = () => {
+  const prefersReduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (prefersReduced) {
+    document.querySelectorAll(".reveal").forEach((el) => el.classList.add("is-visible"));
+    return;
+  }
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+  );
+  document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+};
+setupScrollReveal();
+
+// ===== Back to Top Button =====
+const setupBackToTop = () => {
+  const btn = document.querySelector("[data-back-to-top]");
+  if (!btn) return;
+  const toggle = () => {
+    btn.classList.toggle("is-visible", window.scrollY > 500);
+  };
+  window.addEventListener("scroll", toggle, { passive: true });
+  btn.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+  toggle();
+};
+setupBackToTop();
+
+// ===== Publication Search =====
+const setupPublicationSearch = () => {
+  const input = document.querySelector("[data-publication-search]");
+  if (!input) return;
+  input.addEventListener("input", () => {
+    const query = input.value.toLowerCase().trim();
+    const items = document.querySelectorAll("[data-publication-item]");
+    const empty = document.querySelector("[data-publication-empty]");
+    let visibleCount = 0;
+    items.forEach((item) => {
+      const text = item.textContent.toLowerCase();
+      const match = !query || text.includes(query);
+      item.hidden = !match;
+      if (match) visibleCount++;
+    });
+    if (empty) empty.hidden = visibleCount > 0;
+  });
+};
+setupPublicationSearch();
+
+// ===== Stat Counter Animation =====
+const setupStatCounters = () => {
+  const counters = document.querySelectorAll("[data-count]");
+  if (!counters.length) return;
+  const prefersReduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const animate = (el) => {
+    const target = parseInt(el.dataset.count, 10);
+    if (prefersReduced || isNaN(target)) {
+      el.textContent = target;
+      return;
+    }
+    let current = 0;
+    const step = Math.max(1, Math.ceil(target / 30));
+    const interval = setInterval(() => {
+      current += step;
+      if (current >= target) {
+        current = target;
+        clearInterval(interval);
+      }
+      el.textContent = current;
+    }, 40);
+  };
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          animate(entry.target);
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.5 }
+  );
+  counters.forEach((el) => observer.observe(el));
+};
+setupStatCounters();

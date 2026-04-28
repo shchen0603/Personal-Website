@@ -8,7 +8,12 @@
       name="description"
       content="Research interests in cardiovascular epidemiology, nutrition epidemiology, cardiovascular-kidney-metabolic health, heart failure, causal inference, and real-world evidence."
     >
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <script>(function(){var t=localStorage.getItem('theme');if(t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark')}})();</script>
   </head>
   <body>
     <a class="skip-link" href="#main">跳到主要內容</a>
@@ -36,19 +41,20 @@
         <a href="blog.html">Blog</a>
         <a href="contact.html">Contact</a>
       </nav>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="切換深色模式" title="切換深色模式">☀</button>
     </header>
 
     <main id="main">
       <section class="page-hero compact">
         <p class="eyebrow">Research</p>
-        <h1>Research</h1>
-        <p>
+        <h1 class="reveal">Research</h1>
+        <p class="reveal reveal-delay-1">
           我研究心血管疾病、營養暴露、心血管-腎臟-代謝健康與心臟衰竭在族群中的分布、風險因子、預防機會與照護落差，並重視可重現分析與臨床可解釋性。
         </p>
       </section>
 
       <section class="section research-layout" aria-label="研究內容">
-        <aside class="profile-panel">
+        <aside class="profile-panel reveal">
           <h2>Research Profile</h2>
           <dl>
             <div>
@@ -80,7 +86,7 @@
         </aside>
 
         <div class="research-main">
-          <article class="research-block">
+          <article class="research-block reveal">
             <p class="eyebrow">Question 01</p>
             <h2>誰會承受較高的心血管與心腎代謝風險？</h2>
             <p>
@@ -88,7 +94,7 @@
             </p>
           </article>
 
-          <article class="research-block">
+          <article class="research-block reveal">
             <p class="eyebrow">Question 02</p>
             <h2>營養與生活型態如何進入心血管、代謝、肝腎健康預防？</h2>
             <p>
@@ -96,7 +102,7 @@
             </p>
           </article>
 
-          <article class="research-block">
+          <article class="research-block reveal">
             <p class="eyebrow">Question 03</p>
             <h2>心臟衰竭的疾病負擔可以如何被更早理解？</h2>
             <p>
@@ -104,7 +110,7 @@
             </p>
           </article>
 
-          <article class="research-block">
+          <article class="research-block reveal">
             <p class="eyebrow">Question 04</p>
             <h2>真實世界資料可以回答哪些臨床與公共衛生問題？</h2>
             <p>
@@ -115,7 +121,7 @@
       </section>
 
       <section class="section publication-section" aria-labelledby="publications-title">
-        <div class="section-heading">
+        <div class="section-heading reveal">
           <p class="eyebrow">Publications</p>
           <h2 id="publications-title">完整論文清單</h2>
           <p>
@@ -155,23 +161,25 @@
     </main>
 
     <footer class="site-footer">
-      <p>© <span data-year></span> 陳思翰 Szu-Han Chen. All rights reserved.</p>
-      <p>
-        <a href="contact.html">Contact</a>
-        <span aria-hidden="true">/</span>
-        <a href="https://github.com/shchen0603/Personal-Website" rel="noreferrer">GitHub</a>
-        <span aria-hidden="true">/</span>
-        <a href="https://orcid.org/0009-0006-4557-9097" rel="noreferrer">ORCID</a>
-        <span aria-hidden="true">/</span>
+      <div class="footer-brand">
+        <strong>陳思翰 Szu-Han Chen</strong>
+        <p>Physician-scientist in cardiovascular epidemiology, nutrition epidemiology, CKM health, and heart failure.</p>
+        <p>© <span data-year></span> All rights reserved.</p>
+      </div>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="research.html">Research</a>
         <a href="publications.html">Publications</a>
-        <span aria-hidden="true">/</span>
         <a href="honors.html">Honors</a>
-        <span aria-hidden="true">/</span>
         <a href="activities.html">Activities</a>
-        <span aria-hidden="true">/</span>
         <a href="blog.html">Blog</a>
-      </p>
+        <a href="contact.html">Contact</a>
+        <a href="https://orcid.org/0009-0006-4557-9097" rel="noreferrer">ORCID</a>
+        <a href="https://scholar.google.com/citations?user=0CdlnrgAAAAJ&hl=zh-TW" rel="noreferrer">Google Scholar</a>
+        <a href="https://github.com/shchen0603/Personal-Website" rel="noreferrer">GitHub</a>
+      </nav>
     </footer>
+
+    <button class="back-to-top" data-back-to-top aria-label="回到頂部" title="回到頂部">↑</button>
 
     <script src="script.js"></script>
   </body>

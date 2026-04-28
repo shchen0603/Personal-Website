@@ -15,7 +15,15 @@
     >
     <meta property="og:type" content="website">
     <meta property="og:image" content="assets/cardiovascular-epidemiology-hero.png">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <script>
+      // Prevent flash of wrong theme
+      (function(){var t=localStorage.getItem('theme');if(t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark')}})();
+    </script>
   </head>
   <body>
     <a class="skip-link" href="#main">跳到主要內容</a>
@@ -43,6 +51,7 @@
         <a href="blog.html">Blog</a>
         <a href="contact.html">Contact</a>
       </nav>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="切換深色模式" title="切換深色模式">☀</button>
     </header>
 
     <main id="main">
@@ -58,18 +67,23 @@
           <div class="hero-actions" aria-label="主要連結">
             <a class="button button-primary" href="research.html">研究主題</a>
             <a class="button button-secondary" href="publications.html">完整論文</a>
+            <a class="button button-secondary button-cv" href="assets/cv.pdf" target="_blank" rel="noreferrer">Download CV</a>
           </div>
         </div>
+        <a class="scroll-indicator" href="#intro-title" aria-label="向下滾動">
+          <span>Scroll</span>
+          <span class="scroll-indicator-arrow" aria-hidden="true"></span>
+        </a>
       </section>
 
       <section class="section intro-grid" aria-labelledby="intro-title">
         <div class="section-kicker">Research Identity</div>
         <div>
-          <h2 id="intro-title">心血管流行病學，從族群資料到臨床照護。</h2>
-          <p>
+          <h2 id="intro-title" class="reveal">心血管流行病學，從族群資料到臨床照護。</h2>
+          <p class="reveal reveal-delay-1">
             這個網站整理我的研究興趣、進行中的計畫、學術發表與寫作。核心問題很直接：哪些人會在什麼條件下承受較高的心血管、腎臟與代謝風險，我們又該如何用資料設計更公平、更有效的預防策略？
           </p>
-          <div class="profile-links" aria-label="學術與專業連結">
+          <div class="profile-links reveal reveal-delay-2" aria-label="學術與專業連結">
             <a href="https://orcid.org/0009-0006-4557-9097" rel="noreferrer">ORCID</a>
             <a href="https://scholar.google.com/citations?user=0CdlnrgAAAAJ&hl=zh-TW" rel="noreferrer">Google Scholar</a>
             <a href="https://www.researchgate.net/profile/Szu-Han-Chen-7" rel="noreferrer">ResearchGate</a>
@@ -81,23 +95,44 @@
         </div>
       </section>
 
+      <section class="section" aria-label="研究成果統計">
+        <div class="stats-row reveal">
+          <div class="stat-item">
+            <span class="stat-number" data-count="7">7</span>
+            <span class="stat-label">Publications</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number" data-count="9">9</span>
+            <span class="stat-label">Awards</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number" data-count="5">5</span>
+            <span class="stat-label">Presentations</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number" data-count="5">5</span>
+            <span class="stat-label">Reviewer Invitations</span>
+          </div>
+        </div>
+      </section>
+
       <section class="section highlight-section" aria-labelledby="highlights-title">
-        <div class="section-heading">
+        <div class="section-heading reveal">
           <p class="eyebrow">Highlights</p>
           <h2 id="highlights-title">近期學術亮點</h2>
         </div>
         <div class="highlight-grid">
-          <article class="highlight-card">
+          <article class="highlight-card reveal">
             <p class="timeline-meta">2026</p>
             <h3>Paul Dudley White International Scholar Award</h3>
             <p>American Heart Association EPI|Lifestyle Scientific Sessions.</p>
           </article>
-          <article class="highlight-card">
+          <article class="highlight-card reveal reveal-delay-1">
             <p class="timeline-meta">2026</p>
             <h3>Abstract Review Ranking 1st</h3>
             <p>Pulse of Asia International Conference.</p>
           </article>
-          <article class="highlight-card">
+          <article class="highlight-card reveal reveal-delay-2">
             <p class="timeline-meta">Media</p>
             <h3>AHA Newsroom Feature</h3>
             <p>Research on abdominal adiposity, inflammation, and heart failure risk featured by the American Heart Association.</p>
@@ -109,27 +144,27 @@
       </section>
 
       <section class="section feature-band" aria-labelledby="focus-title">
-        <div class="section-heading">
+        <div class="section-heading reveal">
           <p class="eyebrow">Focus Areas</p>
           <h2 id="focus-title">研究焦點</h2>
         </div>
         <div class="focus-grid">
-          <article class="focus-card">
+          <article class="focus-card reveal">
             <span class="card-index">01</span>
             <h3>Cardiovascular Epidemiology</h3>
             <p>運用世代資料與臨床資料，評估血壓、血脂、代謝風險與長期心血管事件之間的關係。</p>
           </article>
-          <article class="focus-card">
+          <article class="focus-card reveal reveal-delay-1">
             <span class="card-index">02</span>
             <h3>Nutrition Epidemiology</h3>
             <p>探索飲食型態、營養暴露與心血管代謝健康之間的長期關聯，並重視測量誤差與可解釋性。</p>
           </article>
-          <article class="focus-card">
+          <article class="focus-card reveal reveal-delay-2">
             <span class="card-index">03</span>
             <h3>Cardiovascular-Kidney-Metabolic Health</h3>
             <p>關注心血管、腎臟與代謝系統的交互關係，以及共病風險在族群中的累積與轉變。</p>
           </article>
-          <article class="focus-card">
+          <article class="focus-card reveal reveal-delay-3">
             <span class="card-index">04</span>
             <h3>Heart Failure</h3>
             <p>研究心臟衰竭的風險因子、疾病負擔、預後差異與可能的早期預防策略。</p>
@@ -138,7 +173,7 @@
       </section>
 
       <section class="section split-section" aria-labelledby="projects-title">
-        <div>
+        <div class="reveal">
           <p class="eyebrow">Academic Path</p>
           <h2 id="projects-title">跨臨床醫學、流行病學與國際研究訓練。</h2>
           <p>
@@ -146,22 +181,22 @@
           </p>
         </div>
         <div class="timeline">
-          <article class="timeline-item">
+          <article class="timeline-item reveal">
             <p class="timeline-meta">2025-present</p>
             <h3>Research Collaborator, Harvard T.H. Chan School of Public Health</h3>
             <p>參與心血管與營養流行病學相關研究合作。</p>
           </article>
-          <article class="timeline-item">
+          <article class="timeline-item reveal reveal-delay-1">
             <p class="timeline-meta">2022-present</p>
             <h3>Research Student, Institute of Public Health, NYCU</h3>
             <p>聚焦族群資料、慢性病照護與公共衛生研究方法。</p>
           </article>
-          <article class="timeline-item">
+          <article class="timeline-item reveal reveal-delay-2">
             <p class="timeline-meta">2025</p>
             <h3>Visiting Research Student, Harvard T.H. Chan School of Public Health</h3>
             <p>延伸國際研究訓練與大型 cohort data 的應用經驗。</p>
           </article>
-          <article class="timeline-item">
+          <article class="timeline-item reveal reveal-delay-3">
             <p class="timeline-meta">2024</p>
             <h3>Research Trainee, University of Tokyo</h3>
             <p>累積海外研究訓練與跨領域學術交流經驗。</p>
@@ -170,17 +205,17 @@
       </section>
 
       <section class="section writing-section" aria-labelledby="writing-title">
-        <div class="section-heading">
+        <div class="section-heading reveal">
           <p class="eyebrow">Writing</p>
           <h2 id="writing-title">最新文章</h2>
         </div>
         <div class="post-list" data-render="home-posts">
-          <article class="post-card">
+          <article class="post-card reveal">
             <p class="post-meta">2026.04.26 · Research Notes</p>
             <h3><a href="posts/welcome.html">為什麼我想寫一個心血管流行病學網站</a></h3>
             <p>一篇可以直接改寫的開站文章，說明研究、臨床與公共討論之間為什麼需要更清楚的橋樑。</p>
           </article>
-          <article class="post-card">
+          <article class="post-card reveal reveal-delay-1">
             <p class="post-meta">Draft · Methods</p>
             <h3><a href="blog.html">下一篇：如何閱讀一篇風險預測研究</a></h3>
             <p>保留給你之後撰寫方法學筆記、論文評論或臨床觀察。</p>
@@ -190,23 +225,25 @@
     </main>
 
     <footer class="site-footer">
-      <p>© <span data-year></span> 陳思翰 Szu-Han Chen. All rights reserved.</p>
-      <p>
-        <a href="contact.html">Contact</a>
-        <span aria-hidden="true">/</span>
-        <a href="https://github.com/shchen0603/Personal-Website" rel="noreferrer">GitHub</a>
-        <span aria-hidden="true">/</span>
-        <a href="https://orcid.org/0009-0006-4557-9097" rel="noreferrer">ORCID</a>
-        <span aria-hidden="true">/</span>
+      <div class="footer-brand">
+        <strong>陳思翰 Szu-Han Chen</strong>
+        <p>Physician-scientist in cardiovascular epidemiology, nutrition epidemiology, CKM health, and heart failure.</p>
+        <p>© <span data-year></span> All rights reserved.</p>
+      </div>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="research.html">Research</a>
         <a href="publications.html">Publications</a>
-        <span aria-hidden="true">/</span>
         <a href="honors.html">Honors</a>
-        <span aria-hidden="true">/</span>
         <a href="activities.html">Activities</a>
-        <span aria-hidden="true">/</span>
         <a href="blog.html">Blog</a>
-      </p>
+        <a href="contact.html">Contact</a>
+        <a href="https://orcid.org/0009-0006-4557-9097" rel="noreferrer">ORCID</a>
+        <a href="https://scholar.google.com/citations?user=0CdlnrgAAAAJ&hl=zh-TW" rel="noreferrer">Google Scholar</a>
+        <a href="https://github.com/shchen0603/Personal-Website" rel="noreferrer">GitHub</a>
+      </nav>
     </footer>
+
+    <button class="back-to-top" data-back-to-top aria-label="回到頂部" title="回到頂部">↑</button>
 
     <script src="script.js"></script>
   </body>

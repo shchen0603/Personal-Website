@@ -14,6 +14,7 @@ if (adminApp) {
   const status = adminApp.querySelector("[data-admin-status]");
   const openFolderButton = adminApp.querySelector("[data-admin-open-folder]");
   const saveButton = adminApp.querySelector("[data-admin-save]");
+  const publishCurrentContentButton = adminApp.querySelector("[data-admin-publish-github]");
   const newButton = adminApp.querySelector("[data-admin-new]");
   const deleteButton = adminApp.querySelector("[data-admin-delete]");
   const list = adminApp.querySelector("[data-admin-list]");
@@ -39,6 +40,7 @@ if (adminApp) {
   const setDirty = (dirty) => {
     state.dirty = dirty;
     saveButton.disabled = !state.content || !dirty;
+    publishCurrentContentButton.disabled = !state.content || !dirty;
     quickSaveLocalButton.disabled = !state.content;
     quickPublishGitHubButton.disabled = !state.content;
   };
@@ -1076,6 +1078,35 @@ if (adminApp) {
     }
   };
 
+  const publishCurrentContent = async () => {
+    if (!state.content) {
+      setStatus("內容尚未載入，請先載入後再發布。", "error");
+      return;
+    }
+
+    try {
+      const nextContent = cloneContent(state.content);
+      setStatus("正在發布到 GitHub...", "");
+      await publishToGitHub(nextContent, [], "Update website content");
+      setDirty(false);
+
+      if (state.rootHandle) {
+        try {
+          await writeContentFile();
+          setStatus("已發布到 GitHub，並已同步寫回本機資料夾。GitHub Pages 會在稍後自動部署。", "success");
+        } catch (localError) {
+          console.error(localError);
+          setStatus("已發布到 GitHub，但本機同步失敗。請確認網站資料夾權限仍有效。", "error");
+        }
+      } else {
+        setStatus("已發布到 GitHub。尚未選擇網站資料夾，所以本機未同步；需要本機同步時可再選擇資料夾。", "success");
+      }
+    } catch (error) {
+      console.error(error);
+      setStatus(`發布失敗：${getFriendlyPublishError(error)}`, "error");
+    }
+  };
+
   const loadInitialContent = async () => {
     try {
       const response = await fetch("data/site-content.json", { cache: "no-store" });
@@ -1143,6 +1174,10 @@ if (adminApp) {
       return;
     }
 
+    if (!window.confirm("確定要刪除此項目嗎？此操作無法復原。")) {
+      return;
+    }
+
     collection.splice(state.selectedIndex, 1);
     state.selectedIndex = Math.max(0, state.selectedIndex - 1);
     setDirty(true);
@@ -1168,6 +1203,7 @@ if (adminApp) {
   quickType.addEventListener("change", renderQuickFields);
   quickSaveLocalButton.addEventListener("click", () => handleQuickPublish("local"));
   quickPublishGitHubButton.addEventListener("click", () => handleQuickPublish("github"));
+  publishCurrentContentButton.addEventListener("click", publishCurrentContent);
 
   setStatus("尚未選擇網站資料夾。");
   renderQuickFields();

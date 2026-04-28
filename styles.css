@@ -331,23 +331,19 @@ h3 {
   transform: translateY(-1px);
 }
 
-.button-primary {
+.hero .button-primary,
+.hero .button-secondary {
   background: var(--white);
   color: var(--teal-dark);
+  border-color: var(--teal-dark);
 }
 
-[data-theme="dark"] .hero .button-primary {
-  background: #e8edeb;
-  color: #0f1716;
-}
-
-.button-secondary {
-  border-color: rgba(255, 255, 255, 0.52);
+.hero .button-primary:hover,
+.hero .button-secondary:hover,
+.hero .button-primary:focus-visible,
+.hero .button-secondary:focus-visible {
+  background: var(--teal-dark);
   color: var(--white);
-}
-
-.button-secondary:hover {
-  background: rgba(255, 255, 255, 0.12);
 }
 
 .button-outline {

@@ -37,12 +37,27 @@ if (adminApp) {
     status.dataset.tone = tone;
   };
 
-  const setDirty = (dirty) => {
-    state.dirty = dirty;
-    saveButton.disabled = !state.content || !dirty;
-    publishCurrentContentButton.disabled = !state.content || !dirty;
+  const syncContentActionButtons = () => {
+    const saveDisabled = !state.content || !state.dirty;
+    const publishDisabled = !state.content || !state.dirty;
+    const editorSaveButtons = adminApp.querySelectorAll("[data-editor-save]");
+    const editorPublishButtons = adminApp.querySelectorAll("[data-editor-publish-github]");
+
+    [saveButton, ...editorSaveButtons].forEach((button) => {
+      button.disabled = saveDisabled;
+    });
+
+    [publishCurrentContentButton, ...editorPublishButtons].forEach((button) => {
+      button.disabled = publishDisabled;
+    });
+
     quickSaveLocalButton.disabled = !state.content;
     quickPublishGitHubButton.disabled = !state.content;
+  };
+
+  const setDirty = (dirty) => {
+    state.dirty = dirty;
+    syncContentActionButtons();
   };
 
   const cloneContent = (content) => JSON.parse(JSON.stringify(content || {}));
@@ -547,6 +562,17 @@ if (adminApp) {
     ${textarea("images", "其他照片圖片集", stringifyImages(item.images), 5)}
   `;
 
+  const editorActionsMarkup = () => `
+    <div class="admin-editor-actions">
+      <p class="admin-help">改完這個項目後，可以先儲存到本機，或直接發布到 GitHub Pages。</p>
+      <div class="admin-editor-buttons">
+        <button class="button button-outline" type="button" data-editor-open-folder>選擇網站資料夾</button>
+        <button class="button button-primary" type="button" data-editor-save disabled>儲存到本機</button>
+        <button class="button button-primary" type="button" data-editor-publish-github disabled>發布到 GitHub</button>
+      </div>
+    </div>
+  `;
+
   const defaultItem = () => {
     const today = new Date().toISOString().slice(0, 10);
 
@@ -910,6 +936,7 @@ if (adminApp) {
         ${imageField(item.image, "blog")}
         ${field("imageAlt", "圖片替代文字", item.imageAlt)}
         ${textarea("body", "正文（每一段用空行分開）", adminNormalizeList(item.body).join("\n\n"), 12)}
+        ${editorActionsMarkup()}
       `;
       return;
     }
@@ -929,6 +956,7 @@ if (adminApp) {
         ${textarea("venue", "期刊 citation", item.venue, 3)}
         ${textarea("tags", "Tags（slug|Label，每行一個）", stringifyTags(item.tags), 6)}
         ${checkbox("featured", "設為 Research 頁代表作", item.featured)}
+        ${editorActionsMarkup()}
       `;
       return;
     }
@@ -962,6 +990,7 @@ if (adminApp) {
           ${checkbox("featured", "放大活動卡", item.featured)}
           ${checkbox("log", "加入 Activity Log", item.log)}
         </div>
+        ${editorActionsMarkup()}
       `;
       return;
     }
@@ -975,6 +1004,7 @@ if (adminApp) {
         ${field("title", "標題", item.title)}
         ${textarea("description", "說明", item.description, 5)}
         ${textarea("links", "連結（Label|URL，每行一個）", stringifyLinks(item.links), 5)}
+        ${editorActionsMarkup()}
       `;
       return;
     }
@@ -993,6 +1023,7 @@ if (adminApp) {
         </div>
         ${textarea("description", "說明", item.description, 5)}
         <p class="admin-help">這兩個分類會依日期由近到遠排序；若有日期但顯示日期留白，前台會用 YYYY.MM.DD。</p>
+        ${editorActionsMarkup()}
       `;
       return;
     }
@@ -1007,6 +1038,7 @@ if (adminApp) {
         ${field("title", "標題", item.title)}
       </div>
       ${textarea("description", "說明", item.description, 5)}
+      ${editorActionsMarkup()}
     `;
   };
 
@@ -1021,6 +1053,7 @@ if (adminApp) {
     honorCategorySelect.value = state.honorCategory;
     renderList();
     renderEditor();
+    syncContentActionButtons();
   };
 
   const updateCurrentItem = async (event) => {
@@ -1370,6 +1403,27 @@ if (adminApp) {
     }
   };
 
+  const saveCurrentContent = async () => {
+    if (!state.content) {
+      setStatus("內容尚未載入，請先載入後再儲存。", "error");
+      return;
+    }
+
+    if (!state.rootHandle) {
+      setStatus("要儲存到本機，請先按「選擇網站資料夾」取得寫入權限；若要直接上傳，請按「發布到 GitHub」。", "error");
+      return;
+    }
+
+    try {
+      await writeContentFile();
+      setDirty(false);
+      setStatus("已儲存 data/site-content.json。", "success");
+    } catch (error) {
+      console.error(error);
+      setStatus("儲存失敗，請確認瀏覽器仍有資料夾寫入權限。", "error");
+    }
+  };
+
   const loadInitialContent = async () => {
     try {
       const response = await fetch("data/site-content.json", { cache: "no-store" });
@@ -1382,7 +1436,7 @@ if (adminApp) {
       sortHonorCollections(state.content.honors ||= {});
       sortActivities(state.content.activities ||= []);
       setDirty(false);
-      setStatus("內容已載入。可以直接快速發布；若要 GitHub 發布後也同步本機，請先選擇網站資料夾。", "success");
+      setStatus("內容已載入。可以直接編輯並發布到 GitHub；若要儲存回本機，請先選擇網站資料夾。", "success");
       render();
     } catch (error) {
       console.warn(error);
@@ -1391,37 +1445,40 @@ if (adminApp) {
     }
   };
 
-  openFolderButton.addEventListener("click", async () => {
+  const openWebsiteFolder = async () => {
     if (!window.showDirectoryPicker) {
       setStatus("這個瀏覽器不支援資料夾寫入。請使用 Chrome 或 Edge 開啟 admin.html。", "error");
       return;
     }
 
     try {
+      const shouldKeepUnsavedContent = Boolean(state.content && state.dirty);
+
       state.rootHandle = await window.showDirectoryPicker({ mode: "readwrite" });
-      state.content = await readContentFile();
-      sortHonorCollections(state.content.honors ||= {});
-      sortActivities(state.content.activities ||= []);
-      state.selectedIndex = 0;
-      setDirty(false);
-      setStatus("內容已載入，可以開始編輯。", "success");
+
+      if (shouldKeepUnsavedContent) {
+        await readContentFile();
+        setDirty(true);
+        setStatus("已選擇網站資料夾。你剛剛的未儲存變更仍保留，現在可以按「儲存到本機」寫入。", "success");
+      } else {
+        state.content = await readContentFile();
+        sortHonorCollections(state.content.honors ||= {});
+        sortActivities(state.content.activities ||= []);
+        state.selectedIndex = 0;
+        setDirty(false);
+        setStatus("內容已載入，可以開始編輯。", "success");
+      }
+
       render();
     } catch (error) {
       console.error(error);
       setStatus("無法讀取 data/site-content.json，請確認選到網站根目錄。", "error");
     }
-  });
+  };
 
-  saveButton.addEventListener("click", async () => {
-    try {
-      await writeContentFile();
-      setDirty(false);
-      setStatus("已儲存 data/site-content.json。", "success");
-    } catch (error) {
-      console.error(error);
-      setStatus("儲存失敗，請確認瀏覽器仍有資料夾寫入權限。", "error");
-    }
-  });
+  openFolderButton.addEventListener("click", openWebsiteFolder);
+
+  saveButton.addEventListener("click", saveCurrentContent);
 
   newButton.addEventListener("click", () => {
     const collection = getCollection();
@@ -1465,6 +1522,28 @@ if (adminApp) {
 
   editor.addEventListener("input", updateCurrentItem);
   editor.addEventListener("change", updateCurrentItem);
+  editor.addEventListener("click", (event) => {
+    const target = event.target instanceof Element ? event.target : null;
+    const actionButton = target?.closest("[data-editor-open-folder], [data-editor-save], [data-editor-publish-github]");
+
+    if (!actionButton || actionButton.disabled) {
+      return;
+    }
+
+    event.preventDefault();
+
+    if (actionButton.matches("[data-editor-open-folder]")) {
+      openWebsiteFolder();
+      return;
+    }
+
+    if (actionButton.matches("[data-editor-save]")) {
+      saveCurrentContent();
+      return;
+    }
+
+    publishCurrentContent();
+  });
   quickType.addEventListener("change", renderQuickFields);
   quickSaveLocalButton.addEventListener("click", () => handleQuickPublish("local"));
   quickPublishGitHubButton.addEventListener("click", () => handleQuickPublish("github"));

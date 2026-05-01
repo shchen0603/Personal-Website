@@ -1187,6 +1187,7 @@ h3 {
 .admin-actions,
 .admin-list-actions,
 .admin-check-row,
+.admin-editor-buttons,
 .quick-actions {
   display: flex;
   flex-wrap: wrap;
@@ -1383,6 +1384,25 @@ h3 {
   font-size: 0.9rem;
 }
 
+.admin-editor-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  margin-top: 0.35rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.admin-editor-actions .admin-help {
+  flex: 1 1 240px;
+  margin: 0;
+}
+
+.admin-editor-buttons {
+  justify-content: flex-end;
+}
+
 .admin-check {
   display: inline-flex;
   align-items: center;
@@ -1483,6 +1503,8 @@ h3 {
   }
 
   .admin-toolbar,
+  .admin-editor-actions,
+  .admin-editor-buttons,
   .quick-actions {
     align-items: stretch;
     flex-direction: column;

@@ -81,6 +81,8 @@ if (adminApp) {
   const adminNormalizeList = (value) => (Array.isArray(value) ? value : []);
 
   const formatDateForDisplay = (date) => String(date || "").replaceAll("-", ".");
+  const honorCategoryUsesDate = (category) =>
+    category === "talks" || category === "presentations";
   const HEIC_MIME_TYPES = new Set([
     "image/heic",
     "image/heif",
@@ -138,6 +140,42 @@ if (adminApp) {
 
       return String(first.title || "").localeCompare(String(second.title || ""));
     });
+  };
+
+  const getHonorSortTime = (item) => {
+    if (item.date) {
+      const parsed = Date.parse(item.date);
+
+      if (!Number.isNaN(parsed)) {
+        return parsed;
+      }
+    }
+
+    const yearMatch = String(item.year || "").match(/\d{4}/);
+    const yearValue = yearMatch ? Number(yearMatch[0]) : 0;
+
+    return yearValue ? Date.UTC(yearValue, 0, 1) : 0;
+  };
+
+  const sortHonorItems = (items, category) => {
+    if (!honorCategoryUsesDate(category)) {
+      return;
+    }
+
+    items.sort((first, second) => {
+      const timeDifference = getHonorSortTime(second) - getHonorSortTime(first);
+
+      if (timeDifference !== 0) {
+        return timeDifference;
+      }
+
+      return String(first.title || "").localeCompare(String(second.title || ""));
+    });
+  };
+
+  const sortHonorCollections = (honors = {}) => {
+    sortHonorItems(honors.talks ||= [], "talks");
+    sortHonorItems(honors.presentations ||= [], "presentations");
   };
 
   const getCollection = () => {
@@ -567,6 +605,16 @@ if (adminApp) {
       };
     }
 
+    if (honorCategoryUsesDate(state.honorCategory)) {
+      return {
+        date: "",
+        dateLabel: "",
+        year: new Date().getFullYear().toString(),
+        title: "New honor",
+        description: ""
+      };
+    }
+
     return {
       year: new Date().getFullYear().toString(),
       title: "New honor",
@@ -628,6 +676,8 @@ if (adminApp) {
     }
 
     if (type === "honors") {
+      const currentYear = new Date().getFullYear().toString();
+
       quickFields.innerHTML = `
         <div class="admin-grid two">
           <label class="admin-field">
@@ -639,10 +689,15 @@ if (adminApp) {
               <option value="services">Media & Service</option>
             </select>
           </label>
-          ${field("year", "年份", new Date().getFullYear().toString())}
+          ${field("date", "日期（演講/口頭報告）", "", "date")}
+        </div>
+        <div class="admin-grid two">
+          ${field("dateLabel", "顯示日期", "")}
+          ${field("year", "年份", currentYear)}
         </div>
         ${field("title", "標題", "")}
         ${textarea("description", "說明", "", 5)}
+        <p class="admin-help">Awards 可以只填年份；Invited Talks 和 Conference Presentations 建議填完整日期，前台會依日期由近到遠排序。</p>
       `;
       return;
     }
@@ -726,12 +781,23 @@ if (adminApp) {
     }
 
     if (type === "honors") {
-      return {
-        year: formData.get("year") || today.slice(0, 4),
+      const honorCategory = formData.get("honorCategory") || "awards";
+      const date = String(formData.get("date") || "").trim();
+      const dateLabel = String(formData.get("dateLabel") || "").trim();
+      const year = String(formData.get("year") || today.slice(0, 4)).trim();
+      const item = {
+        year: date ? date.slice(0, 4) : year,
         title: formData.get("title") || "New honor",
         description: formData.get("description") || "",
-        honorCategory: formData.get("honorCategory") || "awards"
+        honorCategory
       };
+
+      if (honorCategoryUsesDate(honorCategory) || date || dateLabel) {
+        item.date = date;
+        item.dateLabel = dateLabel || (date ? formatDateForDisplay(date) : "");
+      }
+
+      return item;
     }
 
     return {
@@ -754,6 +820,7 @@ if (adminApp) {
       content.honors ||= {};
       content.honors[category] ||= [];
       content.honors[category].unshift(honorItem);
+      sortHonorItems(content.honors[category], category);
       return;
     }
 
@@ -908,6 +975,24 @@ if (adminApp) {
         ${field("title", "標題", item.title)}
         ${textarea("description", "說明", item.description, 5)}
         ${textarea("links", "連結（Label|URL，每行一個）", stringifyLinks(item.links), 5)}
+      `;
+      return;
+    }
+
+    if (honorCategoryUsesDate(state.honorCategory)) {
+      editor.innerHTML = `
+        <div class="admin-editor-heading">
+          <p class="eyebrow">Honor</p>
+          <h2>${escapeHTML(item.title || "Untitled")}</h2>
+        </div>
+        <div class="admin-grid two">
+          ${field("date", "日期", item.date || "", "date")}
+          ${field("dateLabel", "顯示日期", item.dateLabel || "")}
+          ${field("year", "年份", item.year)}
+          ${field("title", "標題", item.title)}
+        </div>
+        ${textarea("description", "說明", item.description, 5)}
+        <p class="admin-help">這兩個分類會依日期由近到遠排序；若有日期但顯示日期留白，前台會用 YYYY.MM.DD。</p>
       `;
       return;
     }
@@ -1074,6 +1159,22 @@ if (adminApp) {
     if (state.section === "activities" && ["date", "year", "title"].includes(name)) {
       sortActivities(state.content.activities);
       state.selectedIndex = state.content.activities.indexOf(item);
+    }
+
+    if (state.section === "honors" && honorCategoryUsesDate(state.honorCategory)) {
+      if (name === "date" && value) {
+        item.year = String(value).slice(0, 4);
+
+        if (!item.dateLabel || item.dateLabel === item.year || /^\d{4}\.\d{2}\.\d{2}$/.test(item.dateLabel)) {
+          item.dateLabel = formatDateForDisplay(String(value));
+        }
+      }
+
+      if (["date", "year", "title"].includes(name)) {
+        const honors = getCollection();
+        sortHonorItems(honors, state.honorCategory);
+        state.selectedIndex = honors.indexOf(item);
+      }
     }
 
     setDirty(true);
@@ -1278,6 +1379,7 @@ if (adminApp) {
       }
 
       state.content = await response.json();
+      sortHonorCollections(state.content.honors ||= {});
       sortActivities(state.content.activities ||= []);
       setDirty(false);
       setStatus("內容已載入。可以直接快速發布；若要 GitHub 發布後也同步本機，請先選擇網站資料夾。", "success");
@@ -1298,6 +1400,7 @@ if (adminApp) {
     try {
       state.rootHandle = await window.showDirectoryPicker({ mode: "readwrite" });
       state.content = await readContentFile();
+      sortHonorCollections(state.content.honors ||= {});
       sortActivities(state.content.activities ||= []);
       state.selectedIndex = 0;
       setDirty(false);

@@ -242,15 +242,17 @@
     "presentations": [
       {
         "year": "2026",
+        "title": "Beyond Uniform Sodium Targets: Population-stratified evidence for personalised blood pressure-sodium dose-response relationships from 16,443 participants",
+        "description": "Pulse of Asia International Conference, Taipei, Taiwan.",
+        "date": "2026-05-15",
+        "dateLabel": "2026.05.15"
+      },
+      {
+        "year": "2026",
         "title": "Eplerenone versus Spironolactone for Cardiorenal Protection in Primary Aldosteronism: A Target Trial Emulation",
         "description": "Taiwan Society of Aldosteronism Spring Scientific Conference, Taipei, Taiwan.",
         "date": "2026-05-09",
         "dateLabel": "2026.05.09"
-      },
-      {
-        "year": "2026",
-        "title": "Beyond Uniform Sodium Targets: Population-stratified evidence for personalised blood pressure-sodium dose-response relationships from 16,443 participants",
-        "description": "Pulse of Asia International Conference, Taipei, Taiwan."
       },
       {
         "year": "2025",

@@ -34,6 +34,8 @@
 5. 若只想先改本機檔案，按「選擇網站資料夾」，選取 repository 根目錄，再按「儲存到本機」。
 6. 下方的 Content Studio 是進階編輯區，可用來修改既有項目或做比較細的整理。
 
+`admin.html` 現在會在瀏覽器端自動把 `.heic` / `.heif` 轉成 `.jpg` 後再寫入網站檔案，所以平常照原本習慣上傳 iPhone 照片即可。不過轉檔後不會保留原始 HEIC metadata，若有特別需要保存原檔，可另外自行備份。
+
 直接發布到 GitHub 需要一個 fine-grained personal access token。建議建立只限 `shchen0603/Personal-Website` 的 token，權限只開 `Contents: Read and write`。Token 不會寫進 repository，也不會被放進網頁檔案；它只存在你當下開啟的瀏覽器欄位中。Safari/Firefox 對本機檔案寫入支援有限，建議使用 Chrome 或 Edge。
 
 ## 更新 Publications
@@ -50,7 +52,7 @@
 
 ## 更新 Activities
 
-活動照片與簡短心得由 `data/site-content.json` 的 `activities` 陣列產生。用 `admin.html` 更新時，圖片會自動放到 `assets/activities/`。沒有照片時會使用 `visualLabel` 與 `visualTheme` 產生占位視覺。
+活動照片與簡短心得由 `data/site-content.json` 的 `activities` 陣列產生。用 `admin.html` 更新時，圖片會自動放到 `assets/activities/`；若上傳的是 `.heic` / `.heif`，會先在本機自動轉成 `.jpg` 再存入。沒有照片時會使用 `visualLabel` 與 `visualTheme` 產生占位視覺。
 
 ## 寫 Blog
 

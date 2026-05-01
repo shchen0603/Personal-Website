@@ -81,6 +81,37 @@ if (adminApp) {
   const adminNormalizeList = (value) => (Array.isArray(value) ? value : []);
 
   const formatDateForDisplay = (date) => String(date || "").replaceAll("-", ".");
+  const HEIC_MIME_TYPES = new Set([
+    "image/heic",
+    "image/heif",
+    "image/heic-sequence",
+    "image/heif-sequence"
+  ]);
+  const HEIC_EXTENSION_PATTERN = /\.(heic|heif)$/i;
+  const HEIC_OUTPUT_MIME = "image/jpeg";
+  const HEIC_OUTPUT_EXTENSION = "jpg";
+  const HEIC_OUTPUT_QUALITY = 0.9;
+
+  const getFileBaseName = (fileName = "") => fileName.replace(/\.[^.]+$/, "") || "image";
+
+  const getFileExtension = (fileName = "", fallback = "jpg") => {
+    const match = String(fileName || "").toLowerCase().match(/\.([a-z0-9]+)$/);
+
+    return match?.[1] || fallback;
+  };
+
+  const isHeicFile = (file) => {
+    if (!file) {
+      return false;
+    }
+
+    const type = String(file.type || "").toLowerCase();
+
+    return HEIC_MIME_TYPES.has(type) || HEIC_EXTENSION_PATTERN.test(String(file.name || ""));
+  };
+
+  const getConvertedUploadCount = (uploads = []) =>
+    adminNormalizeList(uploads).filter((upload) => upload?.wasConverted).length;
 
   const getActivitySortTime = (activity) => {
     if (activity.date) {
@@ -160,26 +191,102 @@ if (adminApp) {
   };
 
   const getAssetFileName = (file) => {
-    const extension = file.name.includes(".") ? file.name.split(".").pop().toLowerCase() : "jpg";
+    const extension = getFileExtension(file?.name, "jpg");
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
 
-    return `${timestamp}-${slugify(file.name.replace(/\.[^.]+$/, ""))}.${extension}`;
+    return `${timestamp}-${slugify(getFileBaseName(file?.name || "image"))}.${extension}`;
   };
 
-  const saveImage = async (file, folder) => {
+  const getAssetPath = (file, folder) => {
     if (!file) {
       return "";
     }
 
-    const safeName = getAssetFileName(file);
-    const directory = await getDirectoryHandle(`assets/${folder}`, true);
-    const fileHandle = await directory.getFileHandle(safeName, { create: true });
+    return `assets/${folder}/${getAssetFileName(file)}`;
+  };
+
+  const convertHeicToJpeg = async (file) => {
+    if (typeof window.heic2any !== "function") {
+      throw new Error("HEIC 轉檔工具尚未載入，請重新整理 admin 頁面後再試一次。");
+    }
+
+    const result = await window.heic2any({
+      blob: file,
+      toType: HEIC_OUTPUT_MIME,
+      quality: HEIC_OUTPUT_QUALITY
+    });
+    const blob = Array.isArray(result) ? result[0] : result;
+
+    if (!(blob instanceof Blob)) {
+      throw new Error("HEIC 轉檔結果不是有效的圖片檔。");
+    }
+
+    return new File([blob], `${getFileBaseName(file.name)}.${HEIC_OUTPUT_EXTENSION}`, {
+      type: HEIC_OUTPUT_MIME,
+      lastModified: file.lastModified
+    });
+  };
+
+  const prepareImageUpload = async (file) => {
+    if (!file) {
+      return null;
+    }
+
+    try {
+      if (!isHeicFile(file)) {
+        return {
+          file,
+          wasConverted: false,
+          originalName: file.name
+        };
+      }
+
+      return {
+        file: await convertHeicToJpeg(file),
+        wasConverted: true,
+        originalName: file.name
+      };
+    } catch (error) {
+      throw new Error(`HEIC 轉檔失敗：${file.name}。請重新選一次，或先在系統中轉成 JPG/PNG 後再上傳。${error?.message ? ` ${error.message}` : ""}`);
+    }
+  };
+
+  const prepareImageUploads = async (files = []) => {
+    const uploads = [];
+
+    for (const file of adminNormalizeList(files)) {
+      const upload = await prepareImageUpload(file);
+
+      if (upload) {
+        uploads.push(upload);
+      }
+    }
+
+    return uploads;
+  };
+
+  const savePreparedImage = async (upload, folder) => {
+    if (!upload?.file) {
+      return "";
+    }
+
+    const path = getAssetPath(upload.file, folder);
+    const fileHandle = await getFileHandle(path, true);
     const writable = await fileHandle.createWritable();
 
-    await writable.write(file);
+    await writable.write(upload.file);
     await writable.close();
 
-    return `assets/${folder}/${safeName}`;
+    return path;
+  };
+
+  const saveImage = async (file, folder) => {
+    const upload = await prepareImageUpload(file);
+
+    return {
+      upload,
+      path: await savePreparedImage(upload, folder)
+    };
   };
 
   const saveFileAtPath = async (file, path) => {
@@ -195,11 +302,7 @@ if (adminApp) {
   };
 
   const makeAssetPath = (file, folder) => {
-    if (!file) {
-      return "";
-    }
-
-    return `assets/${folder}/${getAssetFileName(file)}`;
+    return getAssetPath(file, folder);
   };
 
   const fileToBase64 = (file) =>
@@ -385,7 +488,7 @@ if (adminApp) {
       ${field("image", "圖片路徑", pathValue)}
       <label class="admin-field">
         <span>上傳圖片</span>
-        <input type="file" name="imageFile" accept="image/*" data-admin-image-upload="${folder}" ${options.multiple ? "multiple" : ""}>
+        <input type="file" name="imageFile" accept="image/*,.heic,.heif" data-admin-image-upload="${folder}" ${options.multiple ? "multiple" : ""}>
       </label>
     </div>
   `;
@@ -395,14 +498,14 @@ if (adminApp) {
       ${field("image", "封面圖片路徑", item.image)}
       <label class="admin-field">
         <span>上傳封面照</span>
-        <input type="file" name="coverImageFile" accept="image/*" data-admin-cover-upload="activities">
+        <input type="file" name="coverImageFile" accept="image/*,.heic,.heif" data-admin-cover-upload="activities">
       </label>
     </div>
     <label class="admin-field">
       <span>上傳其他活動照片</span>
-      <input type="file" name="galleryImageFiles" accept="image/*" data-admin-gallery-upload="activities" multiple>
+      <input type="file" name="galleryImageFiles" accept="image/*,.heic,.heif" data-admin-gallery-upload="activities" multiple>
     </label>
-    <p class="admin-help">封面照會顯示在 Activities 卡片；其他活動照片會放進完整頁的圖片集。已上傳的圖片集仍可用「路徑|替代文字|照片說明」每行編輯一張。</p>
+    <p class="admin-help">封面照會顯示在 Activities 卡片；其他活動照片會放進完整頁的圖片集。若你上傳 HEIC/HEIF，系統會先在本機自動轉成 JPG 再寫入網站。已上傳的圖片集仍可用「路徑|替代文字|照片說明」每行編輯一張。</p>
     ${textarea("images", "其他照片圖片集", stringifyImages(item.images), 5)}
   `;
 
@@ -485,8 +588,9 @@ if (adminApp) {
         ${textarea("body", "你想發布的文字", "", 7)}
         <label class="admin-field">
           <span>附加圖片</span>
-          <input type="file" name="imageFile" accept="image/*" data-quick-image>
+          <input type="file" name="imageFile" accept="image/*,.heic,.heif" data-quick-image>
         </label>
+        <p class="admin-help">若上傳 HEIC/HEIF，系統會先在本機自動轉成 JPG，再存進網站資料夾或直接發布到 GitHub。</p>
       `;
       return;
     }
@@ -507,14 +611,14 @@ if (adminApp) {
         <div class="admin-grid two">
           <label class="admin-field">
             <span>封面照</span>
-            <input type="file" name="coverImageFile" accept="image/*" data-quick-cover-image>
+            <input type="file" name="coverImageFile" accept="image/*,.heic,.heif" data-quick-cover-image>
           </label>
           <label class="admin-field">
             <span>其他活動照片</span>
-            <input type="file" name="galleryImageFiles" accept="image/*" data-quick-gallery-images multiple>
+            <input type="file" name="galleryImageFiles" accept="image/*,.heic,.heif" data-quick-gallery-images multiple>
           </label>
         </div>
-        <p class="admin-help">封面照會顯示在 Activities 卡片；其他活動照片會放進完整頁的圖片集。</p>
+        <p class="admin-help">封面照會顯示在 Activities 卡片；其他活動照片會放進完整頁的圖片集。若你上傳 HEIC/HEIF，系統會先在本機自動轉成 JPG。</p>
         <div class="admin-check-row">
           ${checkbox("log", "加入 Activity Log", true)}
           ${checkbox("featured", "放大活動卡", false)}
@@ -841,12 +945,24 @@ if (adminApp) {
       return;
     }
 
+    if (["coverImageFile", "galleryImageFiles", "imageFile"].includes(event.target.name) && !state.rootHandle) {
+      setStatus("這個編輯區的圖片上傳會直接寫入網站資料夾。請先按「選擇網站資料夾」；若只想直接發到 GitHub，請改用上方 Quick Publish。", "error");
+      event.target.value = "";
+      return;
+    }
+
     if (event.target.name === "coverImageFile") {
-      const path = await saveImage(event.target.files?.[0], event.target.dataset.adminCoverUpload || "activities");
+      const result = await saveImage(event.target.files?.[0], event.target.dataset.adminCoverUpload || "activities");
+      const path = result.path;
 
       if (path) {
         item.image = path;
-        setStatus(`封面照已加入：${path}`, "success");
+        setStatus(
+          result.upload?.wasConverted
+            ? `封面照已加入，並已把 ${result.upload.originalName} 自動轉成 JPG：${path}`
+            : `封面照已加入：${path}`,
+          "success"
+        );
       }
 
       setDirty(true);
@@ -858,12 +974,18 @@ if (adminApp) {
       const folder = event.target.dataset.adminGalleryUpload || "activities";
       const files = [...(event.target.files || [])];
       const paths = [];
+      let convertedCount = 0;
 
       for (const file of files) {
-        const path = await saveImage(file, folder);
+        const result = await saveImage(file, folder);
+        const path = result.path;
 
         if (path) {
           paths.push(path);
+        }
+
+        if (result.upload?.wasConverted) {
+          convertedCount += 1;
         }
       }
 
@@ -879,9 +1001,15 @@ if (adminApp) {
 
         if (!item.image) {
           item.image = paths[0];
-          setStatus(`已加入 ${paths.length} 張其他活動照片，並用第一張作為封面。`, "success");
+          setStatus(
+            `已加入 ${paths.length} 張其他活動照片，並用第一張作為封面。${convertedCount ? ` 其中 ${convertedCount} 張 HEIC/HEIF 已自動轉成 JPG。` : ""}`,
+            "success"
+          );
         } else {
-          setStatus(`已加入 ${paths.length} 張其他活動照片。`, "success");
+          setStatus(
+            `已加入 ${paths.length} 張其他活動照片。${convertedCount ? ` 其中 ${convertedCount} 張 HEIC/HEIF 已自動轉成 JPG。` : ""}`,
+            "success"
+          );
         }
       }
 
@@ -891,11 +1019,17 @@ if (adminApp) {
     }
 
     if (event.target.name === "imageFile") {
-      const path = await saveImage(event.target.files?.[0], event.target.dataset.adminImageUpload || "blog");
+      const result = await saveImage(event.target.files?.[0], event.target.dataset.adminImageUpload || "blog");
+      const path = result.path;
 
       if (path) {
         item.image = path;
-        setStatus(`圖片已加入：${path}`, "success");
+        setStatus(
+          result.upload?.wasConverted
+            ? `圖片已加入，並已把 ${result.upload.originalName} 自動轉成 JPG：${path}`
+            : `圖片已加入：${path}`,
+          "success"
+        );
       }
 
       setDirty(true);
@@ -959,13 +1093,13 @@ if (adminApp) {
     const type = quickType.value;
     const coverFile = type === "activities" ? getQuickCoverImageFile() : null;
     const galleryFiles = type === "activities" ? getQuickGalleryImageFiles() : [];
-    const imageFiles = type === "activities"
+    const rawImageFiles = type === "activities"
       ? [coverFile, ...galleryFiles].filter(Boolean)
       : getQuickImageFiles();
     const imageFolder = type === "activities" ? "activities" : "blog";
 
     try {
-      if (mode === "local" && imageFiles.length && !state.rootHandle) {
+      if (mode === "local" && rawImageFiles.length && !state.rootHandle) {
         setStatus("要儲存圖片到本機，請先按「選擇網站資料夾」。", "error");
         return;
       }
@@ -979,25 +1113,44 @@ if (adminApp) {
       const imagePaths = [];
       let coverPath = "";
       const galleryPaths = [];
+      let coverUpload = null;
+      let galleryUploads = [];
+      let imageUploads = [];
+
+      if (rawImageFiles.some(isHeicFile)) {
+        setStatus("偵測到 HEIC/HEIF，正在自動轉成 JPG...", "");
+      }
+
+      if (type === "activities") {
+        coverUpload = await prepareImageUpload(coverFile);
+        galleryUploads = await prepareImageUploads(galleryFiles);
+      } else {
+        imageUploads = await prepareImageUploads(rawImageFiles);
+      }
+
+      const allUploads = type === "activities"
+        ? [coverUpload, ...galleryUploads].filter(Boolean)
+        : imageUploads;
+      const convertedCount = getConvertedUploadCount(allUploads);
 
       if (type === "activities") {
         if (mode === "local") {
-          coverPath = await saveImage(coverFile, imageFolder);
+          coverPath = await savePreparedImage(coverUpload, imageFolder);
 
-          for (const file of galleryFiles) {
-            galleryPaths.push(await saveImage(file, imageFolder));
+          for (const upload of galleryUploads) {
+            galleryPaths.push(await savePreparedImage(upload, imageFolder));
           }
         } else {
-          coverPath = makeAssetPath(coverFile, imageFolder);
-          galleryPaths.push(...galleryFiles.map((file) => makeAssetPath(file, imageFolder)));
+          coverPath = makeAssetPath(coverUpload?.file, imageFolder);
+          galleryPaths.push(...galleryUploads.map((upload) => makeAssetPath(upload.file, imageFolder)));
         }
       } else {
         if (mode === "local") {
-          for (const file of imageFiles) {
-            imagePaths.push(await saveImage(file, imageFolder));
+          for (const upload of imageUploads) {
+            imagePaths.push(await savePreparedImage(upload, imageFolder));
           }
         } else {
-          imagePaths.push(...imageFiles.map((file) => makeAssetPath(file, imageFolder)));
+          imagePaths.push(...imageUploads.map((upload) => makeAssetPath(upload.file, imageFolder)));
         }
       }
 
@@ -1012,24 +1165,24 @@ if (adminApp) {
 
       if (mode === "github") {
         if (type === "activities") {
-          if (coverFile && coverPath) {
+          if (coverUpload?.file && coverPath) {
             extraFiles.push({
               path: coverPath,
-              content: await fileToBase64(coverFile)
+              content: await fileToBase64(coverUpload.file)
             });
           }
 
-          for (const [index, file] of galleryFiles.entries()) {
+          for (const [index, upload] of galleryUploads.entries()) {
             extraFiles.push({
               path: galleryPaths[index],
-              content: await fileToBase64(file)
+              content: await fileToBase64(upload.file)
             });
           }
         } else {
-          for (const [index, file] of imageFiles.entries()) {
+          for (const [index, upload] of imageUploads.entries()) {
             extraFiles.push({
               path: imagePaths[index],
-              content: await fileToBase64(file)
+              content: await fileToBase64(upload.file)
             });
           }
         }
@@ -1042,31 +1195,40 @@ if (adminApp) {
         if (state.rootHandle) {
           try {
             if (type === "activities") {
-              await saveFileAtPath(coverFile, coverPath);
+              await saveFileAtPath(coverUpload?.file, coverPath);
 
-              for (const [index, file] of galleryFiles.entries()) {
-                await saveFileAtPath(file, galleryPaths[index]);
+              for (const [index, upload] of galleryUploads.entries()) {
+                await saveFileAtPath(upload.file, galleryPaths[index]);
               }
             } else {
-              for (const [index, file] of imageFiles.entries()) {
-                await saveFileAtPath(file, imagePaths[index]);
+              for (const [index, upload] of imageUploads.entries()) {
+                await saveFileAtPath(upload.file, imagePaths[index]);
               }
             }
 
             await writeContentFile();
-            setStatus("已發布到 GitHub，並同步寫回本機資料夾。GitHub Pages 會在稍後自動部署。", "success");
+            setStatus(
+              `已發布到 GitHub，並同步寫回本機資料夾。GitHub Pages 會在稍後自動部署。${convertedCount ? ` 其中 ${convertedCount} 張 HEIC/HEIF 已自動轉成 JPG。` : ""}`,
+              "success"
+            );
           } catch (localError) {
             console.error(localError);
             setStatus("已發布到 GitHub，但本機同步失敗。請確認網站資料夾權限仍有效，或之後用 git pull 同步本機。", "error");
           }
         } else {
-          setStatus("已發布到 GitHub。尚未選擇網站資料夾，所以本機未同步；需要本機同步時可再用 git pull。", "success");
+          setStatus(
+            `已發布到 GitHub。尚未選擇網站資料夾，所以本機未同步；需要本機同步時可再用 git pull。${convertedCount ? ` 其中 ${convertedCount} 張 HEIC/HEIF 已自動轉成 JPG。` : ""}`,
+            "success"
+          );
         }
       } else {
         state.content = nextContent;
         await writeContentFile();
         setDirty(false);
-        setStatus("已儲存到本機 data/site-content.json。", "success");
+        setStatus(
+          `已儲存到本機 data/site-content.json。${convertedCount ? ` 其中 ${convertedCount} 張 HEIC/HEIF 已自動轉成 JPG。` : ""}`,
+          "success"
+        );
       }
 
       quickForm.reset();

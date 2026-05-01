@@ -185,7 +185,7 @@ const renderActivityCard = (activity) => {
   const cover = getActivityCover(activity);
   const href = `activity.html?id=${encodeURIComponent(getActivityId(activity))}`;
   const image = cover
-    ? `<img class="activity-photo" src="${escapeHTML(cover)}" alt="${escapeHTML(activity.imageAlt || activity.title || "活動照片")}">`
+    ? `<img class="activity-photo" src="${escapeHTML(cover)}" alt="${escapeHTML(activity.imageAlt || activity.title || "活動照片")}" loading="lazy" decoding="async">`
     : `<div class="activity-visual activity-visual-${escapeHTML(visualTheme)}" role="img" aria-label="${escapeHTML(activity.title || "活動")}活動視覺"><span>${escapeHTML(activity.visualLabel || activity.title || "Activity")}</span></div>`;
 
   return `
@@ -257,7 +257,7 @@ const renderBlogPost = (content) => {
   document.title = `${post.title} | 陳思翰 Szu-Han Chen`;
 
   const image = post.image
-    ? `<img class="article-image" src="${escapeHTML(post.image)}" alt="${escapeHTML(post.imageAlt || post.title)}">`
+    ? `<img class="article-image" src="${escapeHTML(post.image)}" alt="${escapeHTML(post.imageAlt || post.title)}" loading="lazy" decoding="async">`
     : "";
   const body = normalizeList(post.body)
     .map((paragraph) => `<p>${renderTextWithBreaks(paragraph)}</p>`)
@@ -315,7 +315,7 @@ const renderActivityPost = (content) => {
       <div class="article-gallery" aria-label="活動照片">
         ${images.map((image) => `
           <figure>
-            <img src="${escapeHTML(image.src)}" alt="${escapeHTML(image.alt || activity.imageAlt || activity.title || "活動照片")}">
+            <img src="${escapeHTML(image.src)}" alt="${escapeHTML(image.alt || activity.imageAlt || activity.title || "活動照片")}" loading="lazy" decoding="async">
             ${image.caption ? `<figcaption>${escapeHTML(image.caption)}</figcaption>` : ""}
           </figure>
         `).join("")}
@@ -370,11 +370,32 @@ const getPublicationTagFilters = (publications) => {
   return [...ordered, ...remaining];
 };
 
+const publicationState = {
+  tag: "all",
+  query: ""
+};
+
 const renderContent = (content) => {
   const publications = normalizeList(content.publications);
   const publishedPosts = getPublishedPosts(content);
   const honors = content.honors || {};
   const activities = getSortedActivities(content);
+  const stats = {
+    publications: publications.length,
+    awards: normalizeList(honors.awards).length,
+    appearances: normalizeList(honors.talks).length + normalizeList(honors.presentations).length,
+    activities: activities.length
+  };
+
+  document.querySelectorAll("[data-stat]").forEach((element) => {
+    const key = element.dataset.stat;
+    const value = Number(stats[key]);
+
+    if (!Number.isNaN(value)) {
+      element.dataset.count = String(value);
+      element.textContent = String(value);
+    }
+  });
 
   document.querySelectorAll("[data-render='publication-filters']").forEach((container) => {
     const filters = getPublicationTagFilters(publications);
@@ -461,17 +482,21 @@ const setupPublicationFilters = () => {
   const publicationItems = document.querySelectorAll("[data-publication-item]");
   const publicationFilters = document.querySelectorAll("[data-publication-filter]");
   const publicationEmpty = document.querySelector("[data-publication-empty]");
+  const searchInput = document.querySelector("[data-publication-search]");
 
-  if (!publicationItems.length || !publicationFilters.length) {
+  if (!publicationItems.length) {
     return;
   }
 
-  const setPublicationFilter = (tag) => {
+  const applyPublicationFilters = () => {
     let visibleCount = 0;
 
     publicationItems.forEach((item) => {
       const tags = (item.dataset.tags || "").split(" ");
-      const isVisible = tag === "all" || tags.includes(tag);
+      const text = item.textContent.toLowerCase();
+      const matchesTag = publicationState.tag === "all" || tags.includes(publicationState.tag);
+      const matchesQuery = !publicationState.query || text.includes(publicationState.query);
+      const isVisible = matchesTag && matchesQuery;
 
       item.hidden = !isVisible;
 
@@ -481,7 +506,7 @@ const setupPublicationFilters = () => {
     });
 
     publicationFilters.forEach((button) => {
-      const isActive = button.dataset.publicationFilter === tag;
+      const isActive = button.dataset.publicationFilter === publicationState.tag;
 
       button.classList.toggle("is-active", isActive);
 
@@ -492,14 +517,34 @@ const setupPublicationFilters = () => {
 
     if (publicationEmpty) {
       publicationEmpty.hidden = visibleCount > 0;
+      publicationEmpty.textContent = publicationState.tag !== "all" || publicationState.query
+        ? "目前沒有符合搜尋或篩選條件的論文。"
+        : "目前沒有可顯示的論文。";
     }
   };
 
   publicationFilters.forEach((button) => {
+    if (button.dataset.publicationBound === "true") {
+      return;
+    }
+
+    button.dataset.publicationBound = "true";
     button.addEventListener("click", () => {
-      setPublicationFilter(button.dataset.publicationFilter || "all");
+      publicationState.tag = button.dataset.publicationFilter || "all";
+      applyPublicationFilters();
     });
   });
+
+  if (searchInput && searchInput.dataset.publicationSearchBound !== "true") {
+    searchInput.dataset.publicationSearchBound = "true";
+    searchInput.addEventListener("input", () => {
+      publicationState.query = searchInput.value.toLowerCase().trim();
+      applyPublicationFilters();
+    });
+  }
+
+  publicationState.query = searchInput ? searchInput.value.toLowerCase().trim() : publicationState.query;
+  applyPublicationFilters();
 };
 
 const loadSiteContent = async () => {
@@ -584,25 +629,6 @@ const setupBackToTop = () => {
 setupBackToTop();
 
 // ===== Publication Search =====
-const setupPublicationSearch = () => {
-  const input = document.querySelector("[data-publication-search]");
-  if (!input) return;
-  input.addEventListener("input", () => {
-    const query = input.value.toLowerCase().trim();
-    const items = document.querySelectorAll("[data-publication-item]");
-    const empty = document.querySelector("[data-publication-empty]");
-    let visibleCount = 0;
-    items.forEach((item) => {
-      const text = item.textContent.toLowerCase();
-      const match = !query || text.includes(query);
-      item.hidden = !match;
-      if (match) visibleCount++;
-    });
-    if (empty) empty.hidden = visibleCount > 0;
-  });
-};
-setupPublicationSearch();
-
 // ===== Stat Counter Animation =====
 const setupStatCounters = () => {
   const counters = document.querySelectorAll("[data-count]");

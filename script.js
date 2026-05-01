@@ -63,6 +63,54 @@ const getSortedActivities = (content) =>
 const getActivityDateLabel = (activity) =>
   activity.dateLabel || activity.date || activity.year || "";
 
+const honorCategoryUsesDate = (category) =>
+  category === "talks" || category === "presentations";
+
+const getHonorDateLabel = (item) => {
+  if (item.dateLabel) {
+    return item.dateLabel;
+  }
+
+  if (item.date) {
+    return String(item.date).replaceAll("-", ".");
+  }
+
+  return item.year || "";
+};
+
+const getHonorSortTime = (item) => {
+  if (item.date) {
+    const parsed = Date.parse(item.date);
+
+    if (!Number.isNaN(parsed)) {
+      return parsed;
+    }
+  }
+
+  const yearMatch = String(item.year || "").match(/\d{4}/);
+  const yearValue = yearMatch ? Number(yearMatch[0]) : 0;
+
+  return yearValue ? Date.UTC(yearValue, 0, 1) : 0;
+};
+
+const getSortedHonors = (items, category = "") => {
+  const list = normalizeList(items);
+
+  if (!honorCategoryUsesDate(category)) {
+    return list;
+  }
+
+  return [...list].sort((first, second) => {
+    const timeDifference = getHonorSortTime(second) - getHonorSortTime(first);
+
+    if (timeDifference !== 0) {
+      return timeDifference;
+    }
+
+    return String(first.title || "").localeCompare(String(second.title || ""));
+  });
+};
+
 const getActivityImages = (activity) => {
   const images = normalizeList(activity.images)
     .map((image) => (typeof image === "string" ? { src: image } : image))
@@ -157,7 +205,7 @@ const renderPublicationItem = (publication, options = {}) => {
 
 const renderHonorItem = (item) => `
   <article class="honor-item">
-    <p class="honor-year">${escapeHTML(item.year || "")}</p>
+    <p class="honor-year">${escapeHTML(getHonorDateLabel(item))}</p>
     <div>
       <h3>${escapeHTML(item.title || "")}</h3>
       <p>${escapeHTML(item.description || "")}</p>
@@ -380,10 +428,13 @@ const renderContent = (content) => {
   const publishedPosts = getPublishedPosts(content);
   const honors = content.honors || {};
   const activities = getSortedActivities(content);
+  const awardHonors = normalizeList(honors.awards);
+  const talkHonors = getSortedHonors(honors.talks, "talks");
+  const presentationHonors = getSortedHonors(honors.presentations, "presentations");
   const stats = {
     publications: publications.length,
-    awards: normalizeList(honors.awards).length,
-    appearances: normalizeList(honors.talks).length + normalizeList(honors.presentations).length,
+    awards: awardHonors.length,
+    appearances: talkHonors.length + presentationHonors.length,
     activities: activities.length
   };
 
@@ -439,15 +490,15 @@ const renderContent = (content) => {
   });
 
   document.querySelectorAll("[data-render='honor-awards']").forEach((container) => {
-    container.innerHTML = normalizeList(honors.awards).map(renderHonorItem).join("");
+    container.innerHTML = awardHonors.map(renderHonorItem).join("");
   });
 
   document.querySelectorAll("[data-render='honor-talks']").forEach((container) => {
-    container.innerHTML = normalizeList(honors.talks).map(renderHonorItem).join("");
+    container.innerHTML = talkHonors.map(renderHonorItem).join("");
   });
 
   document.querySelectorAll("[data-render='honor-presentations']").forEach((container) => {
-    container.innerHTML = normalizeList(honors.presentations).map(renderHonorItem).join("");
+    container.innerHTML = presentationHonors.map(renderHonorItem).join("");
   });
 
   document.querySelectorAll("[data-render='honor-services']").forEach((container) => {

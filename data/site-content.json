@@ -230,16 +230,23 @@
       },
       {
         "year": "2025",
-        "title": "My Research Journey as a Medical Student",
-        "description": "Guest Lecturer, Introduction to Physician-Scientist Research, School of Medicine, National Yang Ming Chiao Tung University."
+        "title": "Introduction to Evidence-based Medicine",
+        "description": "Lecturer, Evidence-based Medicine Workshop, Federation of Medical Students in Taiwan."
       },
       {
         "year": "2025",
-        "title": "Introduction to Evidence-based Medicine",
-        "description": "Lecturer, Evidence-based Medicine Workshop, Federation of Medical Students in Taiwan."
+        "title": "My Research Journey as a Medical Student",
+        "description": "Guest Lecturer, Introduction to Physician-Scientist Research, School of Medicine, National Yang Ming Chiao Tung University."
       }
     ],
     "presentations": [
+      {
+        "year": "2026",
+        "title": "Eplerenone versus Spironolactone for Cardiorenal Protection in Primary Aldosteronism: A Target Trial Emulation",
+        "description": "Taiwan Society of Aldosteronism Spring Scientific Conference, Taipei, Taiwan.",
+        "date": "2026-05-09",
+        "dateLabel": "2026.05.09"
+      },
       {
         "year": "2026",
         "title": "Beyond Uniform Sodium Targets: Population-stratified evidence for personalised blood pressure-sodium dose-response relationships from 16,443 participants",

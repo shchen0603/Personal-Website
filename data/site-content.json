@@ -230,13 +230,15 @@
       },
       {
         "year": "2025",
-        "title": "Introduction to Evidence-based Medicine",
-        "description": "Lecturer, Evidence-based Medicine Workshop, Federation of Medical Students in Taiwan."
+        "title": "My Research Journey as a Medical Student",
+        "description": "Guest Lecturer, Introduction to Physician-Scientist Research, School of Medicine, National Yang Ming Chiao Tung University.",
+        "date": "2025-11-25",
+        "dateLabel": "2025.11.25"
       },
       {
         "year": "2025",
-        "title": "My Research Journey as a Medical Student",
-        "description": "Guest Lecturer, Introduction to Physician-Scientist Research, School of Medicine, National Yang Ming Chiao Tung University."
+        "title": "Introduction to Evidence-based Medicine",
+        "description": "Lecturer, Evidence-based Medicine Workshop, Federation of Medical Students in Taiwan."
       }
     ],
     "presentations": [

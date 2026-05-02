@@ -8,6 +8,8 @@ if (adminApp) {
     honorCategory: "awards",
     selectedIndex: 0,
     dirty: false,
+    publishing: false,
+    baseContent: null,
     quickImageFile: null
   };
 
@@ -38,8 +40,8 @@ if (adminApp) {
   };
 
   const syncContentActionButtons = () => {
-    const saveDisabled = !state.content || !state.dirty;
-    const publishDisabled = !state.content || !state.dirty;
+    const saveDisabled = !state.content || !state.dirty || state.publishing;
+    const publishDisabled = !state.content || !state.dirty || state.publishing;
     const editorSaveButtons = adminApp.querySelectorAll("[data-editor-save]");
     const editorPublishButtons = adminApp.querySelectorAll("[data-editor-publish-github]");
 
@@ -51,8 +53,8 @@ if (adminApp) {
       button.disabled = publishDisabled;
     });
 
-    quickSaveLocalButton.disabled = !state.content;
-    quickPublishGitHubButton.disabled = !state.content;
+    quickSaveLocalButton.disabled = !state.content || state.publishing;
+    quickPublishGitHubButton.disabled = !state.content || state.publishing;
   };
 
   const setDirty = (dirty) => {
@@ -60,7 +62,28 @@ if (adminApp) {
     syncContentActionButtons();
   };
 
+  const setPublishing = (publishing) => {
+    state.publishing = publishing;
+    syncContentActionButtons();
+  };
+
   const cloneContent = (content) => JSON.parse(JSON.stringify(content || {}));
+
+  const normalizeContent = (content) => {
+    sortHonorCollections(content.honors ||= {});
+    sortActivities(content.activities ||= []);
+
+    return content;
+  };
+
+  const getCanonicalContent = (content) => JSON.stringify(normalizeContent(cloneContent(content)));
+
+  const decodeBase64Content = (value = "") => {
+    const binary = window.atob(value.replace(/\s/g, ""));
+    const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+
+    return new TextDecoder().decode(bytes);
+  };
 
   const getFriendlyPublishError = (error) => {
     const rawMessage = error?.message || "";
@@ -80,6 +103,14 @@ if (adminApp) {
 
     if (/Bad credentials/i.test(message)) {
       return "GitHub token 無效或已過期。請重新產生 token，並確認沒有多貼空白。";
+    }
+
+    if (/not a fast forward|Reference update failed|GitHub 上的內容已經有新版本/i.test(message)) {
+      return "GitHub 上的內容已經有新版本。請先執行 git pull 或重新載入 admin，確認內容後再發布，避免覆蓋另一邊的修改。";
+    }
+
+    if (/GitHub API 連線逾時/i.test(message)) {
+      return message;
     }
 
     return rawMessage || "請檢查設定與權限。";
@@ -342,18 +373,6 @@ if (adminApp) {
     };
   };
 
-  const saveFileAtPath = async (file, path) => {
-    if (!file || !path) {
-      return;
-    }
-
-    const fileHandle = await getFileHandle(path, true);
-    const writable = await fileHandle.createWritable();
-
-    await writable.write(file);
-    await writable.close();
-  };
-
   const makeAssetPath = (file, folder) => {
     return getAssetPath(file, folder);
   };
@@ -369,6 +388,8 @@ if (adminApp) {
       reader.readAsDataURL(file);
     });
 
+  const GITHUB_REQUEST_TIMEOUT_MS = 30000;
+
   const githubRequest = async (path, options = {}) => {
     const owner = githubOwner.value.trim();
     const repo = githubRepo.value.trim();
@@ -378,15 +399,30 @@ if (adminApp) {
       throw new Error("請先填 GitHub owner、repository 和 token。");
     }
 
-    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}${path}`, {
-      ...options,
-      headers: {
-        Accept: "application/vnd.github+json",
-        Authorization: `Bearer ${token}`,
-        "X-GitHub-Api-Version": "2022-11-28",
-        ...(options.headers || {})
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), GITHUB_REQUEST_TIMEOUT_MS);
+    let response;
+
+    try {
+      response = await fetch(`https://api.github.com/repos/${owner}/${repo}${path}`, {
+        ...options,
+        signal: controller.signal,
+        headers: {
+          Accept: "application/vnd.github+json",
+          Authorization: `Bearer ${token}`,
+          "X-GitHub-Api-Version": "2022-11-28",
+          ...(options.headers || {})
+        }
+      });
+    } catch (error) {
+      if (error?.name === "AbortError") {
+        throw new Error("GitHub API 連線逾時。請確認網路穩定後再試一次；若剛剛已按過發布，請先重新整理頁面確認狀態。");
       }
-    });
+
+      throw error;
+    } finally {
+      window.clearTimeout(timeout);
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -396,8 +432,35 @@ if (adminApp) {
     return response.json();
   };
 
+  const getGitHubBranch = () => githubBranch.value.trim() || "main";
+
+  const getRemoteSiteContent = async () => {
+    const branch = getGitHubBranch();
+    const file = await githubRequest(`/contents/data/site-content.json?ref=${encodeURIComponent(branch)}`);
+
+    if (!file?.content) {
+      throw new Error("GitHub 上找不到 data/site-content.json，無法確認最新版內容。");
+    }
+
+    return normalizeContent(JSON.parse(decodeBase64Content(file.content)));
+  };
+
+  const assertRemoteContentIsCurrent = async (nextContent) => {
+    const remoteContent = await getRemoteSiteContent();
+    const baseContent = state.baseContent ? getCanonicalContent(state.baseContent) : null;
+    const remoteSnapshot = getCanonicalContent(remoteContent);
+
+    if (
+      baseContent &&
+      remoteSnapshot !== baseContent &&
+      remoteSnapshot !== getCanonicalContent(nextContent)
+    ) {
+      throw new Error("GitHub 上的內容已經有新版本。為了避免覆蓋別處的修改，請先執行 git pull 或重新載入 admin 後再發布。");
+    }
+  };
+
   const publishToGitHub = async (nextContent, extraFiles = [], message = "Update website content") => {
-    const branch = githubBranch.value.trim() || "main";
+    const branch = getGitHubBranch();
     const ref = await githubRequest(`/git/ref/heads/${encodeURIComponent(branch)}`);
     const baseCommitSha = ref.object.sha;
     const baseCommit = await githubRequest(`/git/commits/${baseCommitSha}`);
@@ -1224,6 +1287,10 @@ if (adminApp) {
       return;
     }
 
+    if (state.publishing) {
+      return;
+    }
+
     const type = quickType.value;
     const coverFile = type === "activities" ? getQuickCoverImageFile() : null;
     const galleryFiles = type === "activities" ? getQuickGalleryImageFiles() : [];
@@ -1231,6 +1298,8 @@ if (adminApp) {
       ? [coverFile, ...galleryFiles].filter(Boolean)
       : getQuickImageFiles();
     const imageFolder = type === "activities" ? "activities" : "blog";
+
+    setPublishing(true);
 
     try {
       if (mode === "local" && rawImageFiles.length && !state.rootHandle) {
@@ -1243,7 +1312,16 @@ if (adminApp) {
         return;
       }
 
-      const nextContent = cloneContent(state.content);
+      if (mode === "github" && state.dirty) {
+        setStatus("目前編輯區還有未發布的變更。請先發布或儲存那些變更，再使用 Quick Publish，避免新舊內容互相覆蓋。", "error");
+        return;
+      }
+
+      if (mode === "github") {
+        setStatus("正在讀取 GitHub 最新內容，避免覆蓋其他修改...", "");
+      }
+
+      const nextContent = mode === "github" ? await getRemoteSiteContent() : cloneContent(state.content);
       const imagePaths = [];
       let coverPath = "";
       const galleryPaths = [];
@@ -1324,37 +1402,13 @@ if (adminApp) {
         setStatus("正在發布到 GitHub...", "");
         await publishToGitHub(nextContent, extraFiles, `Publish ${item.title || "website content"}`);
         state.content = nextContent;
+        state.baseContent = cloneContent(nextContent);
         setDirty(false);
 
-        if (state.rootHandle) {
-          try {
-            if (type === "activities") {
-              await saveFileAtPath(coverUpload?.file, coverPath);
-
-              for (const [index, upload] of galleryUploads.entries()) {
-                await saveFileAtPath(upload.file, galleryPaths[index]);
-              }
-            } else {
-              for (const [index, upload] of imageUploads.entries()) {
-                await saveFileAtPath(upload.file, imagePaths[index]);
-              }
-            }
-
-            await writeContentFile();
-            setStatus(
-              `已發布到 GitHub，並同步寫回本機資料夾。GitHub Pages 會在稍後自動部署。${convertedCount ? ` 其中 ${convertedCount} 張 HEIC/HEIF 已自動轉成 JPG。` : ""}`,
-              "success"
-            );
-          } catch (localError) {
-            console.error(localError);
-            setStatus("已發布到 GitHub，但本機同步失敗。請確認網站資料夾權限仍有效，或之後用 git pull 同步本機。", "error");
-          }
-        } else {
-          setStatus(
-            `已發布到 GitHub。尚未選擇網站資料夾，所以本機未同步；需要本機同步時可再用 git pull。${convertedCount ? ` 其中 ${convertedCount} 張 HEIC/HEIF 已自動轉成 JPG。` : ""}`,
-            "success"
-          );
-        }
+        setStatus(
+          `已發布到 GitHub。本機檔案不會自動改動；需要本機同步時請用 git pull。${convertedCount ? ` 其中 ${convertedCount} 張 HEIC/HEIF 已自動轉成 JPG。` : ""}`,
+          "success"
+        );
       } else {
         state.content = nextContent;
         await writeContentFile();
@@ -1371,6 +1425,8 @@ if (adminApp) {
     } catch (error) {
       console.error(error);
       setStatus(`發布失敗：${getFriendlyPublishError(error)}`, "error");
+    } finally {
+      setPublishing(false);
     }
   };
 
@@ -1380,26 +1436,26 @@ if (adminApp) {
       return;
     }
 
+    if (state.publishing) {
+      return;
+    }
+
+    setPublishing(true);
+
     try {
       const nextContent = cloneContent(state.content);
+      setStatus("正在確認 GitHub 是否已有新版本...", "");
+      await assertRemoteContentIsCurrent(nextContent);
       setStatus("正在發布到 GitHub...", "");
       await publishToGitHub(nextContent, [], "Update website content");
+      state.baseContent = cloneContent(nextContent);
       setDirty(false);
-
-      if (state.rootHandle) {
-        try {
-          await writeContentFile();
-          setStatus("已發布到 GitHub，並已同步寫回本機資料夾。GitHub Pages 會在稍後自動部署。", "success");
-        } catch (localError) {
-          console.error(localError);
-          setStatus("已發布到 GitHub，但本機同步失敗。請確認網站資料夾權限仍有效。", "error");
-        }
-      } else {
-        setStatus("已發布到 GitHub。尚未選擇網站資料夾，所以本機未同步；需要本機同步時可再選擇資料夾。", "success");
-      }
+      setStatus("已發布到 GitHub。本機檔案不會自動改動；需要本機同步時請用 git pull。", "success");
     } catch (error) {
       console.error(error);
       setStatus(`發布失敗：${getFriendlyPublishError(error)}`, "error");
+    } finally {
+      setPublishing(false);
     }
   };
 
@@ -1432,9 +1488,8 @@ if (adminApp) {
         throw new Error(`HTTP ${response.status}`);
       }
 
-      state.content = await response.json();
-      sortHonorCollections(state.content.honors ||= {});
-      sortActivities(state.content.activities ||= []);
+      state.content = normalizeContent(await response.json());
+      state.baseContent = cloneContent(state.content);
       setDirty(false);
       setStatus("內容已載入。可以直接編輯並發布到 GitHub；若要儲存回本機，請先選擇網站資料夾。", "success");
       render();
@@ -1461,9 +1516,8 @@ if (adminApp) {
         setDirty(true);
         setStatus("已選擇網站資料夾。你剛剛的未儲存變更仍保留，現在可以按「儲存到本機」寫入。", "success");
       } else {
-        state.content = await readContentFile();
-        sortHonorCollections(state.content.honors ||= {});
-        sortActivities(state.content.activities ||= []);
+        state.content = normalizeContent(await readContentFile());
+        state.baseContent = cloneContent(state.content);
         state.selectedIndex = 0;
         setDirty(false);
         setStatus("內容已載入，可以開始編輯。", "success");

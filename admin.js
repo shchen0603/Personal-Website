@@ -128,7 +128,7 @@ if (adminApp) {
 
   const formatDateForDisplay = (date) => String(date || "").replaceAll("-", ".");
   const honorCategoryUsesDate = (category) =>
-    category === "talks" || category === "presentations";
+    category === "talks" || category === "presentations" || category === "mediaCoverage";
   const HEIC_MIME_TYPES = new Set([
     "image/heic",
     "image/heif",
@@ -222,6 +222,7 @@ if (adminApp) {
   const sortHonorCollections = (honors = {}) => {
     sortHonorItems(honors.talks ||= [], "talks");
     sortHonorItems(honors.presentations ||= [], "presentations");
+    sortHonorItems(honors.mediaCoverage ||= [], "mediaCoverage");
   };
 
   const getCollection = () => {
@@ -686,6 +687,17 @@ if (adminApp) {
       };
     }
 
+    if (state.honorCategory === "mediaCoverage") {
+      return {
+        date: "",
+        dateLabel: "",
+        year: new Date().getFullYear().toString(),
+        title: "New media coverage",
+        description: "",
+        links: []
+      };
+    }
+
     if (state.honorCategory === "services") {
       return {
         title: "New service",
@@ -775,10 +787,11 @@ if (adminApp) {
               <option value="awards">Awards</option>
               <option value="talks">Invited Talks</option>
               <option value="presentations">Conference Presentations</option>
-              <option value="services">Media & Service</option>
+              <option value="mediaCoverage">Media Coverage</option>
+              <option value="services">Academic Service</option>
             </select>
           </label>
-          ${field("date", "日期（演講/口頭報告）", "", "date")}
+          ${field("date", "日期（選填）", "", "date")}
         </div>
         <div class="admin-grid two">
           ${field("dateLabel", "顯示日期", "")}
@@ -786,7 +799,7 @@ if (adminApp) {
         </div>
         ${field("title", "標題", "")}
         ${textarea("description", "說明", "", 5)}
-        <p class="admin-help">Awards 可以只填年份；Invited Talks 和 Conference Presentations 建議填完整日期，前台會依日期由近到遠排序。</p>
+        <p class="admin-help">Awards 可以只填年份；Invited Talks、Conference Presentations 和 Media Coverage 建議填日期，前台會依日期由近到遠排序。</p>
       `;
       return;
     }
@@ -796,7 +809,7 @@ if (adminApp) {
         ${field("year", "年份", new Date().getFullYear().toString())}
         ${field("doi", "DOI / 連結", "")}
       </div>
-      ${field("title", "論文標題", "")}
+      ${field("title", "著作標題", "")}
       ${textarea("authors", "作者", "Szu-Han Chen.", 3)}
       ${textarea("venue", "期刊 citation", "", 3)}
       ${textarea("tags", "Tags（slug|Label，每行一個）", "", 4)}
@@ -1058,10 +1071,29 @@ if (adminApp) {
       return;
     }
 
+    if (state.honorCategory === "mediaCoverage") {
+      editor.innerHTML = `
+        <div class="admin-editor-heading">
+          <p class="eyebrow">Media Coverage</p>
+          <h2>${escapeHTML(item.title || "Untitled")}</h2>
+        </div>
+        <div class="admin-grid two">
+          ${field("date", "日期", item.date || "", "date")}
+          ${field("dateLabel", "顯示日期", item.dateLabel || "")}
+          ${field("year", "年份", item.year)}
+          ${field("title", "媒體或報導標題", item.title)}
+        </div>
+        ${textarea("description", "說明", item.description, 5)}
+        ${textarea("links", "連結（Label|URL，每行一個）", stringifyLinks(item.links), 5)}
+        ${editorActionsMarkup()}
+      `;
+      return;
+    }
+
     if (state.honorCategory === "services") {
       editor.innerHTML = `
         <div class="admin-editor-heading">
-          <p class="eyebrow">Media & Service</p>
+          <p class="eyebrow">Academic Service</p>
           <h2>${escapeHTML(item.title || "Untitled")}</h2>
         </div>
         ${field("title", "標題", item.title)}

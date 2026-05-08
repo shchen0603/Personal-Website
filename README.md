@@ -1,12 +1,12 @@
 # Personal Website
 
-這是一個可直接部署到 GitHub Pages 的靜態個人網站，主題聚焦在陳思翰 Szu-Han Chen 的醫師科學家身份、心血管流行病學、營養流行病學、心血管-腎臟-代謝健康、心臟衰竭與部落格寫作。
+這是一個可直接部署到 GitHub Pages 的靜態個人網站，主題聚焦在陳思翰 Szu-Han Chen 的國立陽明交通大學醫學系學生與心血管流行病學研究者身份、心血管、腎臟與代謝健康、營養暴露、高血壓、心臟衰竭與部落格寫作。
 
 ## 檔案結構
 
 - `index.html`: 首頁
 - `research.html`: 研究介紹與最新研究入口
-- `publications.html`: 完整已發表論文清單
+- `publications.html`: 完整已發表著作清單
 - `honors.html`: 學術獎項、受邀演講、會議報告、媒體報導與專業服務
 - `activities.html`: 研討會、受邀演講、工作坊等活動照片與簡短心得
 - `blog.html`: 文章列表
@@ -14,8 +14,8 @@
 - `admin.html`: 本機內容管理頁，可新增與更新 Blog、Publications、Honors、Activities
 - `data/site-content.json`: 全站可維護內容資料來源
 - `contact.html`: 聯繫方式頁面
-- `posts/welcome.html`: 範例文章
-- `posts/_template.html`: Blog 文章模板，新增文章時可以複製
+- `posts/welcome.html`: 舊版靜態文章備份
+- `posts/_template.html`: Blog 文章模板，僅供本機維護參考
 - `styles.css`: 全站樣式
 - `script.js`: 手機選單、年份與內容渲染
 - `admin.js`: 管理頁的本機讀寫、表單與圖片上傳邏輯
@@ -40,7 +40,7 @@
 
 ## 更新 Publications
 
-目前完整論文清單由 `data/site-content.json` 產生，建議用 `admin.html` 更新。若要手動編輯 JSON，新論文需放入 `publications` 陣列：
+目前完整著作清單由 `data/site-content.json` 產生，建議用 `admin.html` 更新。若要手動編輯 JSON，新著作需放入 `publications` 陣列：
 
 1. 更新 `year`、`title`、`authors`、`venue`、`doi`。
 2. 在 `tags` 中加入 `{ "slug": "heart-failure", "label": "Heart Failure" }` 這種格式。
@@ -48,7 +48,7 @@
 
 ## 更新 Honors
 
-學術獎項與活動整理在 `data/site-content.json` 的 `honors` 物件中，包含 `awards`、`talks`、`presentations`、`services`。建議用 `admin.html` 的 Honors 分頁更新。
+學術獎項與活動整理在 `data/site-content.json` 的 `honors` 物件中，包含 `awards`、`talks`、`presentations`、`mediaCoverage`、`services`。建議用 `admin.html` 的 Honors 分頁更新。
 
 ## 更新 Activities
 
@@ -58,7 +58,7 @@
 
 Blog 文章由 `data/site-content.json` 的 `blogPosts` 陣列產生，建議用 `admin.html` 更新。每篇文章會由 `post.html?id=文章ID` 顯示。
 
-舊的 `posts/` HTML 檔先保留作為備份與範例；新的文章不需要再手動複製 HTML。
+舊的 `posts/` HTML 檔先保留作為備份；新的文章不需要再手動複製 HTML。
 
 ## 更新 Contact
 

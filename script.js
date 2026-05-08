@@ -181,7 +181,7 @@ const renderPublicationItem = (publication, options = {}) => {
   const link = publication.doi || publication.href || "#";
   const tags = normalizeList(publication.tags);
   const tagMarkup = tags.length
-    ? `<div class="publication-tags" aria-label="論文標籤">${renderTags(tags, { interactive: options.interactiveTags !== false })}</div>`
+    ? `<div class="publication-tags" aria-label="著作標籤">${renderTags(tags, { interactive: options.interactiveTags !== false })}</div>`
     : "";
   const itemAttributes = options.filterable
     ? ` data-publication-item data-tags="${escapeHTML(tags.map((tag) => tag.slug).join(" "))}"`
@@ -196,7 +196,7 @@ const renderPublicationItem = (publication, options = {}) => {
         ${publication.venue ? `<p class="publication-venue">${escapeHTML(publication.venue)}</p>` : ""}
         ${tagMarkup}
         ${link && link !== "#"
-          ? `<div class="publication-links" aria-label="論文連結"><a href="${escapeHTML(link)}" rel="noreferrer">DOI</a></div>`
+          ? `<div class="publication-links" aria-label="著作連結"><a href="${escapeHTML(link)}" rel="noreferrer">DOI</a></div>`
           : ""}
       </div>
     </article>
@@ -212,6 +212,23 @@ const renderHonorItem = (item) => `
     </div>
   </article>
 `;
+
+const renderMediaCoverageItem = (item) => {
+  const links = normalizeList(item.links)
+    .map((link) => `<a href="${escapeHTML(link.href || "#")}" rel="noreferrer">${escapeHTML(link.label || "Coverage")}</a>`)
+    .join("");
+
+  return `
+    <li class="media-coverage-item">
+      <p class="media-coverage-date">${escapeHTML(getHonorDateLabel(item))}</p>
+      <div>
+        <h3>${escapeHTML(item.title || "")}</h3>
+        <p>${escapeHTML(item.description || "")}</p>
+        ${links ? `<div class="publication-links">${links}</div>` : ""}
+      </div>
+    </li>
+  `;
+};
 
 const renderServiceCard = (item) => {
   const links = normalizeList(item.links)
@@ -279,6 +296,8 @@ const renderHomePostCard = (post) => `
     <p>${renderTextWithBreaks(post.excerpt || "")}</p>
   </article>
 `;
+
+const renderBlogNote = () => `<p class="blog-note">More research notes coming soon.</p>`;
 
 const renderBlogPost = (content) => {
   const container = document.querySelector("[data-render='blog-post']");
@@ -388,6 +407,7 @@ const renderActivityPost = (content) => {
 const getPublicationTagFilters = (publications) => {
   const preferredOrder = [
     "heart-failure",
+    "cover-feature",
     "ckm-health",
     "disability-health",
     "health-equity",
@@ -431,6 +451,7 @@ const renderContent = (content) => {
   const awardHonors = normalizeList(honors.awards);
   const talkHonors = getSortedHonors(honors.talks, "talks");
   const presentationHonors = getSortedHonors(honors.presentations, "presentations");
+  const mediaCoverage = getSortedHonors(honors.mediaCoverage, "mediaCoverage");
   const stats = {
     publications: publications.length,
     awards: awardHonors.length,
@@ -462,12 +483,6 @@ const renderContent = (content) => {
     container.innerHTML = publications.map((publication) => renderPublicationItem(publication, { filterable: true })).join("");
   });
 
-  document.querySelectorAll("[data-render='publication-features']").forEach((container) => {
-    container.innerHTML = normalizeList(content.publicationFeatures)
-      .map((feature) => renderPublicationItem(feature, { cta: true, interactiveTags: false }))
-      .join("");
-  });
-
   document.querySelectorAll("[data-render='featured-publications']").forEach((container) => {
     const featured = publications.find((publication) => publication.featured) || publications[0];
     const items = featured ? [renderPublicationItem(featured, { interactiveTags: false })] : [];
@@ -477,8 +492,8 @@ const renderContent = (content) => {
         <p class="publication-year">All</p>
         <div>
           <h3><a href="publications.html">View all publications</a></h3>
-          <p>完整清單包含目前 ORCID public record 中的已發表論文，並依年份排序與主題標籤整理。</p>
-          <div class="publication-links" aria-label="論文連結">
+          <p>完整清單包含目前 ORCID public record 中的已發表著作，並依年份排序與主題標籤整理。</p>
+          <div class="publication-links" aria-label="著作連結">
             <a href="publications.html">Publications</a>
             <a href="https://orcid.org/0009-0006-4557-9097" rel="noreferrer">ORCID</a>
           </div>
@@ -501,6 +516,10 @@ const renderContent = (content) => {
     container.innerHTML = presentationHonors.map(renderHonorItem).join("");
   });
 
+  document.querySelectorAll("[data-render='media-coverage']").forEach((container) => {
+    container.innerHTML = mediaCoverage.map(renderMediaCoverageItem).join("");
+  });
+
   document.querySelectorAll("[data-render='honor-services']").forEach((container) => {
     container.innerHTML = normalizeList(honors.services).map(renderServiceCard).join("");
   });
@@ -517,7 +536,10 @@ const renderContent = (content) => {
   });
 
   document.querySelectorAll("[data-render='blog-index']").forEach((container) => {
-    container.innerHTML = publishedPosts.map(renderBlogRow).join("");
+    const rows = publishedPosts.map(renderBlogRow).join("");
+    const note = publishedPosts.length < 2 ? renderBlogNote() : "";
+
+    container.innerHTML = rows ? `${rows}${note}` : renderBlogNote();
   });
 
   document.querySelectorAll("[data-render='home-posts']").forEach((container) => {
@@ -569,8 +591,8 @@ const setupPublicationFilters = () => {
     if (publicationEmpty) {
       publicationEmpty.hidden = visibleCount > 0;
       publicationEmpty.textContent = publicationState.tag !== "all" || publicationState.query
-        ? "目前沒有符合搜尋或篩選條件的論文。"
-        : "目前沒有可顯示的論文。";
+        ? "目前沒有符合搜尋或篩選條件的著作。"
+        : "目前沒有可顯示的著作。";
     }
   };
 

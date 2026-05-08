@@ -534,61 +534,18 @@ if (adminApp) {
       .map((tag) => `${tag.slug || ""}|${tag.label || ""}`)
       .join("\n");
 
-  const parseLinks = (value) =>
-    value
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .map((line) => {
-        const [label, href] = line.split("|").map((part) => part.trim());
+  const getFirstLinkHref = (links) => adminNormalizeList(links)[0]?.href || "";
 
-        return {
-          label: label || "Link",
-          href: href || "#"
-        };
-      });
+  const setSingleUrlLink = (item, url = "") => {
+    const href = String(url || "").trim();
 
-  const stringifyLinks = (links) =>
-    adminNormalizeList(links)
-      .map((link) => `${link.label || ""}|${link.href || ""}`)
-      .join("\n");
-
-  const parseLineList = (value) =>
-    value
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean);
-
-  const stringifyLineList = (items) =>
-    adminNormalizeList(items)
-      .map((item) => (typeof item === "string" ? item : item.label || item.title || ""))
-      .filter(Boolean)
-      .join("\n");
-
-  const parseMemberships = (value) =>
-    value
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .map((line) => {
-        const [period, label] = line.split("|").map((part) => part.trim());
-
-        return {
-          period: period || "",
-          label: label || period || ""
-        };
-      });
-
-  const stringifyMemberships = (memberships) =>
-    adminNormalizeList(memberships)
-      .map((membership) => {
-        if (typeof membership === "string") {
-          return membership;
-        }
-
-        return `${membership.period || ""}|${membership.label || membership.title || ""}`;
-      })
-      .join("\n");
+    item.links = href
+      ? [{
+          label: item.title || "Coverage",
+          href
+        }]
+      : [];
+  };
 
   const parseImages = (value) =>
     value
@@ -668,7 +625,6 @@ if (adminApp) {
     <option value="talks" ${selected === "talks" ? "selected" : ""}>Invited Talks</option>
     <option value="presentations" ${selected === "presentations" ? "selected" : ""}>Conference Presentations</option>
     <option value="mediaCoverage" ${selected === "mediaCoverage" ? "selected" : ""}>Media Coverage</option>
-    <option value="services" ${selected === "services" ? "selected" : ""}>Academic Service</option>
   `;
 
   const quickHonorCategoryField = (selected = "awards") => `
@@ -683,33 +639,15 @@ if (adminApp) {
   const renderQuickHonorFields = (category = "awards") => {
     const currentYear = new Date().getFullYear().toString();
 
-    if (category === "services") {
-      quickFields.innerHTML = `
-        <div class="admin-grid two">
-          ${quickHonorCategoryField(category)}
-        </div>
-        ${field("title", "服務項目", "")}
-        ${textarea("description", "說明", "", 5)}
-        ${textarea("items", "條列項目（每行一個）", "", 6)}
-        ${textarea("memberships", "Memberships（期間|項目，每行一個）", "", 4)}
-        ${textarea("links", "連結（Label|URL，每行一個）", "", 4)}
-        <p class="admin-help">Academic Service 會顯示在 Honors 頁的 Academic Service 區塊。</p>
-      `;
-      return;
-    }
-
     if (category === "mediaCoverage") {
       quickFields.innerHTML = `
         <div class="admin-grid two">
           ${quickHonorCategoryField(category)}
-          ${field("date", "報導日期（選填）", "", "date")}
-          ${field("dateLabel", "顯示日期", "")}
-          ${field("year", "年份", currentYear)}
         </div>
         ${field("title", "媒體或報導標題", "")}
         ${textarea("description", "報導說明", "", 5)}
-        ${textarea("links", "報導連結（Label|URL，每行一個）", "", 4)}
-        <p class="admin-help">Media Coverage 會顯示在 Honors 頁的正式列點區，建議填日期與新聞連結。</p>
+        ${field("url", "URL", "")}
+        <p class="admin-help">Media Coverage 會以「標題、說明、URL」顯示在 Honors 頁。</p>
       `;
       return;
     }
@@ -801,16 +739,6 @@ if (adminApp) {
         year: new Date().getFullYear().toString(),
         title: "New media coverage",
         description: "",
-        links: []
-      };
-    }
-
-    if (state.honorCategory === "services") {
-      return {
-        title: "New service",
-        description: "",
-        items: [],
-        memberships: [],
         links: []
       };
     }
@@ -970,17 +898,18 @@ if (adminApp) {
 
     if (type === "honors") {
       const honorCategory = formData.get("honorCategory") || "awards";
-      const links = parseLinks(formData.get("links") || "");
 
-      if (honorCategory === "services") {
-        return {
-          title: formData.get("title") || "New service",
+      if (honorCategory === "mediaCoverage") {
+        const item = {
+          year: today.slice(0, 4),
+          title: formData.get("title") || "New media coverage",
           description: formData.get("description") || "",
-          items: parseLineList(formData.get("items") || ""),
-          memberships: parseMemberships(formData.get("memberships") || ""),
-          links,
           honorCategory
         };
+
+        setSingleUrlLink(item, formData.get("url") || "");
+
+        return item;
       }
 
       const date = String(formData.get("date") || "").trim();
@@ -996,10 +925,6 @@ if (adminApp) {
       if (honorCategoryUsesDate(honorCategory) || date || dateLabel) {
         item.date = date;
         item.dateLabel = dateLabel || (date ? formatDateForDisplay(date) : "");
-      }
-
-      if (honorCategory === "mediaCoverage") {
-        item.links = links;
       }
 
       return item;
@@ -1180,30 +1105,9 @@ if (adminApp) {
           <p class="eyebrow">Media Coverage</p>
           <h2>${escapeHTML(item.title || "Untitled")}</h2>
         </div>
-        <div class="admin-grid two">
-          ${field("date", "日期", item.date || "", "date")}
-          ${field("dateLabel", "顯示日期", item.dateLabel || "")}
-          ${field("year", "年份", item.year)}
-          ${field("title", "媒體或報導標題", item.title)}
-        </div>
-        ${textarea("description", "說明", item.description, 5)}
-        ${textarea("links", "連結（Label|URL，每行一個）", stringifyLinks(item.links), 5)}
-        ${editorActionsMarkup()}
-      `;
-      return;
-    }
-
-    if (state.honorCategory === "services") {
-      editor.innerHTML = `
-        <div class="admin-editor-heading">
-          <p class="eyebrow">Academic Service</p>
-          <h2>${escapeHTML(item.title || "Untitled")}</h2>
-        </div>
         ${field("title", "標題", item.title)}
         ${textarea("description", "說明", item.description, 5)}
-        ${textarea("items", "條列項目（每行一個）", stringifyLineList(item.items), 8)}
-        ${textarea("memberships", "Memberships（期間|項目，每行一個）", stringifyMemberships(item.memberships), 5)}
-        ${textarea("links", "連結（Label|URL，每行一個）", stringifyLinks(item.links), 5)}
+        ${field("url", "URL", getFirstLinkHref(item.links))}
         ${editorActionsMarkup()}
       `;
       return;
@@ -1360,12 +1264,8 @@ if (adminApp) {
 
     if (name === "tags") {
       item.tags = parseTags(value);
-    } else if (name === "links") {
-      item.links = parseLinks(value);
-    } else if (name === "items") {
-      item.items = parseLineList(value);
-    } else if (name === "memberships") {
-      item.memberships = parseMemberships(value);
+    } else if (name === "url") {
+      setSingleUrlLink(item, value);
     } else if (name === "images") {
       item.images = parseImages(value);
     } else if (name === "body") {
@@ -1383,6 +1283,10 @@ if (adminApp) {
           publication.featured = false;
         }
       });
+    }
+
+    if (state.section === "honors" && state.honorCategory === "mediaCoverage" && name === "title" && item.links?.[0]) {
+      item.links[0].label = item.title || "Coverage";
     }
 
     if (state.section === "activities" && name === "featured" && value) {

@@ -446,57 +446,6 @@
       "log": true
     },
     {
-      "id": "2026-from-ckhs-nycu-to-harvard",
-      "year": "2026",
-      "meta": "2026 · Invited Talk · Taipei",
-      "title": "From CKHS, NYCU, to Harvard",
-      "summary": "回到高中分享醫學生的研究旅程時，最想傳達的是：研究不是很遠的事，而是一種持續把好奇心變成問題的訓練。",
-      "body": [
-        "回到高中分享醫學生的研究旅程時，最想傳達的是：研究不是很遠的事，而是一種持續把好奇心變成問題的訓練。"
-      ],
-      "visualLabel": "Career Sharing",
-      "visualTheme": "talk",
-      "image": "",
-      "images": [],
-      "imageAlt": "",
-      "featured": false,
-      "log": false
-    },
-    {
-      "id": "2026-paul-dudley-white-international-scholar-award",
-      "year": "2026",
-      "meta": "2026 · Award · Scientific Sessions",
-      "title": "Paul Dudley White International Scholar Award",
-      "summary": "這段經驗提醒我，好的流行病學研究需要同時經得起統計檢驗，也能回到具體、可溝通的預防問題。",
-      "body": [
-        "這段經驗提醒我，好的流行病學研究需要同時經得起統計檢驗，也能回到具體、可溝通的預防問題。"
-      ],
-      "visualLabel": "AHA EPI|Lifestyle",
-      "visualTheme": "aha",
-      "image": "",
-      "images": [],
-      "imageAlt": "",
-      "featured": false,
-      "log": true
-    },
-    {
-      "id": "2026-pulse-of-asia-international-conference",
-      "year": "2026",
-      "meta": "2026 · Conference Presentation · Taipei",
-      "title": "Pulse of Asia International Conference",
-      "summary": "報告 population-stratified sodium 與 blood pressure dose-response 的分析，也很適合把方法學結果轉譯成臨床與公共衛生都能理解的討論。",
-      "body": [
-        "報告 population-stratified sodium 與 blood pressure dose-response 的分析，也很適合把方法學結果轉譯成臨床與公共衛生都能理解的討論。"
-      ],
-      "visualLabel": "Pulse of Asia",
-      "visualTheme": "poa",
-      "image": "",
-      "images": [],
-      "imageAlt": "",
-      "featured": false,
-      "log": true
-    },
-    {
       "id": "2025-introduction-to-evidence-based-medicine",
       "year": "2025",
       "meta": "2025 · Workshop · Federation of Medical Students in Taiwan",

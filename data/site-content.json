@@ -286,11 +286,21 @@
     ],
     "mediaCoverage": [
       {
-        "title": "American Heart Association Newsroom",
+        "title": "肚子大傷心臟？陽交大跨國研究：腹部脂肪愈多，心衰竭風險增3成，瘦子也不例外  來源: 康健雜誌 https://www.commonhealth.com.tw/article/93884?utm_source=copyshare",
+        "description": "每天量體重，不如量腰圍！台灣團隊跨國追蹤發現，相較於體重，「肚子大不大」更能反映心臟衰竭風險。研究顯示，腰圍與腰臀比愈高，未來罹患心衰竭風險最高可增加3成。",
+        "links": [
+          {
+            "label": "肚子大傷心臟？陽交大跨國研究：腹部脂肪愈多，心衰竭風險增3成，瘦子也不例外  來源: 康健雜誌 https://www.commonhealth.com.tw/article/93884?utm_source=copyshare",
+            "href": "https://www.commonhealth.com.tw/article/93884"
+          }
+        ]
+      },
+      {
+        "title": "Extra belly weight, not BMI, was a stronger predictor of heart failure risk, inflammation",
         "description": "Research on abdominal adiposity, inflammation, and heart failure risk was featured by the American Heart Association Newsroom.",
         "links": [
           {
-            "label": "AHA Newsroom",
+            "label": "Extra belly weight, not BMI, was a stronger predictor of heart failure risk, inflammation",
             "href": "https://newsroom.heart.org/news/extra-belly-weight-not-bmi-was-a-stronger-predictor-of-heart-failure-risk-inflammation"
           }
         ]

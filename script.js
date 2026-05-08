@@ -220,7 +220,6 @@ const renderMediaCoverageItem = (item) => {
 
   return `
     <li class="media-coverage-item">
-      <p class="media-coverage-date">${escapeHTML(getHonorDateLabel(item))}</p>
       <div>
         <h3>${escapeHTML(item.title || "")}</h3>
         <p>${escapeHTML(item.description || "")}</p>

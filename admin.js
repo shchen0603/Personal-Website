@@ -128,7 +128,7 @@ if (adminApp) {
 
   const formatDateForDisplay = (date) => String(date || "").replaceAll("-", ".");
   const honorCategoryUsesDate = (category) =>
-    category === "talks" || category === "presentations" || category === "mediaCoverage";
+    category === "talks" || category === "presentations";
   const HEIC_MIME_TYPES = new Set([
     "image/heic",
     "image/heif",
@@ -734,9 +734,6 @@ if (adminApp) {
 
     if (state.honorCategory === "mediaCoverage") {
       return {
-        date: "",
-        dateLabel: "",
-        year: new Date().getFullYear().toString(),
         title: "New media coverage",
         description: "",
         links: []
@@ -901,7 +898,6 @@ if (adminApp) {
 
       if (honorCategory === "mediaCoverage") {
         const item = {
-          year: today.slice(0, 4),
           title: formData.get("title") || "New media coverage",
           description: formData.get("description") || "",
           honorCategory

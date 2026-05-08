@@ -990,24 +990,12 @@ h3 {
 }
 
 .media-coverage-item {
-  display: grid;
-  grid-template-columns: 120px 1fr;
-  gap: 1rem;
   padding: 0 0 1rem;
   border-bottom: 1px solid var(--line);
 }
 
 .media-coverage-item + .media-coverage-item {
   padding-top: 1rem;
-}
-
-.media-coverage-date {
-  margin: 0;
-  color: var(--coral);
-  font-size: 0.76rem;
-  font-weight: 850;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .media-coverage-item h3 {
@@ -1622,8 +1610,7 @@ h3 {
 
   .publication-year,
   .post-row time,
-  .honor-year,
-  .media-coverage-date {
+  .honor-year {
     margin-bottom: 0;
   }
 

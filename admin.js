@@ -553,6 +553,43 @@ if (adminApp) {
       .map((link) => `${link.label || ""}|${link.href || ""}`)
       .join("\n");
 
+  const parseLineList = (value) =>
+    value
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+
+  const stringifyLineList = (items) =>
+    adminNormalizeList(items)
+      .map((item) => (typeof item === "string" ? item : item.label || item.title || ""))
+      .filter(Boolean)
+      .join("\n");
+
+  const parseMemberships = (value) =>
+    value
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const [period, label] = line.split("|").map((part) => part.trim());
+
+        return {
+          period: period || "",
+          label: label || period || ""
+        };
+      });
+
+  const stringifyMemberships = (memberships) =>
+    adminNormalizeList(memberships)
+      .map((membership) => {
+        if (typeof membership === "string") {
+          return membership;
+        }
+
+        return `${membership.period || ""}|${membership.label || membership.title || ""}`;
+      })
+      .join("\n");
+
   const parseImages = (value) =>
     value
       .split("\n")
@@ -625,6 +662,76 @@ if (adminApp) {
     <p class="admin-help">封面照會顯示在 Activities 卡片；其他活動照片會放進完整頁的圖片集。若你上傳 HEIC/HEIF，系統會先在本機自動轉成 JPG 再寫入網站。已上傳的圖片集仍可用「路徑|替代文字|照片說明」每行編輯一張。</p>
     ${textarea("images", "其他照片圖片集", stringifyImages(item.images), 5)}
   `;
+
+  const honorCategoryOptions = (selected = "awards") => `
+    <option value="awards" ${selected === "awards" ? "selected" : ""}>Awards</option>
+    <option value="talks" ${selected === "talks" ? "selected" : ""}>Invited Talks</option>
+    <option value="presentations" ${selected === "presentations" ? "selected" : ""}>Conference Presentations</option>
+    <option value="mediaCoverage" ${selected === "mediaCoverage" ? "selected" : ""}>Media Coverage</option>
+    <option value="services" ${selected === "services" ? "selected" : ""}>Academic Service</option>
+  `;
+
+  const quickHonorCategoryField = (selected = "awards") => `
+    <label class="admin-field">
+      <span>類型</span>
+      <select name="honorCategory" data-quick-honor-category>
+        ${honorCategoryOptions(selected)}
+      </select>
+    </label>
+  `;
+
+  const renderQuickHonorFields = (category = "awards") => {
+    const currentYear = new Date().getFullYear().toString();
+
+    if (category === "services") {
+      quickFields.innerHTML = `
+        <div class="admin-grid two">
+          ${quickHonorCategoryField(category)}
+        </div>
+        ${field("title", "服務項目", "")}
+        ${textarea("description", "說明", "", 5)}
+        ${textarea("items", "條列項目（每行一個）", "", 6)}
+        ${textarea("memberships", "Memberships（期間|項目，每行一個）", "", 4)}
+        ${textarea("links", "連結（Label|URL，每行一個）", "", 4)}
+        <p class="admin-help">Academic Service 會顯示在 Honors 頁的 Academic Service 區塊。</p>
+      `;
+      return;
+    }
+
+    if (category === "mediaCoverage") {
+      quickFields.innerHTML = `
+        <div class="admin-grid two">
+          ${quickHonorCategoryField(category)}
+          ${field("date", "報導日期（選填）", "", "date")}
+          ${field("dateLabel", "顯示日期", "")}
+          ${field("year", "年份", currentYear)}
+        </div>
+        ${field("title", "媒體或報導標題", "")}
+        ${textarea("description", "報導說明", "", 5)}
+        ${textarea("links", "報導連結（Label|URL，每行一個）", "", 4)}
+        <p class="admin-help">Media Coverage 會顯示在 Honors 頁的正式列點區，建議填日期與新聞連結。</p>
+      `;
+      return;
+    }
+
+    const dateLabel = category === "talks" || category === "presentations"
+      ? "日期（建議填）"
+      : "日期（選填）";
+
+    quickFields.innerHTML = `
+      <div class="admin-grid two">
+        ${quickHonorCategoryField(category)}
+        ${field("date", dateLabel, "", "date")}
+      </div>
+      <div class="admin-grid two">
+        ${field("dateLabel", "顯示日期", "")}
+        ${field("year", "年份", currentYear)}
+      </div>
+      ${field("title", "標題", "")}
+      ${textarea("description", "說明", "", 5)}
+      <p class="admin-help">Awards 可以只填年份；Invited Talks 和 Conference Presentations 建議填日期，前台會依日期由近到遠排序。</p>
+    `;
+  };
 
   const editorActionsMarkup = () => `
     <div class="admin-editor-actions">
@@ -702,6 +809,8 @@ if (adminApp) {
       return {
         title: "New service",
         description: "",
+        items: [],
+        memberships: [],
         links: []
       };
     }
@@ -777,30 +886,7 @@ if (adminApp) {
     }
 
     if (type === "honors") {
-      const currentYear = new Date().getFullYear().toString();
-
-      quickFields.innerHTML = `
-        <div class="admin-grid two">
-          <label class="admin-field">
-            <span>類型</span>
-            <select name="honorCategory">
-              <option value="awards">Awards</option>
-              <option value="talks">Invited Talks</option>
-              <option value="presentations">Conference Presentations</option>
-              <option value="mediaCoverage">Media Coverage</option>
-              <option value="services">Academic Service</option>
-            </select>
-          </label>
-          ${field("date", "日期（選填）", "", "date")}
-        </div>
-        <div class="admin-grid two">
-          ${field("dateLabel", "顯示日期", "")}
-          ${field("year", "年份", currentYear)}
-        </div>
-        ${field("title", "標題", "")}
-        ${textarea("description", "說明", "", 5)}
-        <p class="admin-help">Awards 可以只填年份；Invited Talks、Conference Presentations 和 Media Coverage 建議填日期，前台會依日期由近到遠排序。</p>
-      `;
+      renderQuickHonorFields();
       return;
     }
 
@@ -884,6 +970,19 @@ if (adminApp) {
 
     if (type === "honors") {
       const honorCategory = formData.get("honorCategory") || "awards";
+      const links = parseLinks(formData.get("links") || "");
+
+      if (honorCategory === "services") {
+        return {
+          title: formData.get("title") || "New service",
+          description: formData.get("description") || "",
+          items: parseLineList(formData.get("items") || ""),
+          memberships: parseMemberships(formData.get("memberships") || ""),
+          links,
+          honorCategory
+        };
+      }
+
       const date = String(formData.get("date") || "").trim();
       const dateLabel = String(formData.get("dateLabel") || "").trim();
       const year = String(formData.get("year") || today.slice(0, 4)).trim();
@@ -897,6 +996,10 @@ if (adminApp) {
       if (honorCategoryUsesDate(honorCategory) || date || dateLabel) {
         item.date = date;
         item.dateLabel = dateLabel || (date ? formatDateForDisplay(date) : "");
+      }
+
+      if (honorCategory === "mediaCoverage") {
+        item.links = links;
       }
 
       return item;
@@ -1098,6 +1201,8 @@ if (adminApp) {
         </div>
         ${field("title", "標題", item.title)}
         ${textarea("description", "說明", item.description, 5)}
+        ${textarea("items", "條列項目（每行一個）", stringifyLineList(item.items), 8)}
+        ${textarea("memberships", "Memberships（期間|項目，每行一個）", stringifyMemberships(item.memberships), 5)}
         ${textarea("links", "連結（Label|URL，每行一個）", stringifyLinks(item.links), 5)}
         ${editorActionsMarkup()}
       `;
@@ -1257,6 +1362,10 @@ if (adminApp) {
       item.tags = parseTags(value);
     } else if (name === "links") {
       item.links = parseLinks(value);
+    } else if (name === "items") {
+      item.items = parseLineList(value);
+    } else if (name === "memberships") {
+      item.memberships = parseMemberships(value);
     } else if (name === "images") {
       item.images = parseImages(value);
     } else if (name === "body") {
@@ -1631,6 +1740,11 @@ if (adminApp) {
     publishCurrentContent();
   });
   quickType.addEventListener("change", renderQuickFields);
+  quickFields.addEventListener("change", (event) => {
+    if (event.target.name === "honorCategory") {
+      renderQuickHonorFields(event.target.value || "awards");
+    }
+  });
   quickSaveLocalButton.addEventListener("click", () => handleQuickPublish("local"));
   quickPublishGitHubButton.addEventListener("click", () => handleQuickPublish("github"));
   publishCurrentContentButton.addEventListener("click", publishCurrentContent);

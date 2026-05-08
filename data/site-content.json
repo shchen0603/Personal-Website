@@ -299,13 +299,34 @@
     ],
     "services": [
       {
-        "title": "Invited Reviewer",
-        "description": "Invited reviewer for international journals including BMC Public Health, Scientific Reports, European Journal of Preventive Cardiology, Diabetes Research and Clinical Practice, and The American Journal of Clinical Nutrition.",
+        "title": "Invited reviewer for international journals",
+        "items": [
+          "BMC Geriatrics",
+          "BMC Health Services Research",
+          "BMC Ophthalmology",
+          "BMC Public Health",
+          "Diabetes Research and Clinical Practice",
+          "Diabetology & Metabolic Syndrome",
+          "Discover Public Health",
+          "Discover Social Science and Health",
+          "European Journal of Preventive Cardiology",
+          "Scientific Reports",
+          "The American Journal of Clinical Nutrition"
+        ],
         "links": []
       },
       {
-        "title": "Professional Memberships",
-        "description": "Member of the American Heart Association and Taiwan Hypertension Society since 2025.",
+        "title": "Professional membership",
+        "memberships": [
+          {
+            "period": "2025-present",
+            "label": "Member of American Heart Association (AHA)"
+          },
+          {
+            "period": "2025-present",
+            "label": "Member of Taiwan Hypertension Society (THS)"
+          }
+        ],
         "links": []
       }
     ]

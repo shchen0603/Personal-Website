@@ -234,13 +234,28 @@ const renderServiceCard = (item) => {
   const links = normalizeList(item.links)
     .map((link) => `<a href="${escapeHTML(link.href || "#")}" rel="noreferrer">${escapeHTML(link.label || "Link")}</a>`)
     .join("");
+  const items = normalizeList(item.items)
+    .map((entry) => `<li>${escapeHTML(typeof entry === "string" ? entry : entry.label || entry.title || "")}</li>`)
+    .join("");
+  const memberships = normalizeList(item.memberships)
+    .map((entry) => {
+      const membership = typeof entry === "string" ? { label: entry } : entry;
+      const period = membership.period
+        ? `<span class="service-period">${escapeHTML(membership.period)}</span>`
+        : "";
+
+      return `<li>${period}<span>${escapeHTML(membership.label || membership.title || "")}</span></li>`;
+    })
+    .join("");
 
   return `
-    <article class="service-card">
+    <section class="service-list-block">
       <h3>${escapeHTML(item.title || "")}</h3>
-      <p>${escapeHTML(item.description || "")}</p>
+      ${item.description ? `<p>${escapeHTML(item.description || "")}</p>` : ""}
+      ${items ? `<ul class="service-bullet-list">${items}</ul>` : ""}
+      ${memberships ? `<ul class="service-membership-list">${memberships}</ul>` : ""}
       ${links ? `<div class="publication-links">${links}</div>` : ""}
-    </article>
+    </section>
   `;
 };
 

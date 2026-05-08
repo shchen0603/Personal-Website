@@ -535,6 +535,55 @@ h3 {
   gap: 1rem;
 }
 
+.service-list-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.85fr);
+  gap: 2rem;
+  align-items: start;
+}
+
+.service-list-block {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.service-list-block h3 {
+  font-size: 1.25rem;
+}
+
+.service-list-block p {
+  color: var(--muted);
+}
+
+.service-bullet-list,
+.service-membership-list {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--muted);
+}
+
+.service-membership-list {
+  padding-left: 1.1rem;
+  list-style: disc;
+}
+
+.service-membership-list li {
+  display: list-item;
+}
+
+.service-period {
+  display: inline-block;
+  min-width: 120px;
+  margin-right: 0.8rem;
+  color: var(--coral);
+  font-size: 0.76rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .highlight-card,
 .service-card {
   padding: 1.35rem;
@@ -1540,6 +1589,7 @@ h3 {
   .contact-layout,
   .highlight-grid,
   .service-grid,
+  .service-list-grid,
   .honor-item,
   .media-coverage-item,
   .activity-intro,

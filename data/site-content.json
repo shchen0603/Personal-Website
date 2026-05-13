@@ -142,16 +142,24 @@
       "doi": "https://doi.org/10.1016/j.dhjo.2025.102022",
       "tags": [
         {
+          "slug": "cohort-study",
+          "label": "Cohort Study",
+          "group": "Study Design"
+        },
+        {
           "slug": "disability-health",
-          "label": "Disability Health"
+          "label": "Disability",
+          "group": "Topics"
         },
         {
           "slug": "health-services-research",
-          "label": "Health Services Research"
+          "label": "Health Services Research",
+          "group": "Topics"
         },
         {
           "slug": "nationwide-data",
-          "label": "Nationwide Data"
+          "label": "Nationwide Data",
+          "group": "Topics"
         }
       ],
       "featured": false
@@ -164,6 +172,11 @@
       "venue": "International Journal for Quality in Health Care. 2025;37(3):mzaf082.",
       "doi": "https://doi.org/10.1093/intqhc/mzaf082",
       "tags": [
+        {
+          "slug": "cohort-study",
+          "label": "Cohort Study",
+          "group": "Study Design"
+        },
         {
           "slug": "disability-health",
           "label": "Disability",
@@ -219,16 +232,24 @@
       "doi": "https://doi.org/10.1016/j.dhjo.2024.101596",
       "tags": [
         {
+          "slug": "cohort-study",
+          "label": "Cohort Study",
+          "group": "Study Design"
+        },
+        {
           "slug": "disability-health",
-          "label": "Disability Health"
+          "label": "Disability",
+          "group": "Topics"
         },
         {
           "slug": "nationwide-data",
-          "label": "Nationwide Data"
+          "label": "Nationwide Data",
+          "group": "Topics"
         },
         {
           "slug": "mortality",
-          "label": "Mortality"
+          "label": "Mortality",
+          "group": "Topics"
         }
       ],
       "featured": false
@@ -242,8 +263,8 @@
       "doi": "https://doi.org/10.1186/s12916-024-03324-z",
       "tags": [
         {
-          "slug": "methods",
-          "label": "Methods",
+          "slug": "cohort-study",
+          "label": "Cohort Study",
           "group": "Study Design"
         },
         {

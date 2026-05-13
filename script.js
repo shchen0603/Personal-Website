@@ -66,6 +66,79 @@ const getActivityDateLabel = (activity) =>
 const honorCategoryUsesDate = (category) =>
   category === "talks" || category === "presentations";
 
+const PUBLICATION_CATEGORY_OPTIONS = [
+  { slug: "peer-reviewed-journal-publications", label: "Peer-Reviewed Journal Publications" },
+  { slug: "published-conference-abstracts", label: "Published Conference Abstracts" },
+  { slug: "journal-cover-features", label: "Journal Cover Features" }
+];
+const PUBLICATION_TAG_GROUP_OPTIONS = ["Study Design", "Topics"];
+const PUBLICATION_TAG_OPTIONS = [
+  { slug: "basic-science", label: "Basic Science", group: "Study Design" },
+  { slug: "cohort-study", label: "Cohort Study", group: "Study Design" },
+  { slug: "meta-analysis", label: "Meta-analysis", group: "Study Design" },
+  { slug: "network-meta-analysis", label: "Meta-analysis", group: "Study Design" },
+  { slug: "review", label: "Review", group: "Study Design" },
+  { slug: "evidence-synthesis", label: "Review", group: "Study Design" },
+  { slug: "methods", label: "Methods", group: "Study Design" },
+  { slug: "heart-failure", label: "Heart Failure", group: "Topics" },
+  { slug: "disability-health", label: "Disability", group: "Topics" },
+  { slug: "nutrition", label: "Nutrition", group: "Topics" },
+  { slug: "diabetes-care", label: "Diabetes", group: "Topics" },
+  { slug: "metabolic-health", label: "Metabolic Health", group: "Topics" },
+  { slug: "hypertension", label: "Hypertension", group: "Topics" },
+  { slug: "ckm-health", label: "CKM Health", group: "Topics" },
+  { slug: "cover-feature", label: "Cover Feature", group: "Topics" },
+  { slug: "health-equity", label: "Health Equity", group: "Topics" },
+  { slug: "health-services-research", label: "Health Services Research", group: "Topics" },
+  { slug: "nationwide-data", label: "Nationwide Data", group: "Topics" },
+  { slug: "rare-disease", label: "Rare Disease", group: "Topics" },
+  { slug: "rehabilitation", label: "Rehabilitation", group: "Topics" },
+  { slug: "mortality", label: "Mortality", group: "Topics" }
+];
+
+const getPublicationCategoryOption = (category) => {
+  const slug = slugify(category || "");
+
+  return PUBLICATION_CATEGORY_OPTIONS.find((option) => option.slug === slug) || null;
+};
+
+const inferPublicationCategory = (publication) => {
+  const tags = normalizeList(publication.tags).map((tag) => tag.slug);
+
+  if (tags.includes("cover-feature")) {
+    return PUBLICATION_CATEGORY_OPTIONS[2];
+  }
+
+  if (/^abstract\b/i.test(publication.title || "")) {
+    return PUBLICATION_CATEGORY_OPTIONS[1];
+  }
+
+  return PUBLICATION_CATEGORY_OPTIONS[0];
+};
+
+const getPublicationCategory = (publication) =>
+  getPublicationCategoryOption(publication.category) || inferPublicationCategory(publication);
+
+const getPublicationTagOption = (slug) =>
+  PUBLICATION_TAG_OPTIONS.find((tag) => tag.slug === slug) || null;
+
+const getPublicationTagGroup = (group) =>
+  PUBLICATION_TAG_GROUP_OPTIONS.includes(group) ? group : "Topics";
+
+const normalizePublicationTag = (tag) => {
+  const source = typeof tag === "string" ? { slug: tag, label: tag } : tag || {};
+  const slug = slugify(source.slug || source.label || "");
+  const option = getPublicationTagOption(slug);
+
+  return slug
+    ? {
+        slug,
+        label: option?.label || source.label || source.slug || slug,
+        group: getPublicationTagGroup(source.group || option?.group)
+      }
+    : null;
+};
+
 const getHonorDateLabel = (item) => {
   if (item.dateLabel) {
     return item.dateLabel;
@@ -202,6 +275,34 @@ const renderPublicationItem = (publication, options = {}) => {
     </article>
   `;
 };
+
+const getPublicationGroups = (publications) => {
+  const groups = new Map(
+    PUBLICATION_CATEGORY_OPTIONS.map((category) => [
+      category.slug,
+      { ...category, items: [] }
+    ])
+  );
+
+  publications.forEach((publication) => {
+    const category = getPublicationCategory(publication);
+
+    groups.get(category.slug).items.push(publication);
+  });
+
+  return [...groups.values()].filter((group) => group.items.length);
+};
+
+const renderPublicationGroup = (group) => `
+  <section class="publication-group" data-publication-group>
+    <div class="publication-group-heading">
+      <h3>${escapeHTML(group.label)}</h3>
+    </div>
+    <div class="publication-list">
+      ${group.items.map((publication) => renderPublicationItem(publication, { filterable: true })).join("")}
+    </div>
+  </section>
+`;
 
 const renderHonorItem = (item) => `
   <article class="honor-item">
@@ -420,14 +521,21 @@ const renderActivityPost = (content) => {
 
 const getPublicationTagFilters = (publications) => {
   const preferredOrder = [
+    "basic-science",
+    "cohort-study",
+    "meta-analysis",
+    "network-meta-analysis",
+    "review",
     "heart-failure",
-    "cover-feature",
-    "ckm-health",
     "disability-health",
-    "health-equity",
-    "health-services-research",
     "diabetes-care",
     "nutrition",
+    "metabolic-health",
+    "hypertension",
+    "ckm-health",
+    "cover-feature",
+    "health-equity",
+    "health-services-research",
     "evidence-synthesis",
     "methods",
     "nationwide-data"
@@ -436,20 +544,34 @@ const getPublicationTagFilters = (publications) => {
 
   publications.forEach((publication) => {
     normalizeList(publication.tags).forEach((tag) => {
-      if (tag.slug && !tags.has(tag.slug)) {
-        tags.set(tag.slug, tag.label || tag.slug);
+      const normalized = normalizePublicationTag(tag);
+
+      if (normalized && !tags.has(normalized.slug)) {
+        tags.set(normalized.slug, normalized);
       }
     });
   });
 
   const ordered = preferredOrder
     .filter((slug) => tags.has(slug))
-    .map((slug) => ({ slug, label: tags.get(slug) }));
-  const remaining = [...tags.entries()]
-    .filter(([slug]) => !preferredOrder.includes(slug))
-    .map(([slug, label]) => ({ slug, label }));
+    .map((slug) => tags.get(slug));
+  const remaining = [...tags.values()]
+    .filter((tag) => !preferredOrder.includes(tag.slug))
+    .sort((first, second) => first.label.localeCompare(second.label));
 
   return [...ordered, ...remaining];
+};
+
+const getPublicationTagFilterGroups = (publications) => {
+  const groups = new Map(PUBLICATION_TAG_GROUP_OPTIONS.map((group) => [group, []]));
+
+  getPublicationTagFilters(publications).forEach((tag) => {
+    groups.get(getPublicationTagGroup(tag.group)).push(tag);
+  });
+
+  return [...groups.entries()]
+    .map(([label, tags]) => ({ label, tags }))
+    .filter((group) => group.tags.length);
 };
 
 const publicationState = {
@@ -484,17 +606,27 @@ const renderContent = (content) => {
   });
 
   document.querySelectorAll("[data-render='publication-filters']").forEach((container) => {
-    const filters = getPublicationTagFilters(publications);
-    const buttons = [
-      "<button class=\"tag-button is-active\" type=\"button\" data-publication-filter=\"all\" aria-pressed=\"true\">All</button>",
-      ...filters.map((tag) => `<button class="tag-button" type="button" data-publication-filter="${escapeHTML(tag.slug)}" aria-pressed="false">${escapeHTML(tag.label)}</button>`)
-    ];
+    const groups = getPublicationTagFilterGroups(publications);
+    const allButton = "<button class=\"tag-button is-active\" type=\"button\" data-publication-filter=\"all\" aria-pressed=\"true\">All</button>";
+    const filterGroups = groups.map((group) => `
+      <div class="publication-filter-group">
+        <p>${escapeHTML(group.label)}</p>
+        <div>
+          ${group.tags.map((tag) => `<button class="tag-button" type="button" data-publication-filter="${escapeHTML(tag.slug)}" aria-pressed="false">${escapeHTML(tag.label)}</button>`).join("")}
+        </div>
+      </div>
+    `);
 
-    container.innerHTML = buttons.join("");
+    container.innerHTML = `
+      <div class="publication-filter-group publication-filter-all">
+        <div>${allButton}</div>
+      </div>
+      ${filterGroups.join("")}
+    `;
   });
 
   document.querySelectorAll("[data-render='publications']").forEach((container) => {
-    container.innerHTML = publications.map((publication) => renderPublicationItem(publication, { filterable: true })).join("");
+    container.innerHTML = getPublicationGroups(publications).map(renderPublicationGroup).join("");
   });
 
   document.querySelectorAll("[data-render='featured-publications']").forEach((container) => {
@@ -568,6 +700,7 @@ const renderContent = (content) => {
 const setupPublicationFilters = () => {
   const publicationItems = document.querySelectorAll("[data-publication-item]");
   const publicationFilters = document.querySelectorAll("[data-publication-filter]");
+  const publicationGroups = document.querySelectorAll("[data-publication-group]");
   const publicationEmpty = document.querySelector("[data-publication-empty]");
   const searchInput = document.querySelector("[data-publication-search]");
 
@@ -590,6 +723,11 @@ const setupPublicationFilters = () => {
       if (isVisible) {
         visibleCount += 1;
       }
+    });
+
+    publicationGroups.forEach((group) => {
+      group.hidden = ![...group.querySelectorAll("[data-publication-item]")]
+        .some((item) => !item.hidden);
     });
 
     publicationFilters.forEach((button) => {

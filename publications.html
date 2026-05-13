@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=20260513-keyword-groups">
     <script>(function(){var t=localStorage.getItem("theme");if(t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme:dark)").matches)){document.documentElement.setAttribute("data-theme","dark")}})();</script>
   </head>
   <body>
@@ -48,7 +48,7 @@
         <p class="eyebrow">Publications</p>
         <h1 class="reveal">已發表著作</h1>
         <p class="reveal reveal-delay-1">
-          這裡整理完整的已發表著作清單，依年份排序，並附上 DOI 連結以便查閱原始出版資訊。
+          這裡整理完整的已發表著作清單，依 CV 類別分組，並附上 DOI 連結以便查閱原始出版資訊。
         </p>
       </section>
 
@@ -78,7 +78,7 @@
           <button class="tag-button" type="button" data-publication-filter="nationwide-data" aria-pressed="false">Nationwide Data</button>
         </div>
 
-        <div class="publication-list" data-render="publications" data-publication-list>
+        <div class="publication-groups" data-render="publications" data-publication-list>
           <!-- PUBLICATIONS: EDIT BELOW. Copy one publication-item block, paste it in chronological order, and edit year/title/authors/venue/DOI. -->
           <article class="publication-item" data-publication-item data-tags="heart-failure ckm-health evidence-synthesis network-meta-analysis">
             <p class="publication-year">2026</p>
@@ -244,6 +244,6 @@
 
     <button class="back-to-top" data-back-to-top aria-label="回到頂部" title="回到頂部">↑</button>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=20260513-keyword-groups"></script>
   </body>
 </html>

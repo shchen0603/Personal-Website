@@ -43,8 +43,9 @@
 目前完整著作清單由 `data/site-content.json` 產生，建議用 `admin.html` 更新。若要手動編輯 JSON，新著作需放入 `publications` 陣列：
 
 1. 更新 `year`、`title`、`authors`、`venue`、`doi`。
-2. 在 `tags` 中加入 `{ "slug": "heart-failure", "label": "Heart Failure" }` 這種格式。
-3. 若要在 Research 頁露出代表作，把該篇的 `featured` 設為 `true`，其他篇設為 `false`。
+2. 在 `category` 中填入 `Peer-Reviewed Journal Publications`、`Published Conference Abstracts` 或 `Journal Cover Features`。
+3. 在 `tags` 中加入 `{ "slug": "heart-failure", "label": "Heart Failure", "group": "Topics" }` 這種格式；`group` 目前使用 `Study Design` 或 `Topics`。
+4. 若要在 Research 頁露出代表作，把該篇的 `featured` 設為 `true`，其他篇設為 `false`。
 
 ## 更新 Honors
 

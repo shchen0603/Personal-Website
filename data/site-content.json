@@ -2,7 +2,91 @@
   "publications": [
     {
       "year": "2026",
+      "title": "Abstract MPWE48: Metabolomics-Based Reclassification of Ultra-Processed Foods and Risk of Cardiometabolic Outcomes",
+      "category": "Published Conference Abstracts",
+      "authors": "Szu-Han Chen, Mengxi Du, Binkai Liu, Danielle E. Haslam, Liming Liang, Frank B. Hu",
+      "venue": "Circulation. 2026, 153(Suppl_1):AMPWE48–AMPWE",
+      "doi": "https://doi.org/10.1161/cir.153.suppl_1.MPWE48",
+      "tags": [
+        {
+          "slug": "cohort-study",
+          "label": "Cohort Study",
+          "group": "Study Design"
+        },
+        {
+          "slug": "nutrition",
+          "label": "Nutrition",
+          "group": "Topics"
+        },
+        {
+          "slug": "metabolic-health",
+          "label": "Metabolic Health",
+          "group": "Topics"
+        }
+      ],
+      "featured": false
+    },
+    {
+      "year": "2026",
+      "title": "Abstract TU169: Healthy Dietary Patterns Are Associated With Lower Cardiovascular Risk and All-Cause Mortality Among Hypertensive Adults",
+      "category": "Published Conference Abstracts",
+      "authors": "Szu-Han Chen, Binkai Liu, Hao-Min Cheng, Liming Liang, Frank B. Hu",
+      "venue": "Circulation. 2026, 153(Suppl_1):ATU169–ATU",
+      "doi": "https://doi.org/10.1161/cir.153.suppl_1.TU169",
+      "tags": [
+        {
+          "slug": "cohort-study",
+          "label": "Cohort Study",
+          "group": "Study Design"
+        },
+        {
+          "slug": "nutrition",
+          "label": "Nutrition",
+          "group": "Topics"
+        },
+        {
+          "slug": "hypertension",
+          "label": "Hypertension",
+          "group": "Topics"
+        }
+      ],
+      "featured": false
+    },
+    {
+      "year": "2026",
+      "title": "Abstract MPTH72: Systemic Inflammation Mediates the Association Between Central Obesity and Incident Heart Failure",
+      "category": "Published Conference Abstracts",
+      "authors": "Szu-Han Chen, Yu-Hsuan Lee, Shao-Yuan Chuang, Marat Fudim, Chun-Wei Lee, Chi-Jung Huang, Hao-Min Cheng",
+      "venue": "Circulation. 2026, 153(Suppl_1):AMPTH72–AMPTH",
+      "doi": "https://doi.org/10.1161/cir.153.suppl_1.MPTH72",
+      "tags": [
+        {
+          "slug": "cohort-study",
+          "label": "Cohort Study",
+          "group": "Study Design"
+        },
+        {
+          "slug": "heart-failure",
+          "label": "Heart Failure",
+          "group": "Topics"
+        },
+        {
+          "slug": "metabolic-health",
+          "label": "Metabolic Health",
+          "group": "Topics"
+        },
+        {
+          "slug": "obesity",
+          "label": "Obesity",
+          "group": "Topics"
+        }
+      ],
+      "featured": false
+    },
+    {
+      "year": "2026",
       "title": "Comparative effectiveness of pharmacotherapy for heart failure with preserved ejection fraction: A systematic review and network meta-analysis",
+      "category": "Peer-Reviewed Journal Publications",
       "authors": "Szu-Han Chen, Yu-Wen Tseng, Chi-Jung Huang, Shu-Mei Yang, Marat Fudim, Shao-Yuan Chuang, Shih-Hsien Sung, Hao-Min Cheng.",
       "venue": "Diabetes, Obesity and Metabolism. 2026;28(4):3137-3145.",
       "doi": "https://doi.org/10.1111/dom.70503",
@@ -29,6 +113,7 @@
     {
       "year": "2026",
       "title": "Outside Front Cover",
+      "category": "Journal Cover Features",
       "authors": "Szu-Han Chen, Yu-Wen Tseng, Chi-Jung Huang, Shu-Mei Yang, Marat Fudim, Shao-Yuan Chuang, Shih-Hsien Sung, Hao-Min Cheng.",
       "venue": "Diabetes, Obesity and Metabolism. 2026;28(4).",
       "doi": "https://doi.org/10.1111/dom.70679",
@@ -51,6 +136,7 @@
     {
       "year": "2026",
       "title": "Health-care utilization after domestic violence: A nationwide study in Taiwan comparing individuals with and without intellectual disability",
+      "category": "Peer-Reviewed Journal Publications",
       "authors": "Szu-Han Chen, Yu-Wen Tseng, Christy Pu.",
       "venue": "Disability and Health Journal. 2026;19(2):102022.",
       "doi": "https://doi.org/10.1016/j.dhjo.2025.102022",
@@ -73,21 +159,30 @@
     {
       "year": "2025",
       "title": "Equity in universal health coverage: do individuals with disabilities benefit equally?",
+      "category": "Peer-Reviewed Journal Publications",
       "authors": "Szu-Han Chen, Meng Jie Hsu, Christy Pu.",
       "venue": "International Journal for Quality in Health Care. 2025;37(3):mzaf082.",
       "doi": "https://doi.org/10.1093/intqhc/mzaf082",
       "tags": [
         {
-          "slug": "health-equity",
-          "label": "Health Equity"
+          "slug": "disability-health",
+          "label": "Disability",
+          "group": "Topics"
         },
         {
-          "slug": "disability-health",
-          "label": "Disability Health"
+          "slug": "health-equity",
+          "label": "Health Equity",
+          "group": "Topics"
         },
         {
           "slug": "health-services-research",
-          "label": "Health Services Research"
+          "label": "Health Services Research",
+          "group": "Topics"
+        },
+        {
+          "slug": "nationwide-data",
+          "label": "Nationwide Data",
+          "group": "Topics"
         }
       ],
       "featured": false
@@ -95,6 +190,7 @@
     {
       "year": "2024",
       "title": "Effectiveness of Respiratory Muscle Training in Pompe Disease: A Systematic Review and Meta-Analysis",
+      "category": "Peer-Reviewed Journal Publications",
       "authors": "Mu-Yun Lin, Szu-Han Chen, Jen-Ting Lee, Po-Cheng Hsu.",
       "venue": "Children. 2024;11(10):1209.",
       "doi": "https://doi.org/10.3390/children11101209",
@@ -117,6 +213,7 @@
     {
       "year": "2024",
       "title": "Medical care use and mortality rate after the onset of disability: A 6-year follow-up study based on national data in Taiwan",
+      "category": "Peer-Reviewed Journal Publications",
       "authors": "Szu-Han Chen, Christy Pu.",
       "venue": "Disability and Health Journal. 2024;17(3):101596.",
       "doi": "https://doi.org/10.1016/j.dhjo.2024.101596",
@@ -139,25 +236,35 @@
     {
       "year": "2024",
       "title": "Medication adherence in patients with type 2 diabetes after disability onset: a difference-in-differences analysis using nationwide data",
+      "category": "Peer-Reviewed Journal Publications",
       "authors": "Szu-Han Chen, Miaw-Chwen Lee, Christy Pu.",
       "venue": "BMC Medicine. 2024;22:102.",
       "doi": "https://doi.org/10.1186/s12916-024-03324-z",
       "tags": [
         {
-          "slug": "diabetes-care",
-          "label": "Diabetes Care"
+          "slug": "methods",
+          "label": "Methods",
+          "group": "Study Design"
         },
         {
           "slug": "disability-health",
-          "label": "Disability Health"
+          "label": "Disability",
+          "group": "Topics"
         },
         {
-          "slug": "methods",
-          "label": "Methods"
+          "slug": "diabetes-care",
+          "label": "Diabetes",
+          "group": "Topics"
+        },
+        {
+          "slug": "health-services-research",
+          "label": "Health Services Research",
+          "group": "Topics"
         },
         {
           "slug": "nationwide-data",
-          "label": "Nationwide Data"
+          "label": "Nationwide Data",
+          "group": "Topics"
         }
       ],
       "featured": false
@@ -165,6 +272,7 @@
     {
       "year": "2022",
       "title": "Bromelain activates the AMP-activated protein kinase-autophagy pathway to alleviate hepatic lipid accumulation",
+      "category": "Peer-Reviewed Journal Publications",
       "authors": "Po-An Hu, Man-Chen Hsu, Szu-Han Chen, Chia-Hui Chen, Yu Ru Kou, Jenq-Wen Huang, Tzong-Shyuan Lee.",
       "venue": "Journal of Food and Drug Analysis. 2022;30(3):357-368.",
       "doi": "https://doi.org/10.38212/2224-6614.3416",
@@ -187,6 +295,11 @@
   ],
   "honors": {
     "awards": [
+      {
+        "year": "2026",
+        "title": "Third Place, Oral Research Presentation Award",
+        "description": "Taiwan Society of Aldosteronism Scientific Meeting"
+      },
       {
         "year": "2026",
         "title": "Abstract Review Ranking 1st",

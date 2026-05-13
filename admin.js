@@ -129,6 +129,35 @@ if (adminApp) {
   const formatDateForDisplay = (date) => String(date || "").replaceAll("-", ".");
   const honorCategoryUsesDate = (category) =>
     category === "talks" || category === "presentations";
+  const PUBLICATION_CATEGORY_OPTIONS = [
+    { slug: "peer-reviewed-journal-publications", label: "Peer-Reviewed Journal Publications" },
+    { slug: "published-conference-abstracts", label: "Published Conference Abstracts" },
+    { slug: "journal-cover-features", label: "Journal Cover Features" }
+  ];
+  const PUBLICATION_TAG_GROUP_OPTIONS = ["Study Design", "Topics"];
+  const PUBLICATION_TAG_OPTIONS = [
+    { slug: "basic-science", label: "Basic Science", group: "Study Design" },
+    { slug: "cohort-study", label: "Cohort Study", group: "Study Design" },
+    { slug: "meta-analysis", label: "Meta-analysis", group: "Study Design" },
+    { slug: "network-meta-analysis", label: "Meta-analysis", group: "Study Design" },
+    { slug: "review", label: "Review", group: "Study Design" },
+    { slug: "evidence-synthesis", label: "Review", group: "Study Design" },
+    { slug: "methods", label: "Methods", group: "Study Design" },
+    { slug: "heart-failure", label: "Heart Failure", group: "Topics" },
+    { slug: "disability-health", label: "Disability", group: "Topics" },
+    { slug: "nutrition", label: "Nutrition", group: "Topics" },
+    { slug: "diabetes-care", label: "Diabetes", group: "Topics" },
+    { slug: "metabolic-health", label: "Metabolic Health", group: "Topics" },
+    { slug: "hypertension", label: "Hypertension", group: "Topics" },
+    { slug: "ckm-health", label: "CKM Health", group: "Topics" },
+    { slug: "cover-feature", label: "Cover Feature", group: "Topics" },
+    { slug: "health-equity", label: "Health Equity", group: "Topics" },
+    { slug: "health-services-research", label: "Health Services Research", group: "Topics" },
+    { slug: "nationwide-data", label: "Nationwide Data", group: "Topics" },
+    { slug: "rare-disease", label: "Rare Disease", group: "Topics" },
+    { slug: "rehabilitation", label: "Rehabilitation", group: "Topics" },
+    { slug: "mortality", label: "Mortality", group: "Topics" }
+  ];
   const HEIC_MIME_TYPES = new Set([
     "image/heic",
     "image/heif",
@@ -515,24 +544,103 @@ if (adminApp) {
     });
   };
 
-  const parseTags = (value) =>
-    value
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .map((line) => {
-        const [slug, label] = line.split("|").map((part) => part.trim());
+  const getPublicationTagOption = (slug) =>
+    PUBLICATION_TAG_OPTIONS.find((tag) => tag.slug === slug) || null;
 
-        return {
-          slug: slugify(slug),
-          label: label || slug
-        };
+  const getPublicationTagGroup = (group) =>
+    PUBLICATION_TAG_GROUP_OPTIONS.includes(group) ? group : "Topics";
+
+  const normalizeTag = (tag) => {
+    const source = typeof tag === "string" ? { slug: tag, label: tag } : tag || {};
+    const slug = slugify(source.slug || source.label || "");
+    const option = getPublicationTagOption(slug);
+
+    return slug
+      ? {
+          slug,
+          label: option?.label || source.label || source.slug || slug,
+          group: getPublicationTagGroup(source.group || option?.group)
+        }
+      : null;
+  };
+
+  const parseCustomTagLabels = (value = "") =>
+    String(value || "")
+      .split(/[,\n;]+/)
+      .map((label) => label.trim())
+      .filter(Boolean);
+
+  const buildCustomTags = (labels = [], group = "Topics") =>
+    labels
+      .map((label) => normalizeTag({ slug: label, label, group }))
+      .filter(Boolean);
+
+  const getCustomTagsFromFormData = (formData) =>
+    buildCustomTags(parseCustomTagLabels(formData.get("customTagLabels")), formData.get("customTagGroup"));
+
+  const mergeTags = (...tagLists) => {
+    const tags = new Map();
+
+    tagLists.flat().forEach((tag) => {
+      const normalized = normalizeTag(tag);
+
+      if (normalized && !tags.has(normalized.slug)) {
+        tags.set(normalized.slug, normalized);
+      }
+    });
+
+    return [...tags.values()];
+  };
+
+  const getPublicationTagOptions = () => {
+    const tags = new Map();
+
+    PUBLICATION_TAG_OPTIONS.forEach((tag) => {
+      const normalized = normalizeTag(tag);
+
+      if (normalized) {
+        tags.set(normalized.slug, normalized);
+      }
+    });
+
+    adminNormalizeList(state.content?.publications).forEach((publication) => {
+      adminNormalizeList(publication.tags).forEach((tag) => {
+        const normalized = normalizeTag(tag);
+
+        if (normalized && !tags.has(normalized.slug)) {
+          tags.set(normalized.slug, normalized);
+        }
       });
+    });
 
-  const stringifyTags = (tags) =>
-    adminNormalizeList(tags)
-      .map((tag) => `${tag.slug || ""}|${tag.label || ""}`)
-      .join("\n");
+    return [...tags.values()];
+  };
+
+  const getTagsFromSlugs = (slugs = []) => {
+    const tagMap = new Map(getPublicationTagOptions().map((tag) => [tag.slug, tag]));
+    const seen = new Set();
+
+    return slugs
+      .map((slug) => slugify(slug))
+      .filter((slug) => {
+        if (!slug || seen.has(slug)) {
+          return false;
+        }
+
+        seen.add(slug);
+        return true;
+      })
+      .map((slug) => tagMap.get(slug) || { slug, label: slug });
+  };
+
+  const getCheckedTags = (root) =>
+    getTagsFromSlugs(
+      [...root.querySelectorAll("input[name='tags']:checked")].map((input) => input.value)
+    );
+
+  const getPublicationCategory = (value = "") =>
+    PUBLICATION_CATEGORY_OPTIONS.find((category) => slugify(value) === category.slug)
+    || PUBLICATION_CATEGORY_OPTIONS[0];
 
   const getFirstLinkHref = (links) => adminNormalizeList(links)[0]?.href || "";
 
@@ -594,6 +702,71 @@ if (adminApp) {
     </label>
   `;
 
+  const publicationTagGroupSelect = (selected = "Topics") =>
+    PUBLICATION_TAG_GROUP_OPTIONS
+      .map((group) => `<option value="${escapeHTML(group)}" ${getPublicationTagGroup(selected) === group ? "selected" : ""}>${escapeHTML(group)}</option>`)
+      .join("");
+
+  const publicationCustomTagField = (options = {}) => `
+    <div class="admin-custom-tag">
+      <div class="admin-grid two">
+        <label class="admin-field">
+          <span>新增關鍵字</span>
+          <input type="text" name="customTagLabels" placeholder="例如 Hypertension, Cohort Study">
+        </label>
+        <label class="admin-field">
+          <span>關鍵字分類</span>
+          <select name="customTagGroup">
+            ${publicationTagGroupSelect()}
+          </select>
+        </label>
+      </div>
+      ${options.showButton ? "<button class=\"button button-outline\" type=\"button\" data-add-publication-tag>加入關鍵字</button>" : ""}
+      <p class="admin-help">${options.showButton ? "可用逗號一次加入多個；按下加入後會成為這篇著作的關鍵字。" : "可用逗號一次加入多個；儲存或發布時會一起加入這篇著作。"}</p>
+    </div>
+  `;
+
+  const publicationTagField = (selectedTags = [], options = {}) => {
+    const selectedSlugs = new Set(
+      adminNormalizeList(selectedTags)
+        .map((tag) => normalizeTag(tag)?.slug)
+        .filter(Boolean)
+    );
+    const groupedOptions = PUBLICATION_TAG_GROUP_OPTIONS
+      .map((group) => {
+        const tags = getPublicationTagOptions().filter((tag) => getPublicationTagGroup(tag.group) === group);
+
+        if (!tags.length) {
+          return "";
+        }
+
+        return `
+          <div class="admin-tag-group">
+            <p>${escapeHTML(group)}</p>
+            <div class="admin-tag-options">
+              ${tags.map((tag) => `
+                <label class="admin-tag-option">
+                  <input type="checkbox" name="tags" value="${escapeHTML(tag.slug)}" ${selectedSlugs.has(tag.slug) ? "checked" : ""}>
+                  <span>${escapeHTML(tag.label)}</span>
+                </label>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+
+    return `
+      <fieldset class="admin-tag-field">
+        <legend>關鍵字</legend>
+        <div class="admin-tag-groups">
+          ${groupedOptions}
+        </div>
+        ${publicationCustomTagField(options)}
+      </fieldset>
+    `;
+  };
+
   const imageField = (pathValue = "", folder = "blog", options = {}) => `
     <div class="admin-image-row">
       ${field("image", "圖片路徑", pathValue)}
@@ -635,6 +808,22 @@ if (adminApp) {
       </select>
     </label>
   `;
+
+  const publicationCategoryField = (selected = PUBLICATION_CATEGORY_OPTIONS[0].label) => {
+    const current = getPublicationCategory(selected);
+    const options = PUBLICATION_CATEGORY_OPTIONS
+      .map((category) => `<option value="${escapeHTML(category.label)}" ${current.slug === category.slug ? "selected" : ""}>${escapeHTML(category.label)}</option>`)
+      .join("");
+
+    return `
+      <label class="admin-field">
+        <span>分類</span>
+        <select name="category">
+          ${options}
+        </select>
+      </label>
+    `;
+  };
 
   const renderQuickHonorFields = (category = "awards") => {
     const currentYear = new Date().getFullYear().toString();
@@ -703,6 +892,7 @@ if (adminApp) {
     if (state.section === "publications") {
       return {
         year: new Date().getFullYear().toString(),
+        category: PUBLICATION_CATEGORY_OPTIONS[0].label,
         title: "New publication",
         authors: "Szu-Han Chen.",
         venue: "",
@@ -818,12 +1008,13 @@ if (adminApp) {
     quickFields.innerHTML = `
       <div class="admin-grid two">
         ${field("year", "年份", new Date().getFullYear().toString())}
+        ${publicationCategoryField()}
         ${field("doi", "DOI / 連結", "")}
       </div>
       ${field("title", "著作標題", "")}
       ${textarea("authors", "作者", "Szu-Han Chen.", 3)}
       ${textarea("venue", "期刊 citation", "", 3)}
-      ${textarea("tags", "Tags（slug|Label，每行一個）", "", 4)}
+      ${publicationTagField()}
       ${checkbox("featured", "設為 Research 頁代表作", false)}
     `;
   };
@@ -928,11 +1119,12 @@ if (adminApp) {
 
     return {
       year: formData.get("year") || today.slice(0, 4),
+      category: getPublicationCategory(formData.get("category")).label,
       title: formData.get("title") || "New publication",
       authors: formData.get("authors") || "Szu-Han Chen.",
       venue: formData.get("venue") || "",
       doi: formData.get("doi") || "",
-      tags: parseTags(formData.get("tags") || ""),
+      tags: mergeTags(getTagsFromSlugs(formData.getAll("tags")), getCustomTagsFromFormData(formData)),
       featured: formData.get("featured") === "on"
     };
   };
@@ -1049,12 +1241,13 @@ if (adminApp) {
         </div>
         <div class="admin-grid two">
           ${field("year", "年份", item.year)}
+          ${publicationCategoryField(item.category)}
           ${field("doi", "DOI / 連結", item.doi)}
         </div>
         ${field("title", "標題", item.title)}
         ${textarea("authors", "作者", item.authors, 3)}
         ${textarea("venue", "期刊 citation", item.venue, 3)}
-        ${textarea("tags", "Tags（slug|Label，每行一個）", stringifyTags(item.tags), 6)}
+      ${publicationTagField(item.tags, { showButton: true })}
         ${checkbox("featured", "設為 Research 頁代表作", item.featured)}
         ${editorActionsMarkup()}
       `;
@@ -1258,8 +1451,12 @@ if (adminApp) {
     const name = event.target.name;
     const value = event.target.type === "checkbox" ? event.target.checked : event.target.value;
 
+    if (["customTagLabels", "customTagGroup"].includes(name)) {
+      return;
+    }
+
     if (name === "tags") {
-      item.tags = parseTags(value);
+      item.tags = getCheckedTags(editor);
     } else if (name === "url") {
       setSingleUrlLink(item, value);
     } else if (name === "images") {
@@ -1619,7 +1816,30 @@ if (adminApp) {
   editor.addEventListener("change", updateCurrentItem);
   editor.addEventListener("click", (event) => {
     const target = event.target instanceof Element ? event.target : null;
+    const addTagButton = target?.closest("[data-add-publication-tag]");
     const actionButton = target?.closest("[data-editor-open-folder], [data-editor-save], [data-editor-publish-github]");
+
+    if (addTagButton) {
+      const item = getCurrentItem();
+      const customTags = getCustomTagsFromFormData(new FormData(editor));
+
+      event.preventDefault();
+
+      if (!item || state.section !== "publications") {
+        return;
+      }
+
+      if (!customTags.length) {
+        setStatus("請先輸入要新增的關鍵字。", "error");
+        return;
+      }
+
+      item.tags = mergeTags(item.tags, customTags);
+      setDirty(true);
+      setStatus(`已加入關鍵字：${customTags.map((tag) => tag.label).join(", ")}`, "success");
+      render();
+      return;
+    }
 
     if (!actionButton || actionButton.disabled) {
       return;

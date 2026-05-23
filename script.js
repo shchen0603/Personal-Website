@@ -792,8 +792,6 @@ const loadSiteContent = async () => {
   }
 };
 
-loadSiteContent();
-
 // ===== Dark Mode Toggle =====
 const setupThemeToggle = () => {
   const toggles = document.querySelectorAll("[data-theme-toggle]");
@@ -889,4 +887,4 @@ const setupStatCounters = () => {
   );
   counters.forEach((el) => observer.observe(el));
 };
-setupStatCounters();
+loadSiteContent().finally(setupStatCounters);

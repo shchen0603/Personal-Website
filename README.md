@@ -19,7 +19,8 @@
 - `styles.css`: 全站樣式
 - `script.js`: 手機選單、年份與內容渲染
 - `admin.js`: 管理頁的本機讀寫、表單與圖片上傳邏輯
-- `assets/cardiovascular-epidemiology-hero.png`: 首頁主視覺
+- `assets/cardiovascular-epidemiology-hero.webp`: 首頁主視覺
+- `assets/cardiovascular-epidemiology-hero-og.jpg`: 社群分享預覽圖
 - `assets/blog/`: Blog 圖片
 - `assets/activities/`: Activities 圖片
 
@@ -34,7 +35,7 @@
 5. 若只想先改本機檔案，按「選擇網站資料夾」，選取 repository 根目錄，再按「儲存到本機」。
 6. 下方的 Content Studio 是進階編輯區，可用來修改既有項目或做比較細的整理。
 
-`admin.html` 現在會在瀏覽器端自動把 `.heic` / `.heif` 轉成 `.jpg` 後再寫入網站檔案，所以平常照原本習慣上傳 iPhone 照片即可。不過轉檔後不會保留原始 HEIC metadata，若有特別需要保存原檔，可另外自行備份。
+`admin.html` 現在會在瀏覽器端自動把上傳圖片壓縮成最長邊 1920px 的 `.webp`，並移除原始 EXIF/GPS metadata 後再寫入網站檔案；`.heic` / `.heif` 也會先自動轉檔，所以平常照原本習慣上傳 iPhone 照片即可。若有特別需要保存原檔，可另外自行備份。
 
 直接發布到 GitHub 需要一個 fine-grained personal access token。建議建立只限 `shchen0603/Personal-Website` 的 token，權限只開 `Contents: Read and write`。Token 不會寫進 repository，也不會被放進網頁檔案；它只存在你當下開啟的瀏覽器欄位中。Safari/Firefox 對本機檔案寫入支援有限，建議使用 Chrome 或 Edge。
 
@@ -53,7 +54,7 @@
 
 ## 更新 Activities
 
-活動照片與簡短心得由 `data/site-content.json` 的 `activities` 陣列產生。用 `admin.html` 更新時，圖片會自動放到 `assets/activities/`；若上傳的是 `.heic` / `.heif`，會先在本機自動轉成 `.jpg` 再存入。沒有照片時會使用 `visualLabel` 與 `visualTheme` 產生占位視覺。
+活動照片與簡短心得由 `data/site-content.json` 的 `activities` 陣列產生。用 `admin.html` 更新時，圖片會自動放到 `assets/activities/`，並先在本機壓縮成 metadata-free `.webp`。沒有照片時會使用 `visualLabel` 與 `visualTheme` 產生占位視覺。
 
 ## 寫 Blog
 

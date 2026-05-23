@@ -166,12 +166,15 @@ if (adminApp) {
   ]);
   const HEIC_EXTENSION_PATTERN = /\.(heic|heif)$/i;
   const HEIC_OUTPUT_MIME = "image/jpeg";
-  const HEIC_OUTPUT_EXTENSION = "jpg";
   const HEIC_OUTPUT_QUALITY = 0.9;
+  const OPTIMIZED_IMAGE_MIME = "image/webp";
+  const OPTIMIZED_IMAGE_EXTENSION = "webp";
+  const OPTIMIZED_IMAGE_QUALITY = 0.82;
+  const OPTIMIZED_IMAGE_MAX_DIMENSION = 1920;
 
   const getFileBaseName = (fileName = "") => fileName.replace(/\.[^.]+$/, "") || "image";
 
-  const getFileExtension = (fileName = "", fallback = "jpg") => {
+  const getFileExtension = (fileName = "", fallback = OPTIMIZED_IMAGE_EXTENSION) => {
     const match = String(fileName || "").toLowerCase().match(/\.([a-z0-9]+)$/);
 
     return match?.[1] || fallback;
@@ -189,6 +192,18 @@ if (adminApp) {
 
   const getConvertedUploadCount = (uploads = []) =>
     adminNormalizeList(uploads).filter((upload) => upload?.wasConverted).length;
+
+  const getUploadProcessingSummary = (uploads = []) => {
+    const uploadList = adminNormalizeList(uploads).filter(Boolean);
+
+    if (!uploadList.length) {
+      return "";
+    }
+
+    const convertedCount = getConvertedUploadCount(uploadList);
+
+    return ` 已壓縮成 WebP 並移除 EXIF/GPS metadata。${convertedCount ? `其中 ${convertedCount} 張 HEIC/HEIF 已先自動轉檔。` : ""}`;
+  };
 
   const getActivitySortTime = (activity) => {
     if (activity.date) {
@@ -305,7 +320,7 @@ if (adminApp) {
   };
 
   const getAssetFileName = (file) => {
-    const extension = getFileExtension(file?.name, "jpg");
+    const extension = getFileExtension(file?.name, OPTIMIZED_IMAGE_EXTENSION);
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
 
     return `${timestamp}-${slugify(getFileBaseName(file?.name || "image"))}.${extension}`;
@@ -335,9 +350,82 @@ if (adminApp) {
       throw new Error("HEIC 轉檔結果不是有效的圖片檔。");
     }
 
-    return new File([blob], `${getFileBaseName(file.name)}.${HEIC_OUTPUT_EXTENSION}`, {
+    return new File([blob], `${getFileBaseName(file.name)}.jpg`, {
       type: HEIC_OUTPUT_MIME,
       lastModified: file.lastModified
+    });
+  };
+
+  const loadImageFromFile = (file) =>
+    new Promise((resolve, reject) => {
+      const image = new Image();
+      const url = URL.createObjectURL(file);
+      const cleanup = () => URL.revokeObjectURL(url);
+
+      image.addEventListener("load", () => {
+        cleanup();
+        resolve(image);
+      }, { once: true });
+      image.addEventListener("error", () => {
+        cleanup();
+        reject(new Error("圖片讀取失敗。"));
+      }, { once: true });
+      image.src = url;
+    });
+
+  const canvasToBlob = (canvas, type, quality) =>
+    new Promise((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (blob) {
+          resolve(blob);
+          return;
+        }
+
+        reject(new Error("圖片壓縮失敗。"));
+      }, type, quality);
+    });
+
+  const getOptimizedDimensions = (width, height) => {
+    const maxDimension = Math.max(width, height);
+
+    if (maxDimension <= OPTIMIZED_IMAGE_MAX_DIMENSION) {
+      return { width, height };
+    }
+
+    const ratio = OPTIMIZED_IMAGE_MAX_DIMENSION / maxDimension;
+
+    return {
+      width: Math.round(width * ratio),
+      height: Math.round(height * ratio)
+    };
+  };
+
+  const optimizeImageFile = async (file, originalName = file.name) => {
+    const image = await loadImageFromFile(file);
+    const sourceWidth = image.naturalWidth || image.width;
+    const sourceHeight = image.naturalHeight || image.height;
+
+    if (!sourceWidth || !sourceHeight) {
+      throw new Error("圖片尺寸無法讀取。");
+    }
+
+    const dimensions = getOptimizedDimensions(sourceWidth, sourceHeight);
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+      throw new Error("瀏覽器不支援圖片壓縮所需的 canvas。");
+    }
+
+    canvas.width = dimensions.width;
+    canvas.height = dimensions.height;
+    context.drawImage(image, 0, 0, dimensions.width, dimensions.height);
+
+    const blob = await canvasToBlob(canvas, OPTIMIZED_IMAGE_MIME, OPTIMIZED_IMAGE_QUALITY);
+
+    return new File([blob], `${getFileBaseName(originalName)}.${OPTIMIZED_IMAGE_EXTENSION}`, {
+      type: OPTIMIZED_IMAGE_MIME,
+      lastModified: Date.now()
     });
   };
 
@@ -347,21 +435,17 @@ if (adminApp) {
     }
 
     try {
-      if (!isHeicFile(file)) {
-        return {
-          file,
-          wasConverted: false,
-          originalName: file.name
-        };
-      }
+      const wasConverted = isHeicFile(file);
+      const workingFile = wasConverted ? await convertHeicToJpeg(file) : file;
 
       return {
-        file: await convertHeicToJpeg(file),
-        wasConverted: true,
+        file: await optimizeImageFile(workingFile, file.name),
+        wasConverted,
+        wasOptimized: true,
         originalName: file.name
       };
     } catch (error) {
-      throw new Error(`HEIC 轉檔失敗：${file.name}。請重新選一次，或先在系統中轉成 JPG/PNG 後再上傳。${error?.message ? ` ${error.message}` : ""}`);
+      throw new Error(`圖片處理失敗：${file.name}。請重新選一次，或先在系統中轉成一般圖片格式後再上傳。${error?.message ? ` ${error.message}` : ""}`);
     }
   };
 
@@ -789,7 +873,7 @@ if (adminApp) {
       <span>上傳其他活動照片</span>
       <input type="file" name="galleryImageFiles" accept="image/*,.heic,.heif" data-admin-gallery-upload="activities" multiple>
     </label>
-    <p class="admin-help">封面照會顯示在 Activities 卡片；其他活動照片會放進完整頁的圖片集。若你上傳 HEIC/HEIF，系統會先在本機自動轉成 JPG 再寫入網站。已上傳的圖片集仍可用「路徑|替代文字|照片說明」每行編輯一張。</p>
+    <p class="admin-help">封面照會顯示在 Activities 卡片；其他活動照片會放進完整頁的圖片集。上傳圖片會先在本機壓縮成最長邊 1920px 的 WebP，並移除 EXIF/GPS metadata。已上傳的圖片集仍可用「路徑|替代文字|照片說明」每行編輯一張。</p>
     ${textarea("images", "其他照片圖片集", stringifyImages(item.images), 5)}
   `;
 
@@ -963,7 +1047,7 @@ if (adminApp) {
           <span>附加圖片</span>
           <input type="file" name="imageFile" accept="image/*,.heic,.heif" data-quick-image>
         </label>
-        <p class="admin-help">若上傳 HEIC/HEIF，系統會先在本機自動轉成 JPG，再存進網站資料夾或直接發布到 GitHub。</p>
+        <p class="admin-help">上傳圖片會先在本機壓縮成最長邊 1920px 的 WebP，並移除 EXIF/GPS metadata，再存進網站資料夾或直接發布到 GitHub。</p>
       `;
       return;
     }
@@ -991,7 +1075,7 @@ if (adminApp) {
             <input type="file" name="galleryImageFiles" accept="image/*,.heic,.heif" data-quick-gallery-images multiple>
           </label>
         </div>
-        <p class="admin-help">封面照會顯示在 Activities 卡片；其他活動照片會放進完整頁的圖片集。若你上傳 HEIC/HEIF，系統會先在本機自動轉成 JPG。</p>
+        <p class="admin-help">封面照會顯示在 Activities 卡片；其他活動照片會放進完整頁的圖片集。上傳圖片會先在本機壓縮成最長邊 1920px 的 WebP，並移除 EXIF/GPS metadata。</p>
         <div class="admin-check-row">
           ${checkbox("log", "加入 Activity Log", true)}
           ${checkbox("featured", "放大活動卡", false)}
@@ -1369,9 +1453,7 @@ if (adminApp) {
       if (path) {
         item.image = path;
         setStatus(
-          result.upload?.wasConverted
-            ? `封面照已加入，並已把 ${result.upload.originalName} 自動轉成 JPG：${path}`
-            : `封面照已加入：${path}`,
+          `封面照已加入：${path}.${getUploadProcessingSummary([result.upload])}`,
           "success"
         );
       }
@@ -1385,18 +1467,18 @@ if (adminApp) {
       const folder = event.target.dataset.adminGalleryUpload || "activities";
       const files = [...(event.target.files || [])];
       const paths = [];
-      let convertedCount = 0;
+      const uploads = [];
 
       for (const file of files) {
         const result = await saveImage(file, folder);
         const path = result.path;
 
-        if (path) {
-          paths.push(path);
+        if (result.upload) {
+          uploads.push(result.upload);
         }
 
-        if (result.upload?.wasConverted) {
-          convertedCount += 1;
+        if (path) {
+          paths.push(path);
         }
       }
 
@@ -1413,12 +1495,12 @@ if (adminApp) {
         if (!item.image) {
           item.image = paths[0];
           setStatus(
-            `已加入 ${paths.length} 張其他活動照片，並用第一張作為封面。${convertedCount ? ` 其中 ${convertedCount} 張 HEIC/HEIF 已自動轉成 JPG。` : ""}`,
+            `已加入 ${paths.length} 張其他活動照片，並用第一張作為封面。${getUploadProcessingSummary(uploads)}`,
             "success"
           );
         } else {
           setStatus(
-            `已加入 ${paths.length} 張其他活動照片。${convertedCount ? ` 其中 ${convertedCount} 張 HEIC/HEIF 已自動轉成 JPG。` : ""}`,
+            `已加入 ${paths.length} 張其他活動照片。${getUploadProcessingSummary(uploads)}`,
             "success"
           );
         }
@@ -1436,9 +1518,7 @@ if (adminApp) {
       if (path) {
         item.image = path;
         setStatus(
-          result.upload?.wasConverted
-            ? `圖片已加入，並已把 ${result.upload.originalName} 自動轉成 JPG：${path}`
-            : `圖片已加入：${path}`,
+          `圖片已加入：${path}.${getUploadProcessingSummary([result.upload])}`,
           "success"
         );
       }
@@ -1567,8 +1647,8 @@ if (adminApp) {
       let galleryUploads = [];
       let imageUploads = [];
 
-      if (rawImageFiles.some(isHeicFile)) {
-        setStatus("偵測到 HEIC/HEIF，正在自動轉成 JPG...", "");
+      if (rawImageFiles.length) {
+        setStatus("正在壓縮圖片並移除 EXIF/GPS metadata...", "");
       }
 
       if (type === "activities") {
@@ -1581,7 +1661,7 @@ if (adminApp) {
       const allUploads = type === "activities"
         ? [coverUpload, ...galleryUploads].filter(Boolean)
         : imageUploads;
-      const convertedCount = getConvertedUploadCount(allUploads);
+      const processingSummary = getUploadProcessingSummary(allUploads);
 
       if (type === "activities") {
         if (mode === "local") {
@@ -1644,7 +1724,7 @@ if (adminApp) {
         setDirty(false);
 
         setStatus(
-          `已發布到 GitHub。本機檔案不會自動改動；需要本機同步時請用 git pull。${convertedCount ? ` 其中 ${convertedCount} 張 HEIC/HEIF 已自動轉成 JPG。` : ""}`,
+          `已發布到 GitHub。本機檔案不會自動改動；需要本機同步時請用 git pull。${processingSummary}`,
           "success"
         );
       } else {
@@ -1652,7 +1732,7 @@ if (adminApp) {
         await writeContentFile();
         setDirty(false);
         setStatus(
-          `已儲存到本機 data/site-content.json。${convertedCount ? ` 其中 ${convertedCount} 張 HEIC/HEIF 已自動轉成 JPG。` : ""}`,
+          `已儲存到本機 data/site-content.json。${processingSummary}`,
           "success"
         );
       }

@@ -58,7 +58,7 @@
 
 ## 寫 Blog
 
-Blog 文章由 `data/site-content.json` 的 `blogPosts` 陣列產生，建議用 `admin.html` 更新。每篇文章會由 `post.html?id=文章ID` 顯示。
+Blog 文章由 `data/site-content.json` 的 `blogPosts` 陣列產生，建議用 `admin.html` 更新。Blog 不再使用分類，Quick Publish 與 Content Studio 都以五個固定文章標籤整理內容：流行病學與健康媒體識讀、健康與預防、研究方法、研究筆記、學術隨筆；每篇文章會由 `post.html?id=文章ID` 顯示。
 
 舊的 `posts/` HTML 檔先保留作為備份；新的文章不需要再手動複製 HTML。
 

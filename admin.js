@@ -158,6 +158,13 @@ if (adminApp) {
     { slug: "rehabilitation", label: "Rehabilitation", group: "Topics" },
     { slug: "mortality", label: "Mortality", group: "Topics" }
   ];
+  const BLOG_TAG_OPTIONS = [
+    { slug: "epidemiology-health-media-literacy", label: "流行病學與健康媒體識讀" },
+    { slug: "health-prevention", label: "健康與預防" },
+    { slug: "research-methods", label: "研究方法" },
+    { slug: "research-notes", label: "研究筆記" },
+    { slug: "academic-essay", label: "學術隨筆" }
+  ];
   const HEIC_MIME_TYPES = new Set([
     "image/heic",
     "image/heif",
@@ -648,6 +655,25 @@ if (adminApp) {
       : null;
   };
 
+  const normalizeBlogTag = (tag) => {
+    const source = typeof tag === "string" ? { slug: tag, label: tag } : tag || {};
+    const slug = slugify(source.slug || source.label || "");
+    const option = BLOG_TAG_OPTIONS.find((item) => item.slug === slug || item.label === source.label);
+    const normalizedSlug = option?.slug || slug;
+
+    return normalizedSlug
+      ? {
+          slug: normalizedSlug,
+          label: option?.label || source.label || source.slug || normalizedSlug
+        }
+      : null;
+  };
+
+  const getBlogTagOptions = () =>
+    BLOG_TAG_OPTIONS
+      .map((tag) => normalizeBlogTag(tag))
+      .filter(Boolean);
+
   const parseCustomTagLabels = (value = "") =>
     String(value || "")
       .split(/[,\n;]+/)
@@ -722,6 +748,28 @@ if (adminApp) {
       [...root.querySelectorAll("input[name='tags']:checked")].map((input) => input.value)
     );
 
+  const getCheckedBlogTags = (root) => {
+    const tagMap = new Map(getBlogTagOptions().map((tag) => [tag.slug, tag]));
+    const seen = new Set();
+
+    return [...root.querySelectorAll("input[name='blogTags']:checked")]
+      .map((input) => {
+        const slug = slugify(input.value);
+
+        if (!slug || seen.has(slug)) {
+          return null;
+        }
+
+        seen.add(slug);
+
+        return tagMap.get(slug) || normalizeBlogTag({
+          slug,
+          label: input.closest(".admin-tag-option")?.querySelector("span")?.textContent?.trim() || input.value
+        });
+      })
+      .filter(Boolean);
+  };
+
   const getPublicationCategory = (value = "") =>
     PUBLICATION_CATEGORY_OPTIONS.find((category) => slugify(value) === category.slug)
     || PUBLICATION_CATEGORY_OPTIONS[0];
@@ -778,6 +826,58 @@ if (adminApp) {
       <textarea name="${name}" rows="${rows}">${escapeHTML(value)}</textarea>
     </label>
   `;
+
+  const markdownToolbarButton = (action, label, title) =>
+    `<button type="button" data-markdown-action="${action}" title="${escapeHTML(title)}" aria-label="${escapeHTML(title)}">${label}</button>`;
+
+  const markdownEditorField = (name, label, value = "", rows = 8) => `
+    <div class="admin-markdown-editor">
+      <div class="admin-markdown-toolbar" aria-label="文章格式工具列">
+        ${markdownToolbarButton("h2", "H2", "加入大標")}
+        ${markdownToolbarButton("h3", "H3", "加入小標")}
+        ${markdownToolbarButton("bold", "B", "粗體")}
+        ${markdownToolbarButton("italic", "I", "斜體")}
+        ${markdownToolbarButton("list", "•", "項目清單")}
+        ${markdownToolbarButton("ordered-list", "1.", "編號清單")}
+        ${markdownToolbarButton("quote", ">", "引用")}
+        ${markdownToolbarButton("link", "Link", "加入連結")}
+      </div>
+      <label class="admin-field">
+        <span>${label}</span>
+        <textarea name="${name}" rows="${rows}" data-markdown-editor>${escapeHTML(value)}</textarea>
+      </label>
+      <p class="admin-help">段落請用空行分開；工具列會插入 Markdown 標記，文章頁會自動轉成標題、清單與基本文字樣式。</p>
+    </div>
+  `;
+
+  const blogTagOption = (tag, checked = false, options = {}) => `
+    <div class="admin-tag-option admin-tag-option-removable" data-blog-tag-option="${escapeHTML(tag.slug)}">
+      <label>
+        <input type="checkbox" name="blogTags" value="${escapeHTML(tag.slug)}" ${checked ? "checked" : ""}>
+        <span>${escapeHTML(tag.label)}</span>
+      </label>
+      ${options.removable ? `<button class="admin-tag-remove" type="button" data-remove-blog-tag="${escapeHTML(tag.slug)}" title="刪除文章標籤" aria-label="刪除文章標籤 ${escapeHTML(tag.label)}">x</button>` : ""}
+    </div>
+  `;
+
+  const blogTagField = (selectedTags = [], options = {}) => {
+    const selectedSlugs = new Set(
+      adminNormalizeList(selectedTags)
+        .map((tag) => normalizeBlogTag(tag)?.slug)
+        .filter(Boolean)
+    );
+    const tags = getBlogTagOptions();
+
+    return `
+      <fieldset class="admin-tag-field">
+        <legend>文章標籤</legend>
+        <div class="admin-tag-options">
+          ${tags.map((tag) => blogTagOption(tag, selectedSlugs.has(tag.slug), { removable: options.removable !== false })).join("")}
+        </div>
+        <p class="admin-help">Blog 暫時統一使用這五個標籤；勾選代表加入文章，標籤旁的 x 可從文章移除。</p>
+      </fieldset>
+    `;
+  };
 
   const checkbox = (name, label, checked = false) => `
     <label class="admin-check">
@@ -964,11 +1064,11 @@ if (adminApp) {
         status: "published",
         date: today,
         dateLabel: today.replaceAll("-", "."),
-        category: "Research Notes",
         title: "新文章",
         excerpt: "",
         image: "",
         imageAlt: "",
+        tags: [],
         body: [""]
       };
     }
@@ -1038,11 +1138,9 @@ if (adminApp) {
 
     if (type === "blogPosts") {
       quickFields.innerHTML = `
-        <div class="admin-grid two">
-          ${field("title", "標題", "")}
-          ${field("category", "分類", "Research Notes")}
-        </div>
-        ${textarea("body", "你想發布的文字", "", 7)}
+        ${field("title", "標題", "")}
+        ${blogTagField([])}
+        ${markdownEditorField("body", "你想發布的文字", "", 9)}
         <label class="admin-field">
           <span>附加圖片</span>
           <input type="file" name="imageFile" accept="image/*,.heic,.heif" data-quick-image>
@@ -1109,6 +1207,107 @@ if (adminApp) {
       .map((paragraph) => paragraph.trim())
       .filter(Boolean);
 
+  const stripMarkdownForExcerpt = (value = "") =>
+    String(value || "")
+      .replace(/^#{2,3}\s+/gm, "")
+      .replace(/^\s*[-*]\s+/gm, "")
+      .replace(/^\s*\d+\.\s+/gm, "")
+      .replace(/^\s*>\s?/gm, "")
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+      .replace(/\*\*([^*]+)\*\*/g, "$1")
+      .replace(/\*([^*\n]+)\*/g, "$1")
+      .replace(/`([^`]+)`/g, "$1")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const getBlogExcerpt = (body = []) => {
+    const blocks = adminNormalizeList(body);
+    const firstParagraph = blocks.find((block) => !/^#{2,3}\s+/.test(String(block || "").trim())) || blocks[0] || "";
+
+    return stripMarkdownForExcerpt(firstParagraph);
+  };
+
+  const replaceTextareaSelection = (textarea, replacement, selectionStartOffset = replacement.length, selectionEndOffset = selectionStartOffset) => {
+    const start = textarea.selectionStart ?? textarea.value.length;
+    const end = textarea.selectionEnd ?? start;
+    const before = textarea.value.slice(0, start);
+    const after = textarea.value.slice(end);
+
+    textarea.value = `${before}${replacement}${after}`;
+    textarea.focus();
+    textarea.setSelectionRange(start + selectionStartOffset, start + selectionEndOffset);
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+  };
+
+  const insertLinePrefix = (textarea, prefix, placeholder) => {
+    const selected = textarea.value.slice(textarea.selectionStart ?? 0, textarea.selectionEnd ?? 0);
+    const content = selected || placeholder;
+    const replacement = content
+      .split("\n")
+      .map((line) => `${prefix}${line.replace(/^\s*(#{2,3}\s+|>\s+|[-*]\s+|\d+\.\s+)/, "")}`)
+      .join("\n");
+    const firstPlaceholderStart = replacement.indexOf(placeholder);
+
+    replaceTextareaSelection(
+      textarea,
+      replacement,
+      selected ? replacement.length : firstPlaceholderStart,
+      selected ? replacement.length : firstPlaceholderStart + placeholder.length
+    );
+  };
+
+  const wrapSelection = (textarea, before, after, placeholder) => {
+    const selected = textarea.value.slice(textarea.selectionStart ?? 0, textarea.selectionEnd ?? 0);
+    const content = selected || placeholder;
+
+    replaceTextareaSelection(textarea, `${before}${content}${after}`, before.length, before.length + content.length);
+  };
+
+  const applyMarkdownAction = (textarea, action) => {
+    if (!textarea) {
+      return;
+    }
+
+    if (action === "h2") {
+      insertLinePrefix(textarea, "## ", "大標題");
+      return;
+    }
+
+    if (action === "h3") {
+      insertLinePrefix(textarea, "### ", "小標題");
+      return;
+    }
+
+    if (action === "bold") {
+      wrapSelection(textarea, "**", "**", "重點文字");
+      return;
+    }
+
+    if (action === "italic") {
+      wrapSelection(textarea, "*", "*", "補充文字");
+      return;
+    }
+
+    if (action === "list") {
+      insertLinePrefix(textarea, "- ", "清單項目");
+      return;
+    }
+
+    if (action === "ordered-list") {
+      insertLinePrefix(textarea, "1. ", "清單項目");
+      return;
+    }
+
+    if (action === "quote") {
+      insertLinePrefix(textarea, "> ", "引用文字");
+      return;
+    }
+
+    if (action === "link") {
+      wrapSelection(textarea, "[", "](https://)", "連結文字");
+    }
+  };
+
   const buildQuickItem = (type, formData, imageInput = []) => {
     const today = new Date().toISOString().slice(0, 10);
     const paths = Array.isArray(imageInput) ? imageInput.filter(Boolean) : [imageInput].filter(Boolean);
@@ -1116,17 +1315,18 @@ if (adminApp) {
     if (type === "blogPosts") {
       const title = formData.get("title") || "新文章";
       const body = splitParagraphs(formData.get("body") || "");
+      const tags = getCheckedBlogTags(quickFields);
 
       return {
         id: `${today}-${slugify(title)}`,
         status: "published",
         date: today,
         dateLabel: today.replaceAll("-", "."),
-        category: formData.get("category") || "Research Notes",
         title,
-        excerpt: body[0] || "",
+        excerpt: getBlogExcerpt(body),
         image: paths[0] || "",
         imageAlt: title,
+        tags,
         body
       };
     }
@@ -1299,7 +1499,6 @@ if (adminApp) {
           ${field("id", "文章 ID", item.id)}
           ${field("date", "日期", item.date, "date")}
           ${field("dateLabel", "顯示日期", item.dateLabel)}
-          ${field("category", "分類", item.category)}
           <label class="admin-field">
             <span>狀態</span>
             <select name="status">
@@ -1309,9 +1508,10 @@ if (adminApp) {
           </label>
         </div>
         ${textarea("excerpt", "摘要", item.excerpt, 3)}
+        ${blogTagField(item.tags)}
         ${imageField(item.image, "blog")}
         ${field("imageAlt", "圖片替代文字", item.imageAlt)}
-        ${textarea("body", "正文（每一段用空行分開）", adminNormalizeList(item.body).join("\n\n"), 12)}
+        ${markdownEditorField("body", "正文", adminNormalizeList(item.body).join("\n\n"), 12)}
         ${editorActionsMarkup()}
       `;
       return;
@@ -1535,7 +1735,9 @@ if (adminApp) {
       return;
     }
 
-    if (name === "tags") {
+    if (name === "blogTags") {
+      item.tags = getCheckedBlogTags(editor);
+    } else if (name === "tags") {
       item.tags = getCheckedTags(editor);
     } else if (name === "url") {
       setSingleUrlLink(item, value);
@@ -1896,8 +2098,38 @@ if (adminApp) {
   editor.addEventListener("change", updateCurrentItem);
   editor.addEventListener("click", (event) => {
     const target = event.target instanceof Element ? event.target : null;
+    const removeBlogTagButton = target?.closest("[data-remove-blog-tag]");
     const addTagButton = target?.closest("[data-add-publication-tag]");
+    const markdownButton = target?.closest("[data-markdown-action]");
     const actionButton = target?.closest("[data-editor-open-folder], [data-editor-save], [data-editor-publish-github]");
+
+    if (markdownButton) {
+      const markdownEditor = markdownButton.closest(".admin-markdown-editor");
+
+      event.preventDefault();
+      applyMarkdownAction(markdownEditor?.querySelector("[data-markdown-editor]"), markdownButton.dataset.markdownAction);
+      return;
+    }
+
+    if (removeBlogTagButton) {
+      const item = getCurrentItem();
+      const slug = slugify(removeBlogTagButton.dataset.removeBlogTag || "");
+      const label = removeBlogTagButton.closest("[data-blog-tag-option]")?.querySelector("span")?.textContent?.trim() || slug;
+
+      event.preventDefault();
+
+      if (!item || state.section !== "blogPosts" || !slug) {
+        return;
+      }
+
+      item.tags = adminNormalizeList(item.tags)
+        .map((tag) => normalizeBlogTag(tag))
+        .filter((tag) => tag && tag.slug !== slug);
+      setDirty(true);
+      setStatus(`已刪除文章標籤：${label}`, "success");
+      render();
+      return;
+    }
 
     if (addTagButton) {
       const item = getCurrentItem();
@@ -1940,6 +2172,37 @@ if (adminApp) {
     publishCurrentContent();
   });
   quickType.addEventListener("change", renderQuickFields);
+  quickFields.addEventListener("click", (event) => {
+    const target = event.target instanceof Element ? event.target : null;
+    const removeBlogTagButton = target?.closest("[data-remove-blog-tag]");
+    const button = target?.closest("[data-markdown-action]");
+
+    if (removeBlogTagButton) {
+      const option = removeBlogTagButton.closest("[data-blog-tag-option]");
+      const input = option?.querySelector("input[name='blogTags']");
+      const label = option?.querySelector("span")?.textContent?.trim() || removeBlogTagButton.dataset.removeBlogTag || "";
+
+      event.preventDefault();
+
+      if (quickType.value !== "blogPosts") {
+        return;
+      }
+
+      if (input) {
+        input.checked = false;
+      }
+
+      setStatus(`已刪除文章標籤：${label}`, "success");
+      return;
+    }
+
+    if (!button) {
+      return;
+    }
+
+    event.preventDefault();
+    applyMarkdownAction(quickFields.querySelector("[data-markdown-editor]"), button.dataset.markdownAction);
+  });
   quickFields.addEventListener("change", (event) => {
     if (event.target.name === "honorCategory") {
       renderQuickHonorFields(event.target.value || "awards");

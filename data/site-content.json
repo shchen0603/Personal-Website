@@ -646,7 +646,16 @@
       "status": "published",
       "date": "2026-04-26",
       "dateLabel": "2026.04.26",
-      "category": "Research Notes",
+      "tags": [
+        {
+          "slug": "epidemiology-health-media-literacy",
+          "label": "流行病學與健康媒體識讀"
+        },
+        {
+          "slug": "research-notes",
+          "label": "研究筆記"
+        }
+      ],
       "title": "為什麼我想寫一個心血管流行病學網站",
       "excerpt": "關於研究、臨床與公共討論之間為什麼需要更清楚橋樑的開站筆記。",
       "image": "",

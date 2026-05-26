@@ -178,6 +178,8 @@ if (adminApp) {
   const OPTIMIZED_IMAGE_EXTENSION = "webp";
   const OPTIMIZED_IMAGE_QUALITY = 0.82;
   const OPTIMIZED_IMAGE_MAX_DIMENSION = 1920;
+  const NORMAL_IMAGE_ORIENTATION = 1;
+  const IMAGE_ORIENTATION_ROTATES_DIMENSIONS = new Set([5, 6, 7, 8]);
 
   const getFileBaseName = (fileName = "") => fileName.replace(/\.[^.]+$/, "") || "image";
 
@@ -363,7 +365,7 @@ if (adminApp) {
     });
   };
 
-  const loadImageFromFile = (file) =>
+  const loadImageElementFromFile = (file) =>
     new Promise((resolve, reject) => {
       const image = new Image();
       const url = URL.createObjectURL(file);
@@ -379,6 +381,36 @@ if (adminApp) {
       }, { once: true });
       image.src = url;
     });
+
+  const loadCanvasSourceFromFile = async (file, options = {}) => {
+    const imageOrientation = options.ignoreMetadataOrientation ? "none" : "from-image";
+
+    if (typeof window.createImageBitmap === "function") {
+      try {
+        const bitmap = await window.createImageBitmap(file, { imageOrientation });
+
+        return {
+          source: bitmap,
+          width: bitmap.width,
+          height: bitmap.height,
+          ignoresMetadataOrientation: options.ignoreMetadataOrientation,
+          close: () => bitmap.close()
+        };
+      } catch {
+        // Fall back to HTMLImageElement below; older browsers may not support ImageBitmap options.
+      }
+    }
+
+    const image = await loadImageElementFromFile(file);
+
+    return {
+      source: image,
+      width: image.naturalWidth || image.width,
+      height: image.naturalHeight || image.height,
+      ignoresMetadataOrientation: false,
+      close: () => {}
+    };
+  };
 
   const canvasToBlob = (canvas, type, quality) =>
     new Promise((resolve, reject) => {
@@ -407,33 +439,250 @@ if (adminApp) {
     };
   };
 
-  const optimizeImageFile = async (file, originalName = file.name) => {
-    const image = await loadImageFromFile(file);
-    const sourceWidth = image.naturalWidth || image.width;
-    const sourceHeight = image.naturalHeight || image.height;
+  const normalizeImageOrientation = (orientation) => {
+    const value = Number(orientation);
 
-    if (!sourceWidth || !sourceHeight) {
-      throw new Error("圖片尺寸無法讀取。");
+    return Number.isInteger(value) && value >= 1 && value <= 8 ? value : NORMAL_IMAGE_ORIENTATION;
+  };
+
+  const getOrientedDimensions = (width, height, orientation) =>
+    IMAGE_ORIENTATION_ROTATES_DIMENSIONS.has(orientation)
+      ? { width: height, height: width }
+      : { width, height };
+
+  const getRawDrawDimensions = (width, height, orientation) =>
+    IMAGE_ORIENTATION_ROTATES_DIMENSIONS.has(orientation)
+      ? { width: height, height: width }
+      : { width, height };
+
+  const applyCanvasOrientation = (context, orientation, width, height) => {
+    if (orientation === 2) {
+      context.transform(-1, 0, 0, 1, width, 0);
+      return;
     }
 
-    const dimensions = getOptimizedDimensions(sourceWidth, sourceHeight);
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d");
-
-    if (!context) {
-      throw new Error("瀏覽器不支援圖片壓縮所需的 canvas。");
+    if (orientation === 3) {
+      context.transform(-1, 0, 0, -1, width, height);
+      return;
     }
 
-    canvas.width = dimensions.width;
-    canvas.height = dimensions.height;
-    context.drawImage(image, 0, 0, dimensions.width, dimensions.height);
+    if (orientation === 4) {
+      context.transform(1, 0, 0, -1, 0, height);
+      return;
+    }
 
-    const blob = await canvasToBlob(canvas, OPTIMIZED_IMAGE_MIME, OPTIMIZED_IMAGE_QUALITY);
+    if (orientation === 5) {
+      context.transform(0, 1, 1, 0, 0, 0);
+      return;
+    }
 
-    return new File([blob], `${getFileBaseName(originalName)}.${OPTIMIZED_IMAGE_EXTENSION}`, {
-      type: OPTIMIZED_IMAGE_MIME,
-      lastModified: Date.now()
+    if (orientation === 6) {
+      context.transform(0, 1, -1, 0, height, 0);
+      return;
+    }
+
+    if (orientation === 7) {
+      context.transform(0, -1, -1, 0, height, width);
+      return;
+    }
+
+    if (orientation === 8) {
+      context.transform(0, -1, 1, 0, 0, width);
+    }
+  };
+
+  const getAsciiString = (bytes, start, length) => {
+    let value = "";
+
+    for (let index = 0; index < length; index += 1) {
+      value += String.fromCharCode(bytes[start + index] || 0);
+    }
+
+    return value;
+  };
+
+  const parseJpegExifOrientation = (buffer) => {
+    const view = new DataView(buffer);
+
+    if (view.byteLength < 4 || view.getUint16(0) !== 0xffd8) {
+      return NORMAL_IMAGE_ORIENTATION;
+    }
+
+    let offset = 2;
+
+    while (offset + 4 <= view.byteLength) {
+      const marker = view.getUint16(offset);
+      offset += 2;
+
+      if (marker === 0xffda || marker === 0xffd9) {
+        break;
+      }
+
+      const segmentLength = view.getUint16(offset);
+      const segmentStart = offset + 2;
+      const nextOffset = offset + segmentLength;
+
+      if (marker === 0xffe1 && segmentStart + 14 <= view.byteLength) {
+        const bytes = new Uint8Array(buffer);
+
+        if (getAsciiString(bytes, segmentStart, 6) !== "Exif\0\0") {
+          offset = nextOffset;
+          continue;
+        }
+
+        const tiffStart = segmentStart + 6;
+        const byteOrder = getAsciiString(bytes, tiffStart, 2);
+        const littleEndian = byteOrder === "II";
+
+        if (!littleEndian && byteOrder !== "MM") {
+          return NORMAL_IMAGE_ORIENTATION;
+        }
+
+        const ifdOffset = view.getUint32(tiffStart + 4, littleEndian);
+        const ifdStart = tiffStart + ifdOffset;
+
+        if (ifdStart + 2 > view.byteLength) {
+          return NORMAL_IMAGE_ORIENTATION;
+        }
+
+        const entryCount = view.getUint16(ifdStart, littleEndian);
+
+        for (let index = 0; index < entryCount; index += 1) {
+          const entryStart = ifdStart + 2 + index * 12;
+
+          if (entryStart + 12 > view.byteLength) {
+            break;
+          }
+
+          if (view.getUint16(entryStart, littleEndian) === 0x0112) {
+            return normalizeImageOrientation(view.getUint16(entryStart + 8, littleEndian));
+          }
+        }
+      }
+
+      if (nextOffset <= offset) {
+        break;
+      }
+
+      offset = nextOffset;
+    }
+
+    return NORMAL_IMAGE_ORIENTATION;
+  };
+
+  const heicRotationToOrientation = (rotation) => {
+    if (rotation === 1) {
+      return 8;
+    }
+
+    if (rotation === 2) {
+      return 3;
+    }
+
+    if (rotation === 3) {
+      return 6;
+    }
+
+    return NORMAL_IMAGE_ORIENTATION;
+  };
+
+  const parseHeicOrientation = (buffer) => {
+    const view = new DataView(buffer);
+    const bytes = new Uint8Array(buffer);
+
+    for (let index = 4; index + 5 < bytes.length; index += 1) {
+      if (getAsciiString(bytes, index, 4) !== "irot") {
+        continue;
+      }
+
+      const size = view.getUint32(index - 4);
+
+      if (size >= 9 && size <= bytes.length - index + 4) {
+        return heicRotationToOrientation(bytes[index + 4] & 0x03);
+      }
+    }
+
+    return NORMAL_IMAGE_ORIENTATION;
+  };
+
+  const getImageOrientation = async (file) => {
+    const type = String(file?.type || "").toLowerCase();
+
+    if (type === "image/jpeg" || /\.jpe?g$/i.test(file?.name || "")) {
+      return parseJpegExifOrientation(await file.slice(0, 256 * 1024).arrayBuffer());
+    }
+
+    if (isHeicFile(file)) {
+      return parseHeicOrientation(await file.slice(0, 512 * 1024).arrayBuffer());
+    }
+
+    return NORMAL_IMAGE_ORIENTATION;
+  };
+
+  const optimizeImageFile = async (file, originalName = file.name, options = {}) => {
+    const orientation = normalizeImageOrientation(options.orientation);
+    const source = await loadCanvasSourceFromFile(file, {
+      ignoreMetadataOrientation: orientation !== NORMAL_IMAGE_ORIENTATION
     });
+
+    try {
+      const sourceWidth = source.width;
+      const sourceHeight = source.height;
+      const shouldApplyManualOrientation =
+        orientation !== NORMAL_IMAGE_ORIENTATION &&
+        (options.forceManualOrientation || source.ignoresMetadataOrientation);
+
+      if (!sourceWidth || !sourceHeight) {
+        throw new Error("圖片尺寸無法讀取。");
+      }
+
+      const orientedDimensions = getOrientedDimensions(
+        sourceWidth,
+        sourceHeight,
+        shouldApplyManualOrientation ? orientation : NORMAL_IMAGE_ORIENTATION
+      );
+      const dimensions = getOptimizedDimensions(orientedDimensions.width, orientedDimensions.height);
+      const rawDrawDimensions = getRawDrawDimensions(
+        dimensions.width,
+        dimensions.height,
+        shouldApplyManualOrientation ? orientation : NORMAL_IMAGE_ORIENTATION
+      );
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d");
+
+      if (!context) {
+        throw new Error("瀏覽器不支援圖片壓縮所需的 canvas。");
+      }
+
+      canvas.width = dimensions.width;
+      canvas.height = dimensions.height;
+      applyCanvasOrientation(
+        context,
+        shouldApplyManualOrientation ? orientation : NORMAL_IMAGE_ORIENTATION,
+        rawDrawDimensions.width,
+        rawDrawDimensions.height
+      );
+      context.drawImage(
+        source.source,
+        0,
+        0,
+        sourceWidth,
+        sourceHeight,
+        0,
+        0,
+        rawDrawDimensions.width,
+        rawDrawDimensions.height
+      );
+
+      const blob = await canvasToBlob(canvas, OPTIMIZED_IMAGE_MIME, OPTIMIZED_IMAGE_QUALITY);
+
+      return new File([blob], `${getFileBaseName(originalName)}.${OPTIMIZED_IMAGE_EXTENSION}`, {
+        type: OPTIMIZED_IMAGE_MIME,
+        lastModified: Date.now()
+      });
+    } finally {
+      source.close();
+    }
   };
 
   const prepareImageUpload = async (file) => {
@@ -443,10 +692,14 @@ if (adminApp) {
 
     try {
       const wasConverted = isHeicFile(file);
+      const orientation = await getImageOrientation(file);
       const workingFile = wasConverted ? await convertHeicToJpeg(file) : file;
 
       return {
-        file: await optimizeImageFile(workingFile, file.name),
+        file: await optimizeImageFile(workingFile, file.name, {
+          orientation,
+          forceManualOrientation: wasConverted
+        }),
         wasConverted,
         wasOptimized: true,
         originalName: file.name
@@ -1209,7 +1462,7 @@ if (adminApp) {
 
   const stripMarkdownForExcerpt = (value = "") =>
     String(value || "")
-      .replace(/^#{2,3}\s+/gm, "")
+      .replace(/^#{1,6}\s+/gm, "")
       .replace(/^\s*[-*]\s+/gm, "")
       .replace(/^\s*\d+\.\s+/gm, "")
       .replace(/^\s*>\s?/gm, "")
@@ -1220,9 +1473,16 @@ if (adminApp) {
       .replace(/\s+/g, " ")
       .trim();
 
+  const getExcerptSource = (value = "") =>
+    String(value || "")
+      .replace(/\r\n?/g, "\n")
+      .split("\n")
+      .map((line) => line.trim())
+      .find((line) => line && !/^#{1,6}\s+/.test(line)) || "";
+
   const getBlogExcerpt = (body = []) => {
     const blocks = adminNormalizeList(body);
-    const firstParagraph = blocks.find((block) => !/^#{2,3}\s+/.test(String(block || "").trim())) || blocks[0] || "";
+    const firstParagraph = blocks.map(getExcerptSource).find(Boolean) || blocks[0] || "";
 
     return stripMarkdownForExcerpt(firstParagraph);
   };

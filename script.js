@@ -32,6 +32,11 @@ const renderInlineMarkdown = (value = "") => {
   return html;
 };
 
+const stripClosingHeadingMarkers = (value = "") =>
+  String(value || "")
+    .replace(/\s+#+\s*$/, "")
+    .trim();
+
 const renderMarkdownBlock = (value = "") => {
   const text = String(value || "").replace(/\r\n?/g, "\n").trim();
 
@@ -40,33 +45,124 @@ const renderMarkdownBlock = (value = "") => {
   }
 
   const lines = text.split("\n");
-  const singleLineHeading = lines.length === 1 && text.match(/^(#{2,3})\s+(.+)$/);
+  const html = [];
+  let paragraph = [];
+  let list = null;
+  let quote = [];
+  let code = null;
 
-  if (singleLineHeading) {
-    const level = singleLineHeading[1].length;
+  const flushParagraph = () => {
+    if (!paragraph.length) {
+      return;
+    }
 
-    return `<h${level}>${renderInlineMarkdown(singleLineHeading[2])}</h${level}>`;
-  }
+    html.push(`<p>${paragraph.map(renderInlineMarkdown).join("<br>")}</p>`);
+    paragraph = [];
+  };
 
-  if (lines.every((line) => /^\s*[-*]\s+/.test(line))) {
-    return `<ul>${lines
-      .map((line) => `<li>${renderInlineMarkdown(line.replace(/^\s*[-*]\s+/, ""))}</li>`)
-      .join("")}</ul>`;
-  }
+  const flushList = () => {
+    if (!list) {
+      return;
+    }
 
-  if (lines.every((line) => /^\s*\d+\.\s+/.test(line))) {
-    return `<ol>${lines
-      .map((line) => `<li>${renderInlineMarkdown(line.replace(/^\s*\d+\.\s+/, ""))}</li>`)
-      .join("")}</ol>`;
-  }
+    html.push(`<${list.type}>${list.items.map((item) => `<li>${renderInlineMarkdown(item)}</li>`).join("")}</${list.type}>`);
+    list = null;
+  };
 
-  if (lines.every((line) => /^\s*>\s?/.test(line))) {
-    return `<blockquote><p>${lines
-      .map((line) => renderInlineMarkdown(line.replace(/^\s*>\s?/, "")))
-      .join("<br>")}</p></blockquote>`;
-  }
+  const flushQuote = () => {
+    if (!quote.length) {
+      return;
+    }
 
-  return `<p>${renderInlineMarkdown(text).replace(/\n/g, "<br>")}</p>`;
+    html.push(`<blockquote><p>${quote.map(renderInlineMarkdown).join("<br>")}</p></blockquote>`);
+    quote = [];
+  };
+
+  const flushCode = () => {
+    if (!code) {
+      return;
+    }
+
+    html.push(`<pre><code>${escapeHTML(code.lines.join("\n"))}</code></pre>`);
+    code = null;
+  };
+
+  const flushOpenBlocks = () => {
+    flushParagraph();
+    flushList();
+    flushQuote();
+  };
+
+  lines.forEach((line) => {
+    const fence = line.match(/^\s*```/);
+
+    if (fence) {
+      if (code) {
+        flushCode();
+        return;
+      }
+
+      flushOpenBlocks();
+      code = { lines: [] };
+      return;
+    }
+
+    if (code) {
+      code.lines.push(line);
+      return;
+    }
+
+    if (!line.trim()) {
+      flushOpenBlocks();
+      return;
+    }
+
+    const heading = line.match(/^(#{1,6})\s+(.+)$/);
+
+    if (heading) {
+      flushOpenBlocks();
+
+      const level = Math.min(Math.max(heading[1].length, 2), 6);
+      html.push(`<h${level}>${renderInlineMarkdown(stripClosingHeadingMarkers(heading[2]))}</h${level}>`);
+      return;
+    }
+
+    const unordered = line.match(/^\s*[-*]\s+(.+)$/);
+    const ordered = line.match(/^\s*\d+\.\s+(.+)$/);
+
+    if (unordered || ordered) {
+      const type = unordered ? "ul" : "ol";
+
+      flushParagraph();
+      flushQuote();
+
+      if (!list || list.type !== type) {
+        flushList();
+        list = { type, items: [] };
+      }
+
+      list.items.push(unordered ? unordered[1] : ordered[1]);
+      return;
+    }
+
+    const quoteLine = line.match(/^\s*>\s?(.*)$/);
+
+    if (quoteLine) {
+      flushParagraph();
+      flushList();
+      quote.push(quoteLine[1]);
+      return;
+    }
+
+    flushList();
+    flushQuote();
+    paragraph.push(line);
+  });
+
+  flushOpenBlocks();
+  flushCode();
+
+  return html.join("");
 };
 
 const normalizeList = (value) => (Array.isArray(value) ? value : []);

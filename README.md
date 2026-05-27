@@ -39,6 +39,10 @@
 
 直接發布到 GitHub 需要一個 fine-grained personal access token。建議建立只限 `shchen0603/Personal-Website` 的 token，權限只開 `Contents: Read and write`。Token 不會寫進 repository，也不會被放進網頁檔案；它只存在你當下開啟的瀏覽器欄位中。Safari/Firefox 對本機檔案寫入支援有限，建議使用 Chrome 或 Edge。
 
+## Analytics
+
+公開頁面已安裝 Cloudflare Web Analytics beacon，hostname 設定為 `shchen0603.github.io`。`admin.html` 與 Google 驗證檔不會載入 analytics snippet，避免把管理操作或驗證請求算進訪客資料。
+
 ## 更新 Publications
 
 目前完整著作清單由 `data/site-content.json` 產生，建議用 `admin.html` 更新。若要手動編輯 JSON，新著作需放入 `publications` 陣列：

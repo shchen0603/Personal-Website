@@ -1,2 +1,10 @@
 .DS_Store
 Thumbs.db
+__pycache__/
+*.pyc
+
+# Keep private/original photos out of the public site.
+assets/originals/
+assets/Personal Photo.jpeg
+*.heic
+*.heif

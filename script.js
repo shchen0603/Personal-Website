@@ -1,5 +1,6 @@
 // ===== Site Chrome (shared header + footer) =====
-const SITE_NAV_ITEMS = [
+const SITE_CONFIG = window.SITE_CONFIG || {};
+const SITE_NAV_ITEMS = SITE_CONFIG.navItems || [
   { href: "index.html", label: "Home", page: "home" },
   { href: "publications.html", label: "Publications", page: "publications" },
   { href: "blog.html", label: "Blog", page: "blog" },
@@ -7,7 +8,7 @@ const SITE_NAV_ITEMS = [
   { href: "activities.html", label: "Activities", page: "activities" }
 ];
 
-const SITE_FOOTER_LINKS = [
+const SITE_FOOTER_LINKS = SITE_CONFIG.footerLinks || [
   { href: "research.html", label: "Research" },
   { href: "publications.html", label: "Publications" },
   { href: "honors.html", label: "Honors" },
@@ -265,6 +266,12 @@ const slugify = (value) =>
 const getActivityId = (activity) =>
   activity.id || `${activity.date || activity.year || "activity"}-${slugify(activity.title)}`;
 
+const getActivityHref = (activity) => {
+  const id = getActivityId(activity);
+
+  return id ? `activities/${encodeURIComponent(id)}.html` : "activities.html";
+};
+
 const getActivitySortTime = (activity) => {
   if (activity.date) {
     const parsed = Date.parse(activity.date);
@@ -294,7 +301,7 @@ const getSortedActivities = (content) =>
 const getActivityDateLabel = (activity) =>
   activity.dateLabel || activity.date || activity.year || "";
 
-const BLOG_TAG_OPTIONS = [
+const BLOG_TAG_OPTIONS = SITE_CONFIG.blogTagOptions || [
   { slug: "epidemiology-health-media-literacy", label: "流行病學與健康媒體識讀" },
   { slug: "health-prevention", label: "健康與預防" },
   { slug: "research-methods", label: "研究方法" },
@@ -324,13 +331,13 @@ const getBlogTags = (post) =>
 const honorCategoryUsesDate = (category) =>
   category === "talks" || category === "presentations";
 
-const PUBLICATION_CATEGORY_OPTIONS = [
+const PUBLICATION_CATEGORY_OPTIONS = SITE_CONFIG.publicationCategoryOptions || [
   { slug: "peer-reviewed-journal-publications", label: "Peer-Reviewed Journal Publications" },
   { slug: "published-conference-abstracts", label: "Published Conference Abstracts" },
   { slug: "journal-cover-features", label: "Journal Cover Features" }
 ];
-const PUBLICATION_TAG_GROUP_OPTIONS = ["Study Design", "Topics"];
-const PUBLICATION_TAG_OPTIONS = [
+const PUBLICATION_TAG_GROUP_OPTIONS = SITE_CONFIG.publicationTagGroupOptions || ["Study Design", "Topics"];
+const PUBLICATION_TAG_OPTIONS = SITE_CONFIG.publicationTagOptions || [
   { slug: "basic-science", label: "Basic Science", group: "Study Design" },
   { slug: "cohort-study", label: "Cohort Study", group: "Study Design" },
   { slug: "meta-analysis", label: "Meta-analysis", group: "Study Design" },
@@ -603,6 +610,23 @@ const renderHonorItem = (item) => `
   </article>
 `;
 
+const renderHomeHighlight = (highlight, index) => {
+  const delayClass = index === 1 ? " reveal-delay-1" : index === 2 ? " reveal-delay-2" : index >= 3 ? " reveal-delay-3" : "";
+  const title = escapeHTML(highlight.title || "");
+  const href = String(highlight.href || "").trim();
+  const heading = href
+    ? `<h3><a href="${escapeHTML(href)}" rel="noreferrer">${title}</a></h3>`
+    : `<h3>${title}</h3>`;
+
+  return `
+    <article class="highlight-card reveal${delayClass}">
+      <p class="timeline-meta">${escapeHTML(highlight.meta || "")}</p>
+      ${heading}
+      <p>${escapeHTML(highlight.description || "")}</p>
+    </article>
+  `;
+};
+
 const renderMediaCoverageItem = (item) => {
   const links = normalizeList(item.links)
     .map((link) => {
@@ -661,7 +685,7 @@ const renderActivityCard = (activity) => {
   const featuredClass = activity.featured ? " activity-card-featured" : "";
   const visualTheme = activity.visualTheme || "poa";
   const cover = getActivityCover(activity);
-  const href = `activity.html?id=${encodeURIComponent(getActivityId(activity))}`;
+  const href = getActivityHref(activity);
   const image = cover
     ? `<img class="activity-photo" src="${escapeHTML(cover)}" alt="${escapeHTML(activity.imageAlt || activity.title || "活動照片")}" loading="lazy" decoding="async">`
     : `<div class="activity-visual activity-visual-${escapeHTML(visualTheme)}" role="img" aria-label="${escapeHTML(activity.title || "活動")}活動視覺"><span>${escapeHTML(activity.visualLabel || activity.title || "Activity")}</span></div>`;
@@ -685,7 +709,7 @@ const renderActivityLogItem = (activity) => `
   <article>
     <time datetime="${escapeHTML(activity.date || activity.year || "")}">${escapeHTML(getActivityDateLabel(activity))}</time>
     <div>
-      <h3><a href="activity.html?id=${encodeURIComponent(getActivityId(activity))}">${escapeHTML(activity.title || "")}</a></h3>
+      <h3><a href="${escapeHTML(getActivityHref(activity))}">${escapeHTML(activity.title || "")}</a></h3>
       <p>${renderTextWithBreaks(activity.summary || activity.meta || "")}</p>
     </div>
   </article>
@@ -767,7 +791,7 @@ const renderHomePostCard = (post) => `
 
 const renderBlogNote = () => `<p class="blog-note">More research notes coming soon.</p>`;
 
-const SITE_ORIGIN = "https://shchen0603.github.io/Personal-Website";
+const SITE_ORIGIN = SITE_CONFIG.siteOrigin || "https://shchen0603.github.io/Personal-Website";
 
 const injectJsonLd = (id, data) => {
   if (typeof document === "undefined" || !data) {
@@ -926,7 +950,7 @@ const renderActivityPost = (content) => {
   document.title = `${activity.title} | Activities | 陳思翰 Szu-Han Chen`;
 
   const fullActivityTitle = `${activity.title} | Activities | 陳思翰 Szu-Han Chen`;
-  const activityCanonical = `${SITE_ORIGIN}/activity.html?id=${encodeURIComponent(getActivityId(activity))}`;
+  const activityCanonical = `${SITE_ORIGIN}/${getActivityHref(activity)}`;
   const activityOgImage = activity.image
     ? (/^https?:\/\//.test(activity.image) ? activity.image : `${SITE_ORIGIN}/${activity.image.replace(/^\//, "")}`)
     : `${SITE_ORIGIN}/assets/cardiovascular-epidemiology-hero-og.jpg`;
@@ -1047,6 +1071,13 @@ const renderContent = (content) => {
   const talkHonors = getSortedHonors(honors.talks, "talks");
   const presentationHonors = getSortedHonors(honors.presentations, "presentations");
   const mediaCoverage = getSortedHonors(honors.mediaCoverage, "mediaCoverage");
+  const homeHighlights = normalizeList(content.homeHighlights);
+
+  document.querySelectorAll("[data-render='home-highlights']").forEach((container) => {
+    if (homeHighlights.length) {
+      container.innerHTML = homeHighlights.map(renderHomeHighlight).join("");
+    }
+  });
   const stats = {
     publications: publications.length,
     awards: awardHonors.length,

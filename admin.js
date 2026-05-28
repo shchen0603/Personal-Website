@@ -1,6 +1,7 @@
 const adminApp = document.querySelector("[data-admin-app]");
 
 if (adminApp) {
+  const SITE_CONFIG = window.SITE_CONFIG || {};
   const state = {
     rootHandle: null,
     content: null,
@@ -129,13 +130,13 @@ if (adminApp) {
   const formatDateForDisplay = (date) => String(date || "").replaceAll("-", ".");
   const honorCategoryUsesDate = (category) =>
     category === "talks" || category === "presentations";
-  const PUBLICATION_CATEGORY_OPTIONS = [
+  const PUBLICATION_CATEGORY_OPTIONS = SITE_CONFIG.publicationCategoryOptions || [
     { slug: "peer-reviewed-journal-publications", label: "Peer-Reviewed Journal Publications" },
     { slug: "published-conference-abstracts", label: "Published Conference Abstracts" },
     { slug: "journal-cover-features", label: "Journal Cover Features" }
   ];
-  const PUBLICATION_TAG_GROUP_OPTIONS = ["Study Design", "Topics"];
-  const PUBLICATION_TAG_OPTIONS = [
+  const PUBLICATION_TAG_GROUP_OPTIONS = SITE_CONFIG.publicationTagGroupOptions || ["Study Design", "Topics"];
+  const PUBLICATION_TAG_OPTIONS = SITE_CONFIG.publicationTagOptions || [
     { slug: "basic-science", label: "Basic Science", group: "Study Design" },
     { slug: "cohort-study", label: "Cohort Study", group: "Study Design" },
     { slug: "meta-analysis", label: "Meta-analysis", group: "Study Design" },
@@ -158,7 +159,7 @@ if (adminApp) {
     { slug: "rehabilitation", label: "Rehabilitation", group: "Topics" },
     { slug: "mortality", label: "Mortality", group: "Topics" }
   ];
-  const BLOG_TAG_OPTIONS = [
+  const BLOG_TAG_OPTIONS = SITE_CONFIG.blogTagOptions || [
     { slug: "epidemiology-health-media-literacy", label: "流行病學與健康媒體識讀" },
     { slug: "health-prevention", label: "健康與預防" },
     { slug: "research-methods", label: "研究方法" },
@@ -328,7 +329,9 @@ if (adminApp) {
     await writable.close();
   };
 
-  const SITE_ORIGIN = "https://shchen0603.github.io/Personal-Website";
+  const SITE_ORIGIN = SITE_CONFIG.siteOrigin || "https://shchen0603.github.io/Personal-Website";
+  const getStaticBlogPath = (post) => `posts/${encodeURIComponent(post.id)}.html`;
+  const getStaticActivityPath = (activity) => `activities/${encodeURIComponent(activity.id)}.html`;
 
   const buildSitemapXml = (content) => {
     const today = new Date().toISOString().slice(0, 10);
@@ -345,13 +348,13 @@ if (adminApp) {
     adminNormalizeList(content.blogPosts)
       .filter((post) => post && post.status !== "draft" && post.id)
       .forEach((post) => {
-        urls.push(`posts/${post.id}.html`);
+        urls.push(getStaticBlogPath(post));
       });
 
     adminNormalizeList(content.activities)
       .filter((activity) => activity && activity.id)
       .forEach((activity) => {
-        urls.push(`activity.html?id=${encodeURIComponent(activity.id)}`);
+        urls.push(getStaticActivityPath(activity));
       });
 
     const entries = urls
@@ -516,6 +519,36 @@ if (adminApp) {
     return html.join("");
   };
 
+  const isExternalUrl = (value = "") => /^https?:\/\//i.test(value);
+  const getNestedAssetPath = (value = "") =>
+    isExternalUrl(value) ? value : `../${String(value || "").replace(/^\/+/, "")}`;
+  const getAbsoluteAssetUrl = (value = "") =>
+    isExternalUrl(value) ? value : `${SITE_ORIGIN}/${String(value || "").replace(/^\/+/, "")}`;
+  const getStaticActivityDateLabel = (activity) =>
+    activity.dateLabel || activity.date || activity.year || "";
+  const getStaticActivityBody = (activity) => {
+    const body = adminNormalizeList(activity.body).filter(Boolean);
+
+    return body.length ? body : [activity.summary || ""].filter(Boolean);
+  };
+  const getStaticActivityImages = (activity) => {
+    const images = adminNormalizeList(activity.images)
+      .filter((image) => image && image.src)
+      .map((image) => ({
+        src: image.src,
+        alt: image.alt || activity.imageAlt || activity.title || "活動照片",
+        caption: image.caption || ""
+      }));
+
+    if (images.length) {
+      return images;
+    }
+
+    return activity.image
+      ? [{ src: activity.image, alt: activity.imageAlt || activity.title || "活動照片", caption: "" }]
+      : [];
+  };
+
   const buildBlogPostHtml = (post) => {
     if (!post || !post.id) {
       return "";
@@ -523,9 +556,9 @@ if (adminApp) {
 
     const title = post.title || "Blog Post";
     const excerpt = post.excerpt || "Research notes and essays on cardiovascular epidemiology, medicine, and public health.";
-    const canonicalUrl = `${SITE_ORIGIN}/posts/${post.id}.html`;
+    const canonicalUrl = `${SITE_ORIGIN}/${getStaticBlogPath(post)}`;
     const ogImage = post.image
-      ? (/^https?:\/\//.test(post.image) ? post.image : `${SITE_ORIGIN}/${String(post.image).replace(/^\//, "")}`)
+      ? getAbsoluteAssetUrl(post.image)
       : `${SITE_ORIGIN}/assets/cardiovascular-epidemiology-hero-og.jpg`;
     const tags = adminNormalizeList(post.tags)
       .map((tag) => (tag && (tag.label || tag.slug)) || "")
@@ -534,7 +567,7 @@ if (adminApp) {
       ? `<div class="post-tags" aria-label="文章標籤">${tags.map((tag) => `<span class="tag-button tag-static">${escapeHtmlContent(tag)}</span>`).join("")}</div>`
       : "";
     const heroImage = post.image
-      ? `<img class="article-image" src="../${escapeHtmlContent(post.image)}" alt="${escapeHtmlContent(post.imageAlt || title)}" loading="lazy" decoding="async">`
+      ? `<img class="article-image" src="${escapeHtmlContent(getNestedAssetPath(post.image))}" alt="${escapeHtmlContent(post.imageAlt || title)}" loading="lazy" decoding="async">`
       : "";
     const body = adminNormalizeList(post.body).map(renderMarkdownBlockForStatic).join("");
     const jsonLd = JSON.stringify({
@@ -609,6 +642,113 @@ if (adminApp) {
 
     <button class="back-to-top" data-back-to-top aria-label="回到頂部" title="回到頂部">↑</button>
 
+    <script src="../site-config.js"></script>
+    <script src="../script.js"></script>
+  </body>
+</html>
+`;
+  };
+
+  const buildActivityHtml = (activity) => {
+    if (!activity || !activity.id) {
+      return "";
+    }
+
+    const title = activity.title || "Activity";
+    const summary = activity.summary || activity.meta || "Activity notes by Szu-Han Chen.";
+    const canonicalUrl = `${SITE_ORIGIN}/${getStaticActivityPath(activity)}`;
+    const ogImage = activity.image
+      ? getAbsoluteAssetUrl(activity.image)
+      : `${SITE_ORIGIN}/assets/cardiovascular-epidemiology-hero-og.jpg`;
+    const dateLabel = getStaticActivityDateLabel(activity);
+    const meta = activity.meta || dateLabel || "Activity";
+    const compactMeta = dateLabel && activity.year && meta.startsWith(`${activity.year} · `)
+      ? meta.slice(`${activity.year} · `.length)
+      : meta;
+    const body = getStaticActivityBody(activity)
+      .map((paragraph) => /^[#>]/.test(String(paragraph).trim())
+        ? renderMarkdownBlockForStatic(paragraph)
+        : `<p>${escapeHtmlContent(paragraph).replace(/\r\n?/g, "\n").replace(/\n/g, "<br>")}</p>`)
+      .join("");
+    const gallery = getStaticActivityImages(activity);
+    const galleryHtml = gallery.length
+      ? `
+      <div class="article-gallery" aria-label="活動照片">
+        ${gallery.map((image) => `
+          <figure>
+            <img src="${escapeHtmlContent(getNestedAssetPath(image.src))}" alt="${escapeHtmlContent(image.alt || title)}" loading="lazy" decoding="async">
+            ${image.caption ? `<figcaption>${escapeHtmlContent(image.caption)}</figcaption>` : ""}
+          </figure>
+        `).join("")}
+      </div>
+    `
+      : "";
+    const jsonLd = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": title,
+      "description": summary,
+      "datePublished": activity.date || activity.year || "",
+      "image": ogImage,
+      "url": canonicalUrl,
+      "mainEntityOfPage": canonicalUrl,
+      "author": {
+        "@type": "Person",
+        "name": "Szu-Han Chen",
+        "url": `${SITE_ORIGIN}/`
+      }
+    });
+
+    return `<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>${escapeHtmlContent(title)} | Activities | 陳思翰 Szu-Han Chen</title>
+    <meta name="description" content="${escapeHtmlContent(summary)}">
+    <link rel="canonical" href="${escapeHtmlContent(canonicalUrl)}">
+    <meta property="og:title" content="${escapeHtmlContent(title)} | Activities | 陳思翰 Szu-Han Chen">
+    <meta property="og:description" content="${escapeHtmlContent(summary)}">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="${escapeHtmlContent(canonicalUrl)}">
+    <meta property="og:image" content="${escapeHtmlContent(ogImage)}">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles.css">
+    <script type="application/ld+json">${jsonLd}</script>
+    <!-- Cloudflare Web Analytics -->
+    <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"a8f57387064d4f27b1ba086354d6ac5f"}'></script>
+    <!-- End Cloudflare Web Analytics -->
+    <script>(function(){var t=localStorage.getItem("theme");if(t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme:dark)").matches)){document.documentElement.setAttribute("data-theme","dark")}})();</script>
+  </head>
+  <body data-page="activities" data-base-path="../">
+    <a class="skip-link" href="#main">跳到主要內容</a>
+
+    <header class="site-header" data-header></header>
+
+    <main id="main">
+      <article class="article">
+        <header class="article-header">
+          <a class="back-link" href="../activities.html">Back to Activities</a>
+          <p class="post-category">${escapeHtmlContent(dateLabel ? `${dateLabel} · ${compactMeta}` : compactMeta)}</p>
+          <h1>${escapeHtmlContent(title)}</h1>
+          <p class="article-dek">${escapeHtmlContent(summary)}</p>
+        </header>
+        <div class="article-body">
+          ${body}
+          ${galleryHtml}
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer" data-footer></footer>
+
+    <button class="back-to-top" data-back-to-top aria-label="回到頂部" title="回到頂部">↑</button>
+
+    <script src="../site-config.js"></script>
     <script src="../script.js"></script>
   </body>
 </html>
@@ -620,7 +760,7 @@ if (adminApp) {
       return;
     }
 
-    const fileHandle = await getFileHandle(`posts/${post.id}.html`, true);
+    const fileHandle = await getFileHandle(getStaticBlogPath(post), true);
     const writable = await fileHandle.createWritable();
 
     await writable.write(buildBlogPostHtml(post));
@@ -637,6 +777,31 @@ if (adminApp) {
 
     for (const post of posts) {
       await writeBlogPostFile(post);
+    }
+  };
+
+  const writeActivityFile = async (activity) => {
+    if (!state.rootHandle || !activity || !activity.id) {
+      return;
+    }
+
+    const fileHandle = await getFileHandle(getStaticActivityPath(activity), true);
+    const writable = await fileHandle.createWritable();
+
+    await writable.write(buildActivityHtml(activity));
+    await writable.close();
+  };
+
+  const writeAllActivityFiles = async () => {
+    if (!state.rootHandle || !state.content) {
+      return;
+    }
+
+    const activities = adminNormalizeList(state.content.activities)
+      .filter((activity) => activity && activity.id);
+
+    for (const activity of activities) {
+      await writeActivityFile(activity);
     }
   };
 
@@ -1654,6 +1819,15 @@ if (adminApp) {
       };
     }
 
+    if (state.section === "homeHighlights") {
+      return {
+        meta: `${new Date().getFullYear()} · Research`,
+        title: "新亮點",
+        description: "",
+        href: ""
+      };
+    }
+
     if (state.section === "activities") {
       return {
         id: `activity-${today}`,
@@ -2039,7 +2213,7 @@ if (adminApp) {
     list.innerHTML = collection
       .map((item, index) => {
         const label = item.title || item.category || "Untitled";
-        const meta = item.dateLabel || item.date || item.year || item.status || "";
+        const meta = item.dateLabel || item.date || item.year || item.status || item.meta || "";
 
         return `
           <button class="${index === state.selectedIndex ? "is-active" : ""}" type="button" data-admin-index="${index}">
@@ -2095,6 +2269,22 @@ if (adminApp) {
         ${imageField(item.image, "blog")}
         ${field("imageAlt", "圖片替代文字", item.imageAlt)}
         ${markdownEditorField("body", "正文", adminNormalizeList(item.body).join("\n\n"), 12)}
+        ${editorActionsMarkup()}
+      `;
+      return;
+    }
+
+    if (state.section === "homeHighlights") {
+      editor.innerHTML = `
+        <div class="admin-editor-heading">
+          <p class="eyebrow">Home Highlight</p>
+          <h2>${escapeHTML(item.title || "Untitled")}</h2>
+        </div>
+        <p class="admin-help">首頁「近期學術亮點」三張卡片由這裡管理。建議放三項：一項研究成果（含 DOI 連結）、一項獎項、一項媒體報導，但你可以依當下重點隨時調整。順序就是顯示順序，新增項目會出現在最上方，可以拖到對的位置或刪除後重建。</p>
+        ${field("meta", "上方小標（例：2026 · Research / Media）", item.meta)}
+        ${field("title", "標題", item.title)}
+        ${textarea("description", "說明文字", item.description, 4)}
+        ${field("href", "連結 URL（可選；填了標題會變成連結）", item.href)}
         ${editorActionsMarkup()}
       `;
       return;
@@ -2514,8 +2704,15 @@ if (adminApp) {
 
         if (type === "blogPosts") {
           extraFiles.push({
-            path: `posts/${item.id}.html`,
+            path: getStaticBlogPath(item),
             content: utf8ToBase64(buildBlogPostHtml(item))
+          });
+        }
+
+        if (type === "activities") {
+          extraFiles.push({
+            path: getStaticActivityPath(item),
+            content: utf8ToBase64(buildActivityHtml(item))
           });
         }
 
@@ -2536,6 +2733,10 @@ if (adminApp) {
 
         if (type === "blogPosts") {
           await writeBlogPostFile(item);
+        }
+
+        if (type === "activities") {
+          await writeActivityFile(item);
         }
 
         setDirty(false);
@@ -2583,8 +2784,17 @@ if (adminApp) {
         .filter((post) => post && post.status !== "draft" && post.id)
         .forEach((post) => {
           extraFiles.push({
-            path: `posts/${post.id}.html`,
+            path: getStaticBlogPath(post),
             content: utf8ToBase64(buildBlogPostHtml(post))
+          });
+        });
+
+      adminNormalizeList(nextContent.activities)
+        .filter((activity) => activity && activity.id)
+        .forEach((activity) => {
+          extraFiles.push({
+            path: getStaticActivityPath(activity),
+            content: utf8ToBase64(buildActivityHtml(activity))
           });
         });
 
@@ -2615,8 +2825,9 @@ if (adminApp) {
       await writeContentFile();
       await writeSitemapFile();
       await writeAllBlogPostFiles();
+      await writeAllActivityFiles();
       setDirty(false);
-      setStatus("已儲存 data/site-content.json、sitemap.xml 與 blog 靜態檔。", "success");
+      setStatus("已儲存 data/site-content.json、sitemap.xml、blog 靜態檔與 activity 靜態檔。", "success");
     } catch (error) {
       console.error(error);
       setStatus("儲存失敗，請確認瀏覽器仍有資料夾寫入權限。", "error");

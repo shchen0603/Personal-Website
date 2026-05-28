@@ -1,4 +1,24 @@
 {
+  "homeHighlights": [
+    {
+      "meta": "2026 · Research",
+      "title": "HFpEF Network Meta-analysis · DOM Cover Feature",
+      "description": "First-author systematic review and network meta-analysis showing GLP-1RA and SGLT2i reduce HF morbidity in HFpEF; selected as Outside Front Cover of Diabetes, Obesity and Metabolism 28(4).",
+      "href": "https://doi.org/10.1111/dom.70503"
+    },
+    {
+      "meta": "2026 · Award",
+      "title": "Paul Dudley White International Scholar Award",
+      "description": "American Heart Association EPI|Lifestyle Scientific Sessions.",
+      "href": ""
+    },
+    {
+      "meta": "Media",
+      "title": "AHA Newsroom Feature",
+      "description": "Research on abdominal adiposity, inflammation, and heart failure risk featured by the American Heart Association and major US media.",
+      "href": "https://newsroom.heart.org/news/extra-belly-weight-not-bmi-was-a-stronger-predictor-of-heart-failure-risk-inflammation"
+    }
+  ],
   "publications": [
     {
       "year": "2026",

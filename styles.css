@@ -387,10 +387,8 @@ h3 {
 
 .intro-portrait img {
   width: 100%;
-  max-width: 310px;
-  aspect-ratio: 2 / 3;
-  object-fit: cover;
-  object-position: right center;
+  max-width: 320px;
+  height: auto;
   border-radius: 10px;
   border: 1px solid var(--line);
   background: var(--wash);
@@ -398,7 +396,7 @@ h3 {
 }
 
 .intro-portrait figcaption {
-  max-width: 310px;
+  max-width: 320px;
   color: var(--muted);
   font-size: 0.78rem;
   letter-spacing: 0.02em;
@@ -1291,6 +1289,11 @@ h3 {
 
 .media-coverage-item p {
   color: var(--muted);
+}
+
+.honors-load-more {
+  justify-self: start;
+  margin-top: 1rem;
 }
 
 .activity-intro {

@@ -506,11 +506,17 @@ const renderTags = (tags = [], options = {}) => {
   const staticClass = interactive ? "" : " tag-static";
 
   return normalizeList(tags)
+    .map(normalizePublicationTag)
+    .filter(Boolean)
     .map((tag) => {
       const slug = escapeHTML(tag.slug || "");
       const label = escapeHTML(tag.label || tag.slug || "");
+      const group = escapeHTML(slugify(getPublicationTagGroup(tag.group)));
+      const filterAttributes = interactive
+        ? ` data-publication-filter="${slug}" data-publication-filter-group="${group}" aria-pressed="false"`
+        : "";
 
-      return `<${tagName} class="tag-button${staticClass}"${type} data-publication-filter="${slug}">${label}</${tagName}>`;
+      return `<${tagName} class="tag-button${staticClass}"${type}${filterAttributes}>${label}</${tagName}>`;
     })
     .join("");
 };
@@ -609,6 +615,70 @@ const renderHonorItem = (item) => `
     </div>
   </article>
 `;
+
+const HONORS_LOAD_MORE_LIMIT = 3;
+const HONORS_LOAD_MORE_RENDER_TARGETS = [
+  "honor-awards",
+  "honor-talks",
+  "honor-presentations",
+  "media-coverage",
+  "honor-services"
+];
+
+const setupHonorsLoadMore = () => {
+  HONORS_LOAD_MORE_RENDER_TARGETS.forEach((target) => {
+    document.querySelectorAll(`[data-render='${target}']`).forEach((container) => {
+      const items = [...container.children].filter((child) =>
+        child.matches(".honor-item, .media-coverage-item, .service-list-block")
+      );
+      const parent = container.parentElement;
+      const previousControl = parent?.querySelector(`[data-honors-load-more='${target}']`);
+
+      if (previousControl) {
+        previousControl.remove();
+      }
+
+      if (items.length <= HONORS_LOAD_MORE_LIMIT) {
+        items.forEach((item) => {
+          item.hidden = false;
+        });
+        container.dataset.honorsExpanded = "false";
+        return;
+      }
+
+      if (!container.id) {
+        container.id = `honors-${target}`;
+      }
+
+      let expanded = container.dataset.honorsExpanded === "true";
+      const button = document.createElement("button");
+      button.className = "button button-outline honors-load-more";
+      button.type = "button";
+      button.dataset.honorsLoadMore = target;
+      button.setAttribute("aria-controls", container.id);
+
+      const update = () => {
+        const hiddenCount = Math.max(0, items.length - HONORS_LOAD_MORE_LIMIT);
+
+        items.forEach((item, index) => {
+          item.hidden = !expanded && index >= HONORS_LOAD_MORE_LIMIT;
+        });
+
+        button.textContent = expanded ? "Show less" : `Load more (${hiddenCount})`;
+        button.setAttribute("aria-expanded", String(expanded));
+        container.dataset.honorsExpanded = String(expanded);
+      };
+
+      button.addEventListener("click", () => {
+        expanded = !expanded;
+        update();
+      });
+
+      update();
+      container.insertAdjacentElement("afterend", button);
+    });
+  });
+};
 
 const renderHomeHighlight = (highlight, index) => {
   const delayClass = index === 1 ? " reveal-delay-1" : index === 2 ? " reveal-delay-2" : index >= 3 ? " reveal-delay-3" : "";
@@ -1049,12 +1119,13 @@ const getPublicationTagFilterGroups = (publications) => {
   });
 
   return [...groups.entries()]
-    .map(([label, tags]) => ({ label, tags }))
+    .map(([label, tags]) => ({ label, key: slugify(label), tags }))
     .filter((group) => group.tags.length);
 };
 
 const publicationState = {
-  tag: "all",
+  studyDesign: "all",
+  topics: "all",
   query: ""
 };
 
@@ -1122,22 +1193,17 @@ const renderContent = (content) => {
 
   document.querySelectorAll("[data-render='publication-filters']").forEach((container) => {
     const groups = getPublicationTagFilterGroups(publications);
-    const allButton = "<button class=\"tag-button is-active\" type=\"button\" data-publication-filter=\"all\" aria-pressed=\"true\">All</button>";
     const filterGroups = groups.map((group) => `
       <div class="publication-filter-group">
         <p>${escapeHTML(group.label)}</p>
         <div>
-          ${group.tags.map((tag) => `<button class="tag-button" type="button" data-publication-filter="${escapeHTML(tag.slug)}" aria-pressed="false">${escapeHTML(tag.label)}</button>`).join("")}
+          <button class="tag-button is-active" type="button" data-publication-filter-group="${escapeHTML(group.key)}" data-publication-filter="all" aria-pressed="true">All</button>
+          ${group.tags.map((tag) => `<button class="tag-button" type="button" data-publication-filter-group="${escapeHTML(group.key)}" data-publication-filter="${escapeHTML(tag.slug)}" aria-pressed="false">${escapeHTML(tag.label)}</button>`).join("")}
         </div>
       </div>
     `);
 
-    container.innerHTML = `
-      <div class="publication-filter-group publication-filter-all">
-        <div>${allButton}</div>
-      </div>
-      ${filterGroups.join("")}
-    `;
+    container.innerHTML = filterGroups.join("");
   });
 
   document.querySelectorAll("[data-render='publications']").forEach((container) => {
@@ -1213,6 +1279,7 @@ const renderContent = (content) => {
   renderActivityPost(content);
   setupPublicationFilters();
   setupBlogFilters();
+  setupHonorsLoadMore();
   setupScrollReveal();
 };
 
@@ -1278,15 +1345,19 @@ const setupPublicationFilters = () => {
     return;
   }
 
+  const getPublicationFilterStateKey = (group) =>
+    group === "study-design" ? "studyDesign" : "topics";
+
   const applyPublicationFilters = () => {
     let visibleCount = 0;
 
     publicationItems.forEach((item) => {
       const tags = (item.dataset.tags || "").split(" ");
       const text = item.textContent.toLowerCase();
-      const matchesTag = publicationState.tag === "all" || tags.includes(publicationState.tag);
+      const matchesStudyDesign = publicationState.studyDesign === "all" || tags.includes(publicationState.studyDesign);
+      const matchesTopic = publicationState.topics === "all" || tags.includes(publicationState.topics);
       const matchesQuery = !publicationState.query || text.includes(publicationState.query);
-      const isVisible = matchesTag && matchesQuery;
+      const isVisible = matchesStudyDesign && matchesTopic && matchesQuery;
 
       item.hidden = !isVisible;
 
@@ -1301,7 +1372,8 @@ const setupPublicationFilters = () => {
     });
 
     publicationFilters.forEach((button) => {
-      const isActive = button.dataset.publicationFilter === publicationState.tag;
+      const stateKey = getPublicationFilterStateKey(button.dataset.publicationFilterGroup || "topics");
+      const isActive = button.dataset.publicationFilter === publicationState[stateKey];
 
       button.classList.toggle("is-active", isActive);
 
@@ -1312,7 +1384,7 @@ const setupPublicationFilters = () => {
 
     if (publicationEmpty) {
       publicationEmpty.hidden = visibleCount > 0;
-      publicationEmpty.textContent = publicationState.tag !== "all" || publicationState.query
+      publicationEmpty.textContent = publicationState.studyDesign !== "all" || publicationState.topics !== "all" || publicationState.query
         ? "目前沒有符合搜尋或篩選條件的著作。"
         : "目前沒有可顯示的著作。";
     }
@@ -1325,7 +1397,8 @@ const setupPublicationFilters = () => {
 
     button.dataset.publicationBound = "true";
     button.addEventListener("click", () => {
-      publicationState.tag = button.dataset.publicationFilter || "all";
+      const stateKey = getPublicationFilterStateKey(button.dataset.publicationFilterGroup || "topics");
+      publicationState[stateKey] = button.dataset.publicationFilter || "all";
       applyPublicationFilters();
     });
   });

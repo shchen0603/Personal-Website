@@ -1,3 +1,87 @@
+// ===== Site Chrome (shared header + footer) =====
+const SITE_NAV_ITEMS = [
+  { href: "index.html", label: "Home", page: "home" },
+  { href: "publications.html", label: "Publications", page: "publications" },
+  { href: "blog.html", label: "Blog", page: "blog" },
+  { href: "honors.html", label: "Honors", page: "honors" },
+  { href: "activities.html", label: "Activities", page: "activities" }
+];
+
+const SITE_FOOTER_LINKS = [
+  { href: "research.html", label: "Research" },
+  { href: "publications.html", label: "Publications" },
+  { href: "honors.html", label: "Honors" },
+  { href: "activities.html", label: "Activities" },
+  { href: "blog.html", label: "Blog" },
+  { href: "contact.html", label: "Contact" },
+  { href: "https://orcid.org/0009-0006-4557-9097", label: "ORCID", external: true },
+  { href: "https://scholar.google.com/citations?user=0CdlnrgAAAAJ&hl=zh-TW", label: "Google Scholar", external: true },
+  { href: "https://github.com/shchen0603/Personal-Website", label: "GitHub", external: true }
+];
+
+const renderSiteChrome = () => {
+  const header = document.querySelector("header.site-header[data-header]");
+  const footer = document.querySelector("footer.site-footer[data-footer]");
+  const currentPage = document.body?.dataset?.page || "";
+  const base = document.body?.dataset?.basePath || "";
+  const resolve = (href) => (/^https?:\/\//.test(href) || href.startsWith("mailto:") ? href : `${base}${href}`);
+
+  if (header) {
+    const tagline = header.dataset.tagline || "MD · Cardiovascular Epidemiology";
+    const navHtml = SITE_NAV_ITEMS.map((item) => {
+      const isCurrent = item.page === currentPage;
+      const aria = isCurrent ? ' aria-current="page"' : "";
+
+      return `<a href="${resolve(item.href)}"${aria}>${item.label}</a>`;
+    }).join("\n        ");
+    const contactCurrent = currentPage === "contact" ? ' aria-current="page"' : "";
+
+    header.innerHTML = `
+      <a class="brand" href="${resolve("index.html")}" aria-label="回到首頁">
+        <span class="brand-mark" aria-hidden="true">SC</span>
+        <span class="brand-text">
+          <strong>陳思翰 · Szu-Han Chen</strong>
+          <span>${tagline}</span>
+        </span>
+      </a>
+      <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">
+        <span class="nav-toggle-line"></span>
+        <span class="nav-toggle-line"></span>
+        <span class="nav-toggle-line"></span>
+        <span class="sr-only">開合選單</span>
+      </button>
+      <nav class="site-nav" id="site-nav" data-nav>
+        ${navHtml}
+        <a href="${resolve("contact.html")}"${contactCurrent}>Contact</a>
+      </nav>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="切換深色模式" title="切換深色模式">☀</button>
+    `;
+  }
+
+  if (footer) {
+    const linksHtml = SITE_FOOTER_LINKS.map((link) => {
+      if (link.external) {
+        return `<a href="${link.href}" rel="noreferrer">${link.label}</a>`;
+      }
+
+      return `<a href="${resolve(link.href)}">${link.label}</a>`;
+    }).join("\n        ");
+
+    footer.innerHTML = `
+      <div class="footer-brand">
+        <strong>陳思翰 Szu-Han Chen</strong>
+        <p>MD candidate and cardiovascular epidemiology researcher focusing on cardiometabolic health, nutrition, obesity, hypertension, and heart failure.</p>
+        <p>© <span data-year></span> All rights reserved.</p>
+      </div>
+      <nav class="footer-links" aria-label="Footer navigation">
+        ${linksHtml}
+      </nav>
+    `;
+  }
+};
+
+renderSiteChrome();
+
 const navToggle = document.querySelector("[data-nav-toggle]");
 const nav = document.querySelector("[data-nav]");
 const yearElements = document.querySelectorAll("[data-year]");
@@ -424,6 +508,30 @@ const renderTags = (tags = [], options = {}) => {
     .join("");
 };
 
+const PUBLICATION_SELF_NAME_PATTERN = /\b(Szu[- ]?Han\s+Chen)\b/i;
+
+const renderAuthorListWithEmphasis = (authors = "") => {
+  const escaped = escapeHTML(authors);
+
+  return escaped.replace(PUBLICATION_SELF_NAME_PATTERN, "<strong>$1</strong>");
+};
+
+const renderAuthorRoleBadges = (publication) => {
+  const badges = [];
+
+  if (publication.firstAuthor) {
+    badges.push('<span class="author-role-badge author-role-first" title="First author">First author</span>');
+  }
+
+  if (publication.correspondingAuthor) {
+    badges.push('<span class="author-role-badge author-role-corresponding" title="Corresponding author">Corresponding author</span>');
+  }
+
+  return badges.length
+    ? `<div class="author-role-badges" aria-label="作者身份">${badges.join("")}</div>`
+    : "";
+};
+
 const renderPublicationItem = (publication, options = {}) => {
   const link = publication.doi || publication.href || "#";
   const tags = normalizeList(publication.tags);
@@ -433,14 +541,20 @@ const renderPublicationItem = (publication, options = {}) => {
   const itemAttributes = options.filterable
     ? ` data-publication-item data-tags="${escapeHTML(tags.map((tag) => tag.slug).join(" "))}"`
     : "";
+  const authorBadges = renderAuthorRoleBadges(publication);
+  const summary = publication.summary
+    ? `<p class="publication-summary">${escapeHTML(publication.summary)}</p>`
+    : "";
 
   return `
     <article class="publication-item${options.cta ? " publication-cta" : ""}"${itemAttributes}>
       <p class="publication-year">${escapeHTML(publication.year || "")}</p>
       <div>
         <h3><a href="${escapeHTML(link)}" rel="noreferrer">${escapeHTML(publication.title || "")}</a></h3>
-        ${publication.authors ? `<p class="publication-authors">${escapeHTML(publication.authors)}</p>` : ""}
+        ${authorBadges}
+        ${publication.authors ? `<p class="publication-authors">${renderAuthorListWithEmphasis(publication.authors)}</p>` : ""}
         ${publication.venue ? `<p class="publication-venue">${escapeHTML(publication.venue)}</p>` : ""}
+        ${summary}
         ${tagMarkup}
         ${link && link !== "#"
           ? `<div class="publication-links" aria-label="著作連結"><a href="${escapeHTML(link)}" rel="noreferrer">DOI</a></div>`
@@ -468,9 +582,10 @@ const getPublicationGroups = (publications) => {
 };
 
 const renderPublicationGroup = (group) => `
-  <section class="publication-group" data-publication-group>
+  <section class="publication-group" data-publication-group data-publication-group-slug="${escapeHTML(group.slug)}">
     <div class="publication-group-heading">
       <h3>${escapeHTML(group.label)}</h3>
+      ${group.slug === "published-conference-abstracts" ? '<p class="publication-group-note">Conference abstracts presented at scientific meetings (not peer-reviewed full papers).</p>' : ""}
     </div>
     <div class="publication-list">
       ${group.items.map((publication) => renderPublicationItem(publication, { filterable: true })).join("")}
@@ -490,7 +605,16 @@ const renderHonorItem = (item) => `
 
 const renderMediaCoverageItem = (item) => {
   const links = normalizeList(item.links)
-    .map((link) => `<a href="${escapeHTML(link.href || "#")}" rel="noreferrer">${escapeHTML(link.label || "Coverage")}</a>`)
+    .map((link) => {
+      const label = escapeHTML(link.label || "Coverage");
+      const href = String(link.href || "").trim();
+
+      if (!href) {
+        return `<span class="media-pending" title="連結待補">${label} <em>(link pending)</em></span>`;
+      }
+
+      return `<a href="${escapeHTML(href)}" rel="noreferrer">${label}</a>`;
+    })
     .join("");
 
   return `
@@ -615,6 +739,9 @@ const renderBlogFilters = (posts) => {
   `;
 };
 
+const getBlogPostHref = (post) =>
+  post && post.id ? `posts/${encodeURIComponent(post.id)}.html` : "blog.html";
+
 const renderBlogRow = (post) => {
   const tags = getBlogTags(post);
 
@@ -622,7 +749,7 @@ const renderBlogRow = (post) => {
     <article class="post-row" data-blog-post data-tags="${escapeHTML(tags.map((tag) => tag.slug).join(" "))}">
       <time datetime="${escapeHTML(post.date || "")}">${escapeHTML(post.dateLabel || post.date || "")}</time>
       <div>
-        <h2><a href="post.html?id=${encodeURIComponent(post.id || "")}">${escapeHTML(post.title || "")}</a></h2>
+        <h2><a href="${escapeHTML(getBlogPostHref(post))}">${escapeHTML(post.title || "")}</a></h2>
         <p>${renderTextWithBreaks(post.excerpt || "")}</p>
         ${tags.length ? `<div class="post-tags" aria-label="文章標籤">${renderBlogTagButtons(tags)}</div>` : ""}
       </div>
@@ -633,12 +760,63 @@ const renderBlogRow = (post) => {
 const renderHomePostCard = (post) => `
   <article class="post-card">
     <p class="post-meta">${escapeHTML(post.dateLabel || post.date || "")}</p>
-    <h3><a href="post.html?id=${encodeURIComponent(post.id || "")}">${escapeHTML(post.title || "")}</a></h3>
+    <h3><a href="${escapeHTML(getBlogPostHref(post))}">${escapeHTML(post.title || "")}</a></h3>
     <p>${renderTextWithBreaks(post.excerpt || "")}</p>
   </article>
 `;
 
 const renderBlogNote = () => `<p class="blog-note">More research notes coming soon.</p>`;
+
+const SITE_ORIGIN = "https://shchen0603.github.io/Personal-Website";
+
+const injectJsonLd = (id, data) => {
+  if (typeof document === "undefined" || !data) {
+    return;
+  }
+
+  let script = document.querySelector(`script[type="application/ld+json"][data-jsonld-id="${id}"]`);
+
+  if (!script) {
+    script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.dataset.jsonldId = id;
+    document.head.appendChild(script);
+  }
+
+  script.textContent = JSON.stringify(data);
+};
+
+const updateSocialMeta = ({ title, description, url, image }) => {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  const setAttribute = (selector, attribute, value) => {
+    const element = document.querySelector(selector);
+
+    if (element && typeof value === "string" && value) {
+      element.setAttribute(attribute, value);
+    }
+  };
+
+  if (title) {
+    setAttribute("meta[data-og-title]", "content", title);
+  }
+
+  if (description) {
+    setAttribute("meta[name='description']", "content", description);
+    setAttribute("meta[data-og-description]", "content", description);
+  }
+
+  if (url) {
+    setAttribute("link[data-canonical]", "href", url);
+    setAttribute("meta[data-og-url]", "content", url);
+  }
+
+  if (image) {
+    setAttribute("meta[data-og-image]", "content", image);
+  }
+};
 
 const renderBlogPost = (content) => {
   const container = document.querySelector("[data-render='blog-post']");
@@ -663,6 +841,43 @@ const renderBlogPost = (content) => {
   }
 
   document.title = `${post.title} | 陳思翰 Szu-Han Chen`;
+
+  const fullTitle = `${post.title} | 陳思翰 Szu-Han Chen`;
+  const canonicalUrl = post.id
+    ? `${SITE_ORIGIN}/posts/${encodeURIComponent(post.id)}.html`
+    : `${SITE_ORIGIN}/blog.html`;
+  const ogImage = post.image
+    ? (/^https?:\/\//.test(post.image) ? post.image : `${SITE_ORIGIN}/${post.image.replace(/^\//, "")}`)
+    : `${SITE_ORIGIN}/assets/cardiovascular-epidemiology-hero-og.jpg`;
+
+  updateSocialMeta({
+    title: fullTitle,
+    description: post.excerpt || "",
+    url: canonicalUrl,
+    image: ogImage
+  });
+
+  injectJsonLd("blog-post", {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": post.title || "",
+    "description": post.excerpt || "",
+    "datePublished": post.date || "",
+    "image": ogImage,
+    "url": canonicalUrl,
+    "mainEntityOfPage": canonicalUrl,
+    "author": {
+      "@type": "Person",
+      "name": "Szu-Han Chen",
+      "url": `${SITE_ORIGIN}/`
+    },
+    "publisher": {
+      "@type": "Person",
+      "name": "Szu-Han Chen",
+      "url": `${SITE_ORIGIN}/`
+    },
+    "keywords": getBlogTags(post).map((tag) => tag.label).join(", ")
+  });
 
   const image = post.image
     ? `<img class="article-image" src="${escapeHTML(post.image)}" alt="${escapeHTML(post.imageAlt || post.title)}" loading="lazy" decoding="async">`
@@ -710,13 +925,26 @@ const renderActivityPost = (content) => {
 
   document.title = `${activity.title} | Activities | 陳思翰 Szu-Han Chen`;
 
+  const fullActivityTitle = `${activity.title} | Activities | 陳思翰 Szu-Han Chen`;
+  const activityCanonical = `${SITE_ORIGIN}/activity.html?id=${encodeURIComponent(getActivityId(activity))}`;
+  const activityOgImage = activity.image
+    ? (/^https?:\/\//.test(activity.image) ? activity.image : `${SITE_ORIGIN}/${activity.image.replace(/^\//, "")}`)
+    : `${SITE_ORIGIN}/assets/cardiovascular-epidemiology-hero-og.jpg`;
+
+  updateSocialMeta({
+    title: fullActivityTitle,
+    description: activity.summary || activity.meta || "",
+    url: activityCanonical,
+    image: activityOgImage
+  });
+
   const dateLabel = getActivityDateLabel(activity);
   const meta = activity.meta || dateLabel || "Activity";
   const compactMeta = dateLabel && activity.year && meta.startsWith(`${activity.year} · `)
     ? meta.slice(`${activity.year} · `.length)
     : meta;
   const body = getActivityBody(activity)
-    .map((paragraph) => `<p>${renderTextWithBreaks(paragraph)}</p>`)
+    .map((paragraph) => /^[#>]/.test(String(paragraph).trim()) ? renderMarkdownBlock(paragraph) : `<p>${renderTextWithBreaks(paragraph)}</p>`)
     .join("");
   const images = getActivityImages(activity);
   const gallery = images.length
@@ -825,6 +1053,31 @@ const renderContent = (content) => {
     appearances: talkHonors.length + presentationHonors.length,
     activities: activities.length
   };
+
+  if (document.querySelector("[data-publication-list]") && publications.length) {
+    injectJsonLd("publications", {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "Publications of Szu-Han Chen",
+      "itemListOrder": "https://schema.org/ItemListOrderDescending",
+      "numberOfItems": publications.length,
+      "itemListElement": publications.map((publication, index) => ({
+        "@type": "ListItem",
+        "position": index + 1,
+        "item": {
+          "@type": "ScholarlyArticle",
+          "headline": publication.title || "",
+          "datePublished": publication.year || "",
+          "url": publication.doi || publication.href || `${SITE_ORIGIN}/publications.html`,
+          "isPartOf": publication.venue || "",
+          "author": (publication.authors || "")
+            .split(/,\s*/)
+            .filter(Boolean)
+            .map((name) => ({ "@type": "Person", "name": name.replace(/\.$/, "") }))
+        }
+      }))
+    });
+  }
 
   document.querySelectorAll("[data-stat]").forEach((element) => {
     const key = element.dataset.stat;

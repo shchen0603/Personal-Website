@@ -328,6 +328,318 @@ if (adminApp) {
     await writable.close();
   };
 
+  const SITE_ORIGIN = "https://shchen0603.github.io/Personal-Website";
+
+  const buildSitemapXml = (content) => {
+    const today = new Date().toISOString().slice(0, 10);
+    const urls = [
+      "",
+      "research.html",
+      "publications.html",
+      "honors.html",
+      "activities.html",
+      "blog.html",
+      "contact.html"
+    ];
+
+    adminNormalizeList(content.blogPosts)
+      .filter((post) => post && post.status !== "draft" && post.id)
+      .forEach((post) => {
+        urls.push(`posts/${post.id}.html`);
+      });
+
+    adminNormalizeList(content.activities)
+      .filter((activity) => activity && activity.id)
+      .forEach((activity) => {
+        urls.push(`activity.html?id=${encodeURIComponent(activity.id)}`);
+      });
+
+    const entries = urls
+      .map((path) => {
+        const loc = path ? `${SITE_ORIGIN}/${path}` : `${SITE_ORIGIN}/`;
+        const safeLoc = loc.replace(/&/g, "&amp;");
+
+        return `  <url>\n    <loc>${safeLoc}</loc>\n    <lastmod>${today}</lastmod>\n  </url>`;
+      })
+      .join("\n");
+
+    return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries}\n</urlset>\n`;
+  };
+
+  const writeSitemapFile = async () => {
+    if (!state.rootHandle || !state.content) {
+      return;
+    }
+
+    const fileHandle = await getFileHandle("sitemap.xml", true);
+    const writable = await fileHandle.createWritable();
+
+    await writable.write(buildSitemapXml(state.content));
+    await writable.close();
+  };
+
+  const utf8ToBase64 = (text) => {
+    const bytes = new TextEncoder().encode(text);
+    let binary = "";
+
+    bytes.forEach((byte) => {
+      binary += String.fromCharCode(byte);
+    });
+
+    return btoa(binary);
+  };
+
+  const escapeHtmlContent = (value = "") =>
+    String(value).replace(/[&<>"']/g, (character) => {
+      const entities = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&#039;"
+      };
+
+      return entities[character];
+    });
+
+  const renderInlineMarkdownForStatic = (value = "") => {
+    let html = escapeHtmlContent(value);
+
+    html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
+    html = html.replace(
+      /\[([^\]]+)\]\((https?:\/\/[^)\s]+|mailto:[^)\s]+)\)/g,
+      '<a href="$2" rel="noreferrer">$1</a>'
+    );
+    html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    html = html.replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
+
+    return html;
+  };
+
+  const renderMarkdownBlockForStatic = (value = "") => {
+    const text = String(value || "").replace(/\r\n?/g, "\n").trim();
+
+    if (!text) {
+      return "";
+    }
+
+    const lines = text.split("\n");
+    const html = [];
+    let paragraph = [];
+    let list = null;
+    let quote = [];
+
+    const flushParagraph = () => {
+      if (!paragraph.length) {
+        return;
+      }
+
+      html.push(`<p>${paragraph.map(renderInlineMarkdownForStatic).join("<br>")}</p>`);
+      paragraph = [];
+    };
+
+    const flushList = () => {
+      if (!list) {
+        return;
+      }
+
+      html.push(`<${list.type}>${list.items.map((item) => `<li>${renderInlineMarkdownForStatic(item)}</li>`).join("")}</${list.type}>`);
+      list = null;
+    };
+
+    const flushQuote = () => {
+      if (!quote.length) {
+        return;
+      }
+
+      html.push(`<blockquote><p>${quote.map(renderInlineMarkdownForStatic).join("<br>")}</p></blockquote>`);
+      quote = [];
+    };
+
+    const flushOpenBlocks = () => {
+      flushParagraph();
+      flushList();
+      flushQuote();
+    };
+
+    lines.forEach((line) => {
+      if (!line.trim()) {
+        flushOpenBlocks();
+        return;
+      }
+
+      const heading = line.match(/^(#{1,6})\s+(.+)$/);
+
+      if (heading) {
+        flushOpenBlocks();
+
+        const level = Math.min(Math.max(heading[1].length, 2), 6);
+
+        html.push(`<h${level}>${renderInlineMarkdownForStatic(heading[2].replace(/\s+#+\s*$/, "").trim())}</h${level}>`);
+        return;
+      }
+
+      const unordered = line.match(/^\s*[-*]\s+(.+)$/);
+      const ordered = line.match(/^\s*\d+\.\s+(.+)$/);
+
+      if (unordered || ordered) {
+        const type = unordered ? "ul" : "ol";
+
+        flushParagraph();
+        flushQuote();
+
+        if (!list || list.type !== type) {
+          flushList();
+          list = { type, items: [] };
+        }
+
+        list.items.push(unordered ? unordered[1] : ordered[1]);
+        return;
+      }
+
+      const quoteLine = line.match(/^\s*>\s?(.*)$/);
+
+      if (quoteLine) {
+        flushParagraph();
+        flushList();
+        quote.push(quoteLine[1]);
+        return;
+      }
+
+      flushList();
+      flushQuote();
+      paragraph.push(line);
+    });
+
+    flushOpenBlocks();
+
+    return html.join("");
+  };
+
+  const buildBlogPostHtml = (post) => {
+    if (!post || !post.id) {
+      return "";
+    }
+
+    const title = post.title || "Blog Post";
+    const excerpt = post.excerpt || "Research notes and essays on cardiovascular epidemiology, medicine, and public health.";
+    const canonicalUrl = `${SITE_ORIGIN}/posts/${post.id}.html`;
+    const ogImage = post.image
+      ? (/^https?:\/\//.test(post.image) ? post.image : `${SITE_ORIGIN}/${String(post.image).replace(/^\//, "")}`)
+      : `${SITE_ORIGIN}/assets/cardiovascular-epidemiology-hero-og.jpg`;
+    const tags = adminNormalizeList(post.tags)
+      .map((tag) => (tag && (tag.label || tag.slug)) || "")
+      .filter(Boolean);
+    const tagsHtml = tags.length
+      ? `<div class="post-tags" aria-label="文章標籤">${tags.map((tag) => `<span class="tag-button tag-static">${escapeHtmlContent(tag)}</span>`).join("")}</div>`
+      : "";
+    const heroImage = post.image
+      ? `<img class="article-image" src="../${escapeHtmlContent(post.image)}" alt="${escapeHtmlContent(post.imageAlt || title)}" loading="lazy" decoding="async">`
+      : "";
+    const body = adminNormalizeList(post.body).map(renderMarkdownBlockForStatic).join("");
+    const jsonLd = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": title,
+      "description": excerpt,
+      "datePublished": post.date || "",
+      "image": ogImage,
+      "url": canonicalUrl,
+      "mainEntityOfPage": canonicalUrl,
+      "author": {
+        "@type": "Person",
+        "name": "Szu-Han Chen",
+        "url": `${SITE_ORIGIN}/`
+      },
+      "publisher": {
+        "@type": "Person",
+        "name": "Szu-Han Chen",
+        "url": `${SITE_ORIGIN}/`
+      },
+      "keywords": tags.join(", ")
+    });
+
+    return `<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>${escapeHtmlContent(title)} | 陳思翰 Szu-Han Chen</title>
+    <meta name="description" content="${escapeHtmlContent(excerpt)}">
+    <link rel="canonical" href="${escapeHtmlContent(canonicalUrl)}">
+    <meta property="og:title" content="${escapeHtmlContent(title)} | 陳思翰 Szu-Han Chen">
+    <meta property="og:description" content="${escapeHtmlContent(excerpt)}">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="${escapeHtmlContent(canonicalUrl)}">
+    <meta property="og:image" content="${escapeHtmlContent(ogImage)}">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles.css">
+    <script type="application/ld+json">${jsonLd}</script>
+    <!-- Cloudflare Web Analytics -->
+    <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"a8f57387064d4f27b1ba086354d6ac5f"}'></script>
+    <!-- End Cloudflare Web Analytics -->
+    <script>(function(){var t=localStorage.getItem("theme");if(t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme:dark)").matches)){document.documentElement.setAttribute("data-theme","dark")}})();</script>
+  </head>
+  <body data-page="blog" data-base-path="../">
+    <a class="skip-link" href="#main">跳到主要內容</a>
+
+    <header class="site-header" data-header></header>
+
+    <main id="main">
+      <article class="article">
+        <header class="article-header">
+          <a class="back-link" href="../blog.html">Back to Blog</a>
+          <p class="post-category">${escapeHtmlContent(post.dateLabel || post.date || "")}</p>
+          <h1>${escapeHtmlContent(title)}</h1>
+          <p class="article-dek">${escapeHtmlContent(excerpt)}</p>
+          ${tagsHtml}
+        </header>
+        <div class="article-body">
+          ${heroImage}
+          ${body}
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer" data-footer></footer>
+
+    <button class="back-to-top" data-back-to-top aria-label="回到頂部" title="回到頂部">↑</button>
+
+    <script src="../script.js"></script>
+  </body>
+</html>
+`;
+  };
+
+  const writeBlogPostFile = async (post) => {
+    if (!state.rootHandle || !post || !post.id) {
+      return;
+    }
+
+    const fileHandle = await getFileHandle(`posts/${post.id}.html`, true);
+    const writable = await fileHandle.createWritable();
+
+    await writable.write(buildBlogPostHtml(post));
+    await writable.close();
+  };
+
+  const writeAllBlogPostFiles = async () => {
+    if (!state.rootHandle || !state.content) {
+      return;
+    }
+
+    const posts = adminNormalizeList(state.content.blogPosts)
+      .filter((post) => post && post.status !== "draft" && post.id);
+
+    for (const post of posts) {
+      await writeBlogPostFile(post);
+    }
+  };
+
   const getAssetFileName = (file) => {
     const extension = getFileExtension(file?.name, OPTIMIZED_IMAGE_EXTENSION);
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
@@ -1333,8 +1645,11 @@ if (adminApp) {
         title: "New publication",
         authors: "Szu-Han Chen.",
         venue: "",
+        summary: "",
         doi: "",
         tags: [],
+        firstAuthor: true,
+        correspondingAuthor: false,
         featured: false
       };
     }
@@ -1449,8 +1764,13 @@ if (adminApp) {
       ${field("title", "著作標題", "")}
       ${textarea("authors", "作者", "Szu-Han Chen.", 3)}
       ${textarea("venue", "期刊 citation", "", 3)}
+      ${textarea("summary", "Take-home（一句話研究結論，可選填）", "", 3)}
       ${publicationTagField()}
-      ${checkbox("featured", "設為 Research 頁代表作", false)}
+      <div class="admin-check-row">
+        ${checkbox("firstAuthor", "第一作者", true)}
+        ${checkbox("correspondingAuthor", "通訊作者", false)}
+        ${checkbox("featured", "設為 Research 頁代表作", false)}
+      </div>
     `;
   };
 
@@ -1667,8 +1987,11 @@ if (adminApp) {
       title: formData.get("title") || "New publication",
       authors: formData.get("authors") || "Szu-Han Chen.",
       venue: formData.get("venue") || "",
+      summary: formData.get("summary") || "",
       doi: formData.get("doi") || "",
       tags: mergeTags(getTagsFromSlugs(formData.getAll("tags")), getCustomTagsFromFormData(formData)),
+      firstAuthor: formData.get("firstAuthor") === "on",
+      correspondingAuthor: formData.get("correspondingAuthor") === "on",
       featured: formData.get("featured") === "on"
     };
   };
@@ -1791,8 +2114,13 @@ if (adminApp) {
         ${field("title", "標題", item.title)}
         ${textarea("authors", "作者", item.authors, 3)}
         ${textarea("venue", "期刊 citation", item.venue, 3)}
-      ${publicationTagField(item.tags, { showButton: true })}
-        ${checkbox("featured", "設為 Research 頁代表作", item.featured)}
+        ${textarea("summary", "Take-home（一句話研究結論，可選填）", item.summary || "", 3)}
+        ${publicationTagField(item.tags, { showButton: true })}
+        <div class="admin-check-row">
+          ${checkbox("firstAuthor", "第一作者", item.firstAuthor)}
+          ${checkbox("correspondingAuthor", "通訊作者", item.correspondingAuthor)}
+          ${checkbox("featured", "設為 Research 頁代表作", item.featured)}
+        </div>
         ${editorActionsMarkup()}
       `;
       return;
@@ -2179,6 +2507,18 @@ if (adminApp) {
           }
         }
 
+        extraFiles.push({
+          path: "sitemap.xml",
+          content: utf8ToBase64(buildSitemapXml(nextContent))
+        });
+
+        if (type === "blogPosts") {
+          extraFiles.push({
+            path: `posts/${item.id}.html`,
+            content: utf8ToBase64(buildBlogPostHtml(item))
+          });
+        }
+
         setStatus("正在發布到 GitHub...", "");
         await publishToGitHub(nextContent, extraFiles, `Publish ${item.title || "website content"}`);
         state.content = nextContent;
@@ -2192,6 +2532,12 @@ if (adminApp) {
       } else {
         state.content = nextContent;
         await writeContentFile();
+        await writeSitemapFile();
+
+        if (type === "blogPosts") {
+          await writeBlogPostFile(item);
+        }
+
         setDirty(false);
         setStatus(
           `已儲存到本機 data/site-content.json。${processingSummary}`,
@@ -2227,7 +2573,22 @@ if (adminApp) {
       setStatus("正在確認 GitHub 是否已有新版本...", "");
       await assertRemoteContentIsCurrent(nextContent);
       setStatus("正在發布到 GitHub...", "");
-      await publishToGitHub(nextContent, [], "Update website content");
+
+      const extraFiles = [{
+        path: "sitemap.xml",
+        content: utf8ToBase64(buildSitemapXml(nextContent))
+      }];
+
+      adminNormalizeList(nextContent.blogPosts)
+        .filter((post) => post && post.status !== "draft" && post.id)
+        .forEach((post) => {
+          extraFiles.push({
+            path: `posts/${post.id}.html`,
+            content: utf8ToBase64(buildBlogPostHtml(post))
+          });
+        });
+
+      await publishToGitHub(nextContent, extraFiles, "Update website content");
       state.baseContent = cloneContent(nextContent);
       setDirty(false);
       setStatus("已發布到 GitHub。本機檔案不會自動改動；需要本機同步時請用 git pull。", "success");
@@ -2252,8 +2613,10 @@ if (adminApp) {
 
     try {
       await writeContentFile();
+      await writeSitemapFile();
+      await writeAllBlogPostFiles();
       setDirty(false);
-      setStatus("已儲存 data/site-content.json。", "success");
+      setStatus("已儲存 data/site-content.json、sitemap.xml 與 blog 靜態檔。", "success");
     } catch (error) {
       console.error(error);
       setStatus("儲存失敗，請確認瀏覽器仍有資料夾寫入權限。", "error");

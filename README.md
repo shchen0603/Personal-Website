@@ -10,7 +10,7 @@
 - `honors.html`: 學術獎項、受邀演講、會議報告、媒體報導與專業服務
 - `activities.html`: 研討會、受邀演講、工作坊等活動照片與簡短心得
 - `blog.html`: 文章列表
-- `post.html`: 由 `data/site-content.json` 動態產生的 Blog 文章頁
+- `post.html`: 由 `data/site-content.json` 動態產生的 Blog 文章頁；單篇文章也會在 `posts/<slug>.html` 同步預生成靜態檔，sitemap.xml 指到該靜態檔
 - `admin.html`: 本機內容管理頁，可新增與更新 Blog、Publications、Honors、Activities
 - `data/site-content.json`: 全站可維護內容資料來源
 - `contact.html`: 聯繫方式頁面

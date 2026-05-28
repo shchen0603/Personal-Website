@@ -190,13 +190,19 @@ python3 -m http.server 8000
 
 ## 網站健康檢查
 
-更新內容後，可以執行：
+你平常只需要記兩個指令。
+
+### 只檢查網站有沒有問題
+
+更新內容後，先執行：
 
 ```bash
 python3 scripts/check_site.py
 ```
 
-它會檢查幾件事：
+如果看到 `Site check passed`，代表目前沒有發現會讓網站壞掉的問題。
+
+這個指令會檢查：
 
 - `data/site-content.json` 是否能正確讀取。
 - Blog 和 Activity 的 `id` 有沒有重複。
@@ -206,11 +212,46 @@ python3 scripts/check_site.py
 - Activity 是否有 `activities/<id>.html`。
 - `sitemap.xml` 是否包含目前應該公開的頁面。
 
-若要順手重新產生 sitemap、Blog 靜態頁和 Activity 靜態頁，執行：
+### 修正/重產生網站檔案後再檢查
+
+如果你新增或修改了 Blog、Activity，建議執行：
 
 ```bash
 python3 scripts/check_site.py --fix
 ```
+
+這會重新產生：
+
+- `sitemap.xml`
+- Blog 靜態頁：`posts/<id>.html`
+- Activity 靜態頁：`activities/<id>.html`
+
+然後它也會順便檢查一次網站。
+
+### 建議使用順序
+
+每次用 `admin.html` 更新內容後，可以照這樣做：
+
+```bash
+python3 scripts/check_site.py --fix
+python3 -m http.server 8000
+```
+
+接著打開 `http://localhost:8000` 看網站。確認沒問題後，再 commit / push。
+
+如果只想快速確認資料有沒有錯，不需要重新產生檔案，就跑：
+
+```bash
+python3 scripts/check_site.py
+```
+
+目前若看到這個 warning：
+
+```text
+assets/Personal Photo.jpeg looks like a raw image
+```
+
+意思是那張照片看起來像原始照片，建議不要放進公開網站。這不是錯誤；只要最後出現 `Site check passed`，網站檢查就是通過。
 
 ## 內容更新流程
 

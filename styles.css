@@ -387,9 +387,10 @@ h3 {
 
 .intro-portrait img {
   width: 100%;
-  max-width: 320px;
-  aspect-ratio: 3 / 4;
+  max-width: 310px;
+  aspect-ratio: 2 / 3;
   object-fit: cover;
+  object-position: right center;
   border-radius: 10px;
   border: 1px solid var(--line);
   background: var(--wash);
@@ -397,7 +398,7 @@ h3 {
 }
 
 .intro-portrait figcaption {
-  max-width: 320px;
+  max-width: 310px;
   color: var(--muted);
   font-size: 0.78rem;
   letter-spacing: 0.02em;

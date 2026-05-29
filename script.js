@@ -545,6 +545,12 @@ const renderAuthorRoleBadges = (publication) => {
     : "";
 };
 
+const getDoiText = (value = "") =>
+  String(value || "")
+    .trim()
+    .replace(/^https?:\/\/(dx\.)?doi\.org\//i, "")
+    .replace(/^doi:\s*/i, "");
+
 const renderPublicationItem = (publication, options = {}) => {
   const link = publication.doi || publication.href || "#";
   const tags = normalizeList(publication.tags);
@@ -558,6 +564,10 @@ const renderPublicationItem = (publication, options = {}) => {
   const summary = publication.summary
     ? `<p class="publication-summary">${escapeHTML(publication.summary)}</p>`
     : "";
+  const doiText = getDoiText(publication.doi);
+  const doiMarkup = doiText
+    ? `<p class="publication-doi">DOI: ${escapeHTML(doiText)}</p>`
+    : "";
 
   return `
     <article class="publication-item${options.cta ? " publication-cta" : ""}"${itemAttributes}>
@@ -567,11 +577,9 @@ const renderPublicationItem = (publication, options = {}) => {
         ${authorBadges}
         ${publication.authors ? `<p class="publication-authors">${renderAuthorListWithEmphasis(publication.authors)}</p>` : ""}
         ${publication.venue ? `<p class="publication-venue">${escapeHTML(publication.venue)}</p>` : ""}
+        ${doiMarkup}
         ${summary}
         ${tagMarkup}
-        ${link && link !== "#"
-          ? `<div class="publication-links" aria-label="著作連結"><a href="${escapeHTML(link)}" rel="noreferrer">DOI</a></div>`
-          : ""}
       </div>
     </article>
   `;
@@ -664,7 +672,8 @@ const setupHonorsLoadMore = () => {
           item.hidden = !expanded && index >= HONORS_LOAD_MORE_LIMIT;
         });
 
-        button.textContent = expanded ? "Show less" : `Load more (${hiddenCount})`;
+        button.textContent = expanded ? "show less..." : "load more...";
+        button.setAttribute("aria-label", expanded ? "Show fewer items" : `Load ${hiddenCount} more items`);
         button.setAttribute("aria-expanded", String(expanded));
         container.dataset.honorsExpanded = String(expanded);
       };

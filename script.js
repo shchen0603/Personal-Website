@@ -660,7 +660,7 @@ const setupHonorsLoadMore = () => {
 
       let expanded = container.dataset.honorsExpanded === "true";
       const button = document.createElement("button");
-      button.className = "button button-outline honors-load-more";
+      button.className = "honors-load-more";
       button.type = "button";
       button.dataset.honorsLoadMore = target;
       button.setAttribute("aria-controls", container.id);
@@ -1469,10 +1469,42 @@ setupThemeToggle();
 // ===== Scroll Reveal Animations =====
 let scrollRevealObserver = null;
 
+const showRevealElement = (element) => {
+  element.classList.add("is-visible");
+
+  if (element.dataset.revealReadyBound === "true") {
+    return;
+  }
+
+  element.dataset.revealReadyBound = "true";
+
+  let readyTimer = 0;
+
+  const markReady = () => {
+    element.classList.add("reveal-ready");
+    element.removeEventListener("transitionend", handleTransitionEnd);
+
+    if (readyTimer) {
+      window.clearTimeout(readyTimer);
+    }
+  };
+
+  const handleTransitionEnd = (event) => {
+    if (event.target === element && (event.propertyName === "opacity" || event.propertyName === "transform")) {
+      markReady();
+    }
+  };
+
+  element.addEventListener("transitionend", handleTransitionEnd);
+  readyTimer = window.setTimeout(markReady, 1300);
+};
+
 const setupScrollReveal = () => {
   const prefersReduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (prefersReduced) {
-    document.querySelectorAll(".reveal").forEach((el) => el.classList.add("is-visible"));
+    document.querySelectorAll(".reveal").forEach((el) => {
+      el.classList.add("is-visible", "reveal-ready");
+    });
     return;
   }
 
@@ -1481,7 +1513,7 @@ const setupScrollReveal = () => {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
+            showRevealElement(entry.target);
             scrollRevealObserver.unobserve(entry.target);
           }
         });

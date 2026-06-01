@@ -1093,6 +1093,40 @@ h3 {
   font-size: 0.8rem;
 }
 
+.article-taxonomy {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 1rem;
+}
+
+.article-taxonomy-row {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  align-items: start;
+  gap: 0.65rem;
+}
+
+.article-taxonomy-label {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 850;
+  line-height: 30px;
+  white-space: nowrap;
+}
+
+.article-taxonomy-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.article-taxonomy-items .tag-button {
+  min-height: 30px;
+  padding: 0.24rem 0.55rem;
+  font-size: 0.8rem;
+}
+
 .post-row.draft {
   background: transparent;
   box-shadow: none;
@@ -1216,11 +1250,14 @@ h3 {
 }
 
 .article-image {
-  width: 100%;
-  margin-bottom: 2rem;
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: min(72vh, 620px);
+  margin: 0 auto 2rem;
   border-radius: 8px;
-  object-fit: cover;
-  aspect-ratio: 16 / 9;
+  object-fit: contain;
 }
 
 .article-inline-image {

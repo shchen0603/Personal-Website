@@ -913,6 +913,21 @@ const renderBlogSeriesButtons = (series = [], options = {}) =>
     filterAttribute: "data-blog-series-filter"
   });
 
+const renderBlogArticleTaxonomy = (tags = [], series = null) => {
+  const rows = [
+    tags.length
+      ? `<div class="article-taxonomy-row"><span class="article-taxonomy-label">標籤：</span><div class="article-taxonomy-items">${renderBlogTagButtons(tags, { interactive: false })}</div></div>`
+      : "",
+    series
+      ? `<div class="article-taxonomy-row"><span class="article-taxonomy-label">系列：</span><div class="article-taxonomy-items">${renderBlogSeriesButtons([series], { interactive: false })}</div></div>`
+      : ""
+  ].filter(Boolean).join("");
+
+  return rows
+    ? `<div class="article-taxonomy" aria-label="文章系列與標籤">${rows}</div>`
+    : "";
+};
+
 const getBlogFilters = (posts = [], content) => {
   const usedTags = normalizeList(posts).flatMap((post) => normalizeList(post.tags));
   const usedSeries = normalizeList(posts).map((post) => post.series).filter(Boolean);
@@ -1079,6 +1094,7 @@ const renderBlogPost = (content) => {
 
   const tags = getBlogTags(post, content);
   const series = getBlogSeries(post, content);
+  const articleTaxonomy = renderBlogArticleTaxonomy(tags, series);
   const taxonomyLabels = [
     series?.label,
     ...tags.map((tag) => tag.label)
@@ -1125,7 +1141,7 @@ const renderBlogPost = (content) => {
       <p class="post-category">${escapeHTML(post.dateLabel || post.date || "")}</p>
       <h1>${escapeHTML(post.title || "")}</h1>
       <p class="article-dek">${renderTextWithBreaks(post.excerpt || "")}</p>
-      ${taxonomyLabels.length ? `<div class="post-tags" aria-label="文章系列與標籤">${series ? renderBlogSeriesButtons([series], { interactive: false }) : ""}${tags.length ? renderBlogTagButtons(tags, { interactive: false }) : ""}</div>` : ""}
+      ${articleTaxonomy}
     </header>
     <div class="article-body">
       ${image}

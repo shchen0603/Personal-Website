@@ -589,6 +589,21 @@ if (adminApp) {
       return "";
     }
 
+    const renderStaticArticleTaxonomy = (tags, series) => {
+      const rows = [
+        tags.length
+          ? `<div class="article-taxonomy-row"><span class="article-taxonomy-label">標籤：</span><div class="article-taxonomy-items">${tags.map((tag) => `<span class="tag-button tag-static">${escapeHtmlContent(tag)}</span>`).join("")}</div></div>`
+          : "",
+        series
+          ? `<div class="article-taxonomy-row"><span class="article-taxonomy-label">系列：</span><div class="article-taxonomy-items"><span class="tag-button tag-static">${escapeHtmlContent(series)}</span></div></div>`
+          : ""
+      ].filter(Boolean).join("");
+
+      return rows
+        ? `<div class="article-taxonomy" aria-label="文章系列與標籤">${rows}</div>`
+        : "";
+    };
+
     const title = post.title || "Blog Post";
     const excerpt = post.excerpt || "Research notes and essays on cardiovascular epidemiology, medicine, and public health.";
     const canonicalUrl = `${SITE_ORIGIN}/${getStaticBlogPath(post)}`;
@@ -602,9 +617,7 @@ if (adminApp) {
       ? post.series.label || post.series.slug
       : "";
     const taxonomyLabels = [series, ...tags].filter(Boolean);
-    const tagsHtml = taxonomyLabels.length
-      ? `<div class="post-tags" aria-label="文章系列與標籤">${taxonomyLabels.map((tag) => `<span class="tag-button tag-static">${escapeHtmlContent(tag)}</span>`).join("")}</div>`
-      : "";
+    const tagsHtml = renderStaticArticleTaxonomy(tags, series);
     const heroImage = post.image
       ? `<img class="article-image" src="${escapeHtmlContent(getNestedAssetPath(post.image))}" alt="${escapeHtmlContent(post.imageAlt || title)}" loading="lazy" decoding="async">`
       : "";
@@ -2371,16 +2384,43 @@ if (adminApp) {
     return stripMarkdownForExcerpt(firstParagraph);
   };
 
+  const focusTextareaWithoutScroll = (textarea) => {
+    try {
+      textarea.focus({ preventScroll: true });
+    } catch (error) {
+      textarea.focus();
+    }
+  };
+
+  const restoreScrollPosition = (textarea, textareaScrollTop, pageScrollX, pageScrollY) => {
+    const root = document.documentElement;
+    const previousScrollBehavior = root.style.scrollBehavior;
+
+    textarea.scrollTop = textareaScrollTop;
+    root.style.scrollBehavior = "auto";
+    window.scrollTo(pageScrollX, pageScrollY);
+    root.style.scrollBehavior = previousScrollBehavior;
+  };
+
   const replaceTextareaSelection = (textarea, replacement, selectionStartOffset = replacement.length, selectionEndOffset = selectionStartOffset) => {
     const start = textarea.selectionStart ?? textarea.value.length;
     const end = textarea.selectionEnd ?? start;
     const before = textarea.value.slice(0, start);
     const after = textarea.value.slice(end);
+    const textareaScrollTop = textarea.scrollTop;
+    const pageScrollX = window.scrollX;
+    const pageScrollY = window.scrollY;
+    const restoreView = () => restoreScrollPosition(textarea, textareaScrollTop, pageScrollX, pageScrollY);
+    const scheduleRestore = window.requestAnimationFrame
+      ? window.requestAnimationFrame.bind(window)
+      : (callback) => window.setTimeout(callback, 0);
 
     textarea.value = `${before}${replacement}${after}`;
-    textarea.focus();
+    focusTextareaWithoutScroll(textarea);
     textarea.setSelectionRange(start + selectionStartOffset, start + selectionEndOffset);
     textarea.dispatchEvent(new Event("input", { bubbles: true }));
+    restoreView();
+    scheduleRestore(restoreView);
   };
 
   const insertLinePrefix = (textarea, prefix, placeholder) => {
@@ -3550,11 +3590,20 @@ if (adminApp) {
     render();
   });
 
+  const preventMarkdownToolbarFocusLoss = (event) => {
+    const target = event.target instanceof Element ? event.target : null;
+
+    if (target?.closest("[data-markdown-action]")) {
+      event.preventDefault();
+    }
+  };
+
   editor.addEventListener("input", updateCurrentItem);
   editor.addEventListener("change", updateCurrentItem);
   editor.addEventListener("change", (event) => {
     handleBlogTaxonomyChange(editor, event);
   });
+  editor.addEventListener("mousedown", preventMarkdownToolbarFocusLoss);
   editor.addEventListener("click", async (event) => {
     const target = event.target instanceof Element ? event.target : null;
     const addTagButton = target?.closest("[data-add-publication-tag]");
@@ -3621,6 +3670,7 @@ if (adminApp) {
     publishCurrentContent();
   });
   quickType.addEventListener("change", renderQuickFields);
+  quickFields.addEventListener("mousedown", preventMarkdownToolbarFocusLoss);
   quickFields.addEventListener("click", async (event) => {
     const target = event.target instanceof Element ? event.target : null;
     const button = target?.closest("[data-markdown-action]");

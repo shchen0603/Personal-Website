@@ -303,6 +303,32 @@ def activity_body(activity: dict) -> list[str]:
     return body or ([activity["summary"]] if activity.get("summary") else [])
 
 
+def article_taxonomy_html(tags: list[str], series_label: str) -> str:
+    rows = []
+
+    if tags:
+        tag_spans = "".join(f'<span class="tag-button tag-static">{escape(tag)}</span>' for tag in tags)
+        rows.append(
+            '<div class="article-taxonomy-row">'
+            '<span class="article-taxonomy-label">標籤：</span>'
+            f'<div class="article-taxonomy-items">{tag_spans}</div>'
+            '</div>'
+        )
+
+    if series_label:
+        rows.append(
+            '<div class="article-taxonomy-row">'
+            '<span class="article-taxonomy-label">系列：</span>'
+            f'<div class="article-taxonomy-items"><span class="tag-button tag-static">{escape(series_label)}</span></div>'
+            '</div>'
+        )
+
+    return (
+        f'<div class="article-taxonomy" aria-label="文章系列與標籤">{"".join(rows)}</div>'
+        if rows else ""
+    )
+
+
 def build_blog_post_html(post: dict) -> str:
     title = post.get("title") or "Blog Post"
     excerpt = post.get("excerpt") or "Research notes and essays on cardiovascular epidemiology, medicine, and public health."
@@ -312,8 +338,7 @@ def build_blog_post_html(post: dict) -> str:
     series = post.get("series") if isinstance(post.get("series"), dict) else {}
     series_label = series.get("label") or series.get("slug") or ""
     taxonomy_labels = [label for label in [series_label, *tags] if label]
-    tag_spans = "".join(f'<span class="tag-button tag-static">{escape(tag)}</span>' for tag in taxonomy_labels)
-    tags_html = f'<div class="post-tags" aria-label="文章系列與標籤">{tag_spans}</div>' if taxonomy_labels else ""
+    tags_html = article_taxonomy_html(tags, series_label)
     hero_image = (
         f'<img class="article-image" src="{escape(nested_asset(post["image"]))}" alt="{escape(post.get("imageAlt") or title)}" loading="lazy" decoding="async">'
         if post.get("image") else ""
@@ -334,7 +359,7 @@ def build_blog_post_html(post: dict) -> str:
     }
     if series_label:
         json_ld_data["articleSection"] = series_label
-    json_ld = json.dumps(json_ld_data, ensure_ascii=False)
+    json_ld = json.dumps(json_ld_data, ensure_ascii=False, separators=(",", ":"))
 
     return f"""<!doctype html>
 <html lang="zh-Hant">
@@ -436,7 +461,7 @@ def build_activity_html(activity: dict) -> str:
         "url": canonical,
         "mainEntityOfPage": canonical,
         "author": {"@type": "Person", "name": "Szu-Han Chen", "url": f"{SITE_ORIGIN}/"},
-    }, ensure_ascii=False)
+    }, ensure_ascii=False, separators=(",", ":"))
 
     return f"""<!doctype html>
 <html lang="zh-Hant">

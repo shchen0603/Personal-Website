@@ -48,7 +48,7 @@ scripts/check_site.py
 | `admin.html` | 本機內容管理介面。包含 Quick Publish 與 Content Studio。 |
 | `data/site-content.json` | 全站可維護內容的單一資料來源。 |
 | `script.js` | 公開頁前台 runtime：導覽、footer、內容渲染、篩選、文章頁、活動頁、theme、scroll reveal、JSON-LD。 |
-| `site-config.js` | 共用網站設定：導覽、footer、網站根網址、blog 標籤、publication 分類與標籤。 |
+| `site-config.js` | 共用網站設定：導覽、footer、網站根網址、blog taxonomy fallback、publication 分類與標籤。 |
 | `admin.js` | 管理頁 runtime：表單、資料排序、圖片處理、本機寫入、GitHub 發布、sitemap、Blog 靜態頁與 Activity 靜態頁產生。 |
 | `styles.css` | 全站樣式與 responsive layout。 |
 | `assets/` | CV、hero、portrait、blog 圖片、activity 圖片等公開資源。 |
@@ -61,11 +61,13 @@ scripts/check_site.py
 
 ## 資料模型
 
-`data/site-content.json` 目前有五個 top-level keys：
+`data/site-content.json` 目前有七個 top-level keys：
 
 | Key | 用途 |
 | --- | --- |
 | `homeHighlights` | 首頁近期亮點。每筆含 `meta`、`title`、`description`、`href`。 |
+| `blogTagOptions` | Blog 文章標籤選項；Admin 可新增、編輯與刪除。 |
+| `blogSeriesOptions` | Blog 系列選項；每篇文章最多選一個系列。 |
 | `publications` | 著作資料。用於 publications 頁、research 代表作、首頁統計。 |
 | `honors` | 榮譽與學術紀錄。內含 `awards`、`talks`、`presentations`、`mediaCoverage`、`services`。 |
 | `activities` | 活動紀錄、活動照片、單一 activity 頁面資料。 |
@@ -78,8 +80,9 @@ scripts/check_site.py
 - `dateLabel`: 顯示用日期，通常使用 `YYYY.MM.DD`。
 - `status`: Blog 使用；`draft` 不會出現在公開列表，也不會被寫進 sitemap。
 - `tags`: Blog 與 publications 使用。Publication tags 建議含 `slug`、`label`、`group`。
+- `series`: Blog 使用，格式同 tag object；每篇文章最多一個。
 - `featured`: Publications 用於 research 代表作；activities 可用於活動排序/展示。
-- `body`: Blog 與 activities 的正文陣列。Blog body 支援簡化 Markdown 區塊。
+- `body`: Blog 與 activities 的正文陣列。Blog body 支援簡化 Markdown 區塊，包含標題、清單、引用、連結與獨立一行的圖片語法 `![圖片說明](assets/blog/example.webp)`。
 
 ## 前台渲染
 
@@ -90,7 +93,7 @@ scripts/check_site.py
 - 從 `data/site-content.json` 讀取內容，並用 `{ cache: "no-store" }` 避免本機編輯時讀到舊資料。
 - 更新首頁統計數字，例如 publications、awards、talks/presentations、activities。
 - 產生 publications 的搜尋與標籤篩選。
-- 產生 blog 標籤篩選。
+- 產生 blog 標籤與系列篩選。
 - 依 URL query 渲染 `post.html?id=...` 與 `activity.html?id=...`，作為預覽或 fallback。
 - 更新單篇 blog/activity 的 canonical、Open Graph、Twitter card 與 JSON-LD。
 - 處理 dark mode、手機選單、scroll reveal、back-to-top、stat counter。
@@ -100,7 +103,7 @@ scripts/check_site.py
 - `data-page`: 標示目前頁面，供導覽 active state 使用。
 - `data-render`: 標示由 JSON 注入的區塊。
 - `data-publication-search`: Publications 搜尋欄。
-- `data-publication-filter` / `data-blog-tag-filter`: 篩選按鈕。
+- `data-publication-filter` / `data-blog-tag-filter` / `data-blog-series-filter`: 篩選按鈕。
 - `data-stat`: 首頁統計數字。
 
 ## 管理頁
@@ -261,7 +264,7 @@ assets/Personal Photo.jpeg looks like a raw image
 
 1. 打開 `admin.html`。
 2. Quick Publish 選 `Blog / 心得`。
-3. 填入標題、摘要、日期、標籤與正文。
+3. 填入標題、摘要、日期、系列、標籤與正文。
 4. 可選擇上傳圖片。
 5. 本機儲存或直接發布到 GitHub。
 

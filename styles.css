@@ -1223,6 +1223,25 @@ h3 {
   aspect-ratio: 16 / 9;
 }
 
+.article-inline-image {
+  display: grid;
+  gap: 0.55rem;
+  margin: 2rem 0;
+}
+
+.article-inline-image img {
+  width: 100%;
+  border-radius: 8px;
+  object-fit: contain;
+  background: var(--wash);
+}
+
+.article-inline-image figcaption {
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
 .article-gallery {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2038,6 +2057,43 @@ h3 {
   padding-top: 0.2rem;
 }
 
+.admin-taxonomy-manager {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.15rem;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+}
+
+.admin-taxonomy-manager summary {
+  color: var(--teal-dark);
+  cursor: pointer;
+  font-weight: 850;
+}
+
+.admin-taxonomy-list,
+.admin-taxonomy-add {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.admin-taxonomy-row,
+.admin-taxonomy-add {
+  grid-template-columns: minmax(180px, 1fr) minmax(150px, 0.75fr) auto;
+  align-items: end;
+}
+
+.admin-taxonomy-add {
+  grid-template-columns: minmax(180px, 1fr) auto;
+}
+
+.admin-taxonomy-row {
+  display: grid;
+  gap: 0.65rem;
+}
+
 .admin-custom-tag .button {
   width: fit-content;
 }
@@ -2165,6 +2221,8 @@ h3 {
   .admin-layout,
   .admin-grid.two,
   .admin-image-row,
+  .admin-taxonomy-row,
+  .admin-taxonomy-add,
   .quick-publish-heading,
   .github-settings {
     grid-template-columns: 1fr;

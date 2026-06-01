@@ -51,17 +51,37 @@ def render_text_with_breaks(value="") -> str:
     return escape(value).replace("\r\n", "\n").replace("\r", "\n").replace("\n", "<br>")
 
 
+MARKDOWN_IMAGE_PATTERN = re.compile(r'^!\[([^\]]*)\]\((\S+?)(?:\s+"([^"]+)")?\)$')
+
+
+def is_safe_markdown_image_src(value="") -> bool:
+    src = str(value or "").strip()
+    return bool(src) and (not re.match(r"^[a-z][a-z0-9+.-]*:", src, re.I) or is_remote_url(src))
+
+
 def render_inline_markdown(value="") -> str:
     output = escape(value)
     output = re.sub(r"`([^`]+)`", r"<code>\1</code>", output)
     output = re.sub(
-        r"\[([^\]]+)\]((?:\(https?://[^)\s]+\)|\(mailto:[^)\s]+\)))",
-        lambda match: f'<a href="{match.group(2)[1:-1]}" rel="noreferrer">{match.group(1)}</a>',
+        r"(^|[^!])\[([^\]]+)\]((?:\(https?://[^)\s]+\)|\(mailto:[^)\s]+\)))",
+        lambda match: f'{match.group(1)}<a href="{match.group(3)[1:-1]}" rel="noreferrer">{match.group(2)}</a>',
         output,
     )
     output = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", output)
     output = re.sub(r"(^|[^*])\*([^*\n]+)\*", r"\1<em>\2</em>", output)
     return output
+
+
+def render_markdown_image(src="", alt="", caption="") -> str:
+    clean_src = str(src or "").strip()
+    if not is_safe_markdown_image_src(clean_src):
+        return ""
+    caption_html = f"<figcaption>{render_inline_markdown(caption)}</figcaption>" if caption else ""
+    return (
+        '<figure class="article-inline-image">'
+        f'<img src="{escape(nested_asset(clean_src))}" alt="{escape(alt)}" loading="lazy" decoding="async">'
+        f"{caption_html}</figure>"
+    )
 
 
 def render_markdown_block(value="") -> str:
@@ -100,6 +120,12 @@ def render_markdown_block(value="") -> str:
     for line in lines:
         if not line.strip():
             flush_all()
+            continue
+
+        image = MARKDOWN_IMAGE_PATTERN.match(line.strip())
+        if image:
+            flush_all()
+            output.append(render_markdown_image(image.group(2), image.group(1), image.group(3) or ""))
             continue
 
         heading = re.match(r"^(#{2,4})\s+(.+)$", line)
@@ -206,6 +232,15 @@ def check_local_asset(value, label: str) -> None:
         add_error(f"{label} points to missing file: {relative_path}")
 
 
+def markdown_image_sources(value="") -> list[str]:
+    sources: list[str] = []
+    for line in str(value or "").replace("\r\n", "\n").replace("\r", "\n").split("\n"):
+        image = MARKDOWN_IMAGE_PATTERN.match(line.strip())
+        if image:
+            sources.append(image.group(2))
+    return sources
+
+
 def check_unique_ids(items, label: str) -> None:
     seen: set[str] = set()
     for index, item in enumerate(as_list(items)):
@@ -274,14 +309,17 @@ def build_blog_post_html(post: dict) -> str:
     canonical = site_url(blog_path(post))
     og_image = absolute_asset_url(post["image"]) if post.get("image") else site_url("assets/cardiovascular-epidemiology-hero-og.jpg")
     tags = [tag.get("label") or tag.get("slug") for tag in as_list(post.get("tags")) if isinstance(tag, dict) and (tag.get("label") or tag.get("slug"))]
-    tag_spans = "".join(f'<span class="tag-button tag-static">{escape(tag)}</span>' for tag in tags)
-    tags_html = f'<div class="post-tags" aria-label="文章標籤">{tag_spans}</div>' if tags else ""
+    series = post.get("series") if isinstance(post.get("series"), dict) else {}
+    series_label = series.get("label") or series.get("slug") or ""
+    taxonomy_labels = [label for label in [series_label, *tags] if label]
+    tag_spans = "".join(f'<span class="tag-button tag-static">{escape(tag)}</span>' for tag in taxonomy_labels)
+    tags_html = f'<div class="post-tags" aria-label="文章系列與標籤">{tag_spans}</div>' if taxonomy_labels else ""
     hero_image = (
         f'<img class="article-image" src="{escape(nested_asset(post["image"]))}" alt="{escape(post.get("imageAlt") or title)}" loading="lazy" decoding="async">'
         if post.get("image") else ""
     )
     body = "".join(render_markdown_block(part) for part in as_list(post.get("body")))
-    json_ld = json.dumps({
+    json_ld_data = {
         "@context": "https://schema.org",
         "@type": "BlogPosting",
         "headline": title,
@@ -292,8 +330,11 @@ def build_blog_post_html(post: dict) -> str:
         "mainEntityOfPage": canonical,
         "author": {"@type": "Person", "name": "Szu-Han Chen", "url": f"{SITE_ORIGIN}/"},
         "publisher": {"@type": "Person", "name": "Szu-Han Chen", "url": f"{SITE_ORIGIN}/"},
-        "keywords": ", ".join(tags),
-    }, ensure_ascii=False)
+        "keywords": ", ".join(taxonomy_labels),
+    }
+    if series_label:
+        json_ld_data["articleSection"] = series_label
+    json_ld = json.dumps(json_ld_data, ensure_ascii=False)
 
     return f"""<!doctype html>
 <html lang="zh-Hant">
@@ -483,6 +524,13 @@ def check_content(content: dict) -> None:
         check_required_string(highlight.get("description"), f"homeHighlights[{index}].description")
         check_url(highlight.get("href"), f"homeHighlights[{index}].href")
 
+    for key in ["blogTagOptions", "blogSeriesOptions"]:
+        if not isinstance(content.get(key), list):
+            add_error(f"{key} should be an array.")
+        for index, option in enumerate(as_list(content.get(key))):
+            check_required_string(option.get("slug"), f"{key}[{index}].slug")
+            check_required_string(option.get("label"), f"{key}[{index}].label")
+
     if not isinstance(content.get("publications"), list):
         add_error("publications should be an array.")
     for index, publication in enumerate(as_list(content.get("publications"))):
@@ -522,9 +570,19 @@ def check_content(content: dict) -> None:
         if not as_list(post.get("body")):
             add_error(f"blogPosts[{index}].body should have at least one paragraph.")
         check_local_asset(post.get("image"), f"blogPosts[{index}].image")
+        for body_index, body_part in enumerate(as_list(post.get("body"))):
+            for image_index, image_src in enumerate(markdown_image_sources(body_part)):
+                check_local_asset(image_src, f"blogPosts[{index}].body[{body_index}].images[{image_index}]")
         for tag_index, tag in enumerate(as_list(post.get("tags"))):
             check_required_string(tag.get("slug"), f"blogPosts[{index}].tags[{tag_index}].slug")
             check_required_string(tag.get("label"), f"blogPosts[{index}].tags[{tag_index}].label")
+        if post.get("series"):
+            series = post.get("series")
+            if not isinstance(series, dict):
+                add_error(f"blogPosts[{index}].series should be an object.")
+            else:
+                check_required_string(series.get("slug"), f"blogPosts[{index}].series.slug")
+                check_required_string(series.get("label"), f"blogPosts[{index}].series.label")
 
     check_unique_ids(content.get("activities"), "activities")
     for index, activity in enumerate(as_list(content.get("activities"))):

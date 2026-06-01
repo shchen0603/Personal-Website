@@ -103,13 +103,36 @@ const escapeHTML = (value = "") =>
 const renderTextWithBreaks = (value = "") =>
   escapeHTML(value).replace(/\r\n?/g, "\n").replace(/\n/g, "<br>");
 
+const MARKDOWN_IMAGE_PATTERN = /^!\[([^\]]*)\]\((\S+?)(?:\s+"([^"]+)")?\)$/;
+
+const isSafeImageSrc = (value = "") => {
+  const src = String(value || "").trim();
+
+  return Boolean(src) && (!/^[a-z][a-z0-9+.-]*:/i.test(src) || /^https?:\/\//i.test(src));
+};
+
+const renderMarkdownImage = (src = "", alt = "", caption = "") => {
+  const cleanSrc = String(src || "").trim();
+
+  if (!isSafeImageSrc(cleanSrc)) {
+    return "";
+  }
+
+  return `
+    <figure class="article-inline-image">
+      <img src="${escapeHTML(cleanSrc)}" alt="${escapeHTML(alt)}" loading="lazy" decoding="async">
+      ${caption ? `<figcaption>${renderInlineMarkdown(caption)}</figcaption>` : ""}
+    </figure>
+  `;
+};
+
 const renderInlineMarkdown = (value = "") => {
   let html = escapeHTML(value);
 
   html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
   html = html.replace(
-    /\[([^\]]+)\]\((https?:\/\/[^)\s]+|mailto:[^)\s]+)\)/g,
-    '<a href="$2" rel="noreferrer">$1</a>'
+    /(^|[^!])\[([^\]]+)\]\((https?:\/\/[^)\s]+|mailto:[^)\s]+)\)/g,
+    '$1<a href="$3" rel="noreferrer">$2</a>'
   );
   html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   html = html.replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
@@ -199,6 +222,14 @@ const renderMarkdownBlock = (value = "") => {
 
     if (!line.trim()) {
       flushOpenBlocks();
+      return;
+    }
+
+    const image = line.trim().match(MARKDOWN_IMAGE_PATTERN);
+
+    if (image) {
+      flushOpenBlocks();
+      html.push(renderMarkdownImage(image[2], image[1], image[3] || ""));
       return;
     }
 
@@ -301,32 +332,91 @@ const getSortedActivities = (content) =>
 const getActivityDateLabel = (activity) =>
   activity.dateLabel || activity.date || activity.year || "";
 
-const BLOG_TAG_OPTIONS = SITE_CONFIG.blogTagOptions || [
+const DEFAULT_BLOG_TAG_OPTIONS = SITE_CONFIG.blogTagOptions || [
   { slug: "epidemiology-health-media-literacy", label: "流行病學與健康媒體識讀" },
   { slug: "health-prevention", label: "健康與預防" },
   { slug: "research-methods", label: "研究方法" },
   { slug: "research-notes", label: "研究筆記" },
   { slug: "academic-essay", label: "學術隨筆" }
 ];
+const DEFAULT_BLOG_SERIES_OPTIONS = SITE_CONFIG.blogSeriesOptions || [];
 
-const normalizeBlogTag = (tag) => {
-  const source = typeof tag === "string" ? { slug: tag, label: tag } : tag || {};
+const normalizeBlogTaxonomyItem = (item) => {
+  const source = typeof item === "string" ? { slug: item, label: item } : item || {};
   const slug = slugify(source.slug || source.label || "");
-  const option = BLOG_TAG_OPTIONS.find((item) => item.slug === slug || item.label === source.label);
-  const normalizedSlug = option?.slug || slug;
 
-  return normalizedSlug
+  return slug
     ? {
-        slug: normalizedSlug,
-        label: option?.label || source.label || source.slug || normalizedSlug
+        slug,
+        label: source.label || source.slug || slug
       }
     : null;
 };
 
-const getBlogTags = (post) =>
+const mergeBlogTaxonomyOptions = (...groups) => {
+  const options = new Map();
+
+  groups.flat().forEach((item) => {
+    const normalized = normalizeBlogTaxonomyItem(item);
+
+    if (normalized && !options.has(normalized.slug)) {
+      options.set(normalized.slug, normalized);
+    }
+  });
+
+  return [...options.values()];
+};
+
+const getBlogTaxonomyOptions = (content, key, fallbackOptions, usedItems = []) => {
+  const hasConfiguredOptions = content && Object.prototype.hasOwnProperty.call(content, key);
+
+  return mergeBlogTaxonomyOptions(
+    hasConfiguredOptions ? normalizeList(content[key]) : fallbackOptions,
+    usedItems
+  );
+};
+
+const getBlogTagOptions = (content) =>
+  getBlogTaxonomyOptions(
+    content,
+    "blogTagOptions",
+    DEFAULT_BLOG_TAG_OPTIONS,
+    normalizeList(content?.blogPosts).flatMap((post) => normalizeList(post.tags))
+  );
+
+const getBlogSeriesOptions = (content) =>
+  getBlogTaxonomyOptions(
+    content,
+    "blogSeriesOptions",
+    DEFAULT_BLOG_SERIES_OPTIONS,
+    normalizeList(content?.blogPosts).map((post) => post.series).filter(Boolean)
+  );
+
+const normalizeBlogTaxonomyWithOptions = (item, options) => {
+  const normalized = normalizeBlogTaxonomyItem(item);
+
+  if (!normalized) {
+    return null;
+  }
+
+  const option = options.find((entry) => entry.slug === normalized.slug || entry.label === normalized.label);
+
+  return option || normalized;
+};
+
+const normalizeBlogTag = (tag, content) =>
+  normalizeBlogTaxonomyWithOptions(tag, getBlogTagOptions(content));
+
+const normalizeBlogSeries = (series, content) =>
+  normalizeBlogTaxonomyWithOptions(series, getBlogSeriesOptions(content));
+
+const getBlogTags = (post, content) =>
   normalizeList(post.tags)
-    .map(normalizeBlogTag)
+    .map((tag) => normalizeBlogTag(tag, content))
     .filter(Boolean);
+
+const getBlogSeries = (post, content) =>
+  post?.series ? normalizeBlogSeries(post.series, content) : null;
 
 const honorCategoryUsesDate = (category) =>
   category === "talks" || category === "presentations";
@@ -794,50 +884,72 @@ const renderActivityLogItem = (activity) => `
   </article>
 `;
 
-const renderBlogTagButtons = (tags = [], options = {}) => {
+const renderBlogTaxonomyButtons = (items = [], options = {}) => {
   const interactive = options.interactive !== false;
   const tagName = interactive ? "button" : "span";
   const type = interactive ? " type=\"button\"" : "";
   const staticClass = interactive ? "" : " tag-static";
+  const filterAttribute = options.filterAttribute || "data-blog-tag-filter";
 
-  return normalizeList(tags)
-    .map((tag) => {
-      const slug = escapeHTML(tag.slug);
-      const attributes = interactive ? ` data-blog-tag-filter="${slug}" aria-pressed="false"` : "";
+  return normalizeList(items)
+    .map((item) => {
+      const slug = escapeHTML(item.slug);
+      const attributes = interactive ? ` ${filterAttribute}="${slug}" aria-pressed="false"` : "";
 
-      return `<${tagName} class="tag-button${staticClass}"${type}${attributes}>${escapeHTML(tag.label)}</${tagName}>`;
+      return `<${tagName} class="tag-button${staticClass}"${type}${attributes}>${escapeHTML(item.label)}</${tagName}>`;
     })
     .join("");
 };
 
-const getBlogFilters = () => {
-  const tags = new Map();
-
-  BLOG_TAG_OPTIONS.forEach((tag) => {
-    tags.set(tag.slug, tag);
+const renderBlogTagButtons = (tags = [], options = {}) =>
+  renderBlogTaxonomyButtons(tags, {
+    ...options,
+    filterAttribute: "data-blog-tag-filter"
   });
 
+const renderBlogSeriesButtons = (series = [], options = {}) =>
+  renderBlogTaxonomyButtons(series, {
+    ...options,
+    filterAttribute: "data-blog-series-filter"
+  });
+
+const getBlogFilters = (posts = [], content) => {
+  const usedTags = normalizeList(posts).flatMap((post) => normalizeList(post.tags));
+  const usedSeries = normalizeList(posts).map((post) => post.series).filter(Boolean);
+
   return {
-    tags: [...tags.values()]
+    tags: mergeBlogTaxonomyOptions(getBlogTagOptions(content), usedTags),
+    series: mergeBlogTaxonomyOptions(getBlogSeriesOptions(content), usedSeries)
   };
 };
 
-const renderBlogFilters = (posts) => {
-  const { tags } = getBlogFilters(posts);
+const renderBlogFilters = (posts, content) => {
+  const { tags, series } = getBlogFilters(posts, content);
 
-  if (!tags.length) {
+  if (!tags.length && !series.length) {
     return "";
   }
 
   return `
     <div class="blog-filter" aria-label="篩選文章">
-      <div class="blog-filter-group">
-        <p>標籤</p>
-        <div>
-          <button class="tag-button is-active" type="button" data-blog-tag-filter="all" aria-pressed="true">全部</button>
-          ${renderBlogTagButtons(tags)}
+      ${tags.length ? `
+        <div class="blog-filter-group">
+          <p>標籤</p>
+          <div>
+            <button class="tag-button is-active" type="button" data-blog-tag-filter="all" aria-pressed="true">全部</button>
+            ${renderBlogTagButtons(tags)}
+          </div>
         </div>
-      </div>
+      ` : ""}
+      ${series.length ? `
+        <div class="blog-filter-group">
+          <p>系列</p>
+          <div>
+            <button class="tag-button is-active" type="button" data-blog-series-filter="all" aria-pressed="true">全部</button>
+            ${renderBlogSeriesButtons(series)}
+          </div>
+        </div>
+      ` : ""}
     </div>
   `;
 };
@@ -845,16 +957,21 @@ const renderBlogFilters = (posts) => {
 const getBlogPostHref = (post) =>
   post && post.id ? `posts/${encodeURIComponent(post.id)}.html` : "blog.html";
 
-const renderBlogRow = (post) => {
-  const tags = getBlogTags(post);
+const renderBlogRow = (post, content) => {
+  const tags = getBlogTags(post, content);
+  const series = getBlogSeries(post, content);
+  const taxonomyHtml = [
+    series ? renderBlogSeriesButtons([series]) : "",
+    tags.length ? renderBlogTagButtons(tags) : ""
+  ].join("");
 
   return `
-    <article class="post-row" data-blog-post data-tags="${escapeHTML(tags.map((tag) => tag.slug).join(" "))}">
+    <article class="post-row" data-blog-post data-tags="${escapeHTML(tags.map((tag) => tag.slug).join(" "))}" data-series="${escapeHTML(series?.slug || "")}">
       <time datetime="${escapeHTML(post.date || "")}">${escapeHTML(post.dateLabel || post.date || "")}</time>
       <div>
         <h2><a href="${escapeHTML(getBlogPostHref(post))}">${escapeHTML(post.title || "")}</a></h2>
         <p>${renderTextWithBreaks(post.excerpt || "")}</p>
-        ${tags.length ? `<div class="post-tags" aria-label="文章標籤">${renderBlogTagButtons(tags)}</div>` : ""}
+        ${taxonomyHtml ? `<div class="post-tags" aria-label="文章系列與標籤">${taxonomyHtml}</div>` : ""}
       </div>
     </article>
   `;
@@ -960,7 +1077,14 @@ const renderBlogPost = (content) => {
     image: ogImage
   });
 
-  injectJsonLd("blog-post", {
+  const tags = getBlogTags(post, content);
+  const series = getBlogSeries(post, content);
+  const taxonomyLabels = [
+    series?.label,
+    ...tags.map((tag) => tag.label)
+  ].filter(Boolean);
+
+  const blogPostJsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     "headline": post.title || "",
@@ -979,8 +1103,14 @@ const renderBlogPost = (content) => {
       "name": "Szu-Han Chen",
       "url": `${SITE_ORIGIN}/`
     },
-    "keywords": getBlogTags(post).map((tag) => tag.label).join(", ")
-  });
+    "keywords": taxonomyLabels.join(", ")
+  };
+
+  if (series?.label) {
+    blogPostJsonLd.articleSection = series.label;
+  }
+
+  injectJsonLd("blog-post", blogPostJsonLd);
 
   const image = post.image
     ? `<img class="article-image" src="${escapeHTML(post.image)}" alt="${escapeHTML(post.imageAlt || post.title)}" loading="lazy" decoding="async">`
@@ -995,7 +1125,7 @@ const renderBlogPost = (content) => {
       <p class="post-category">${escapeHTML(post.dateLabel || post.date || "")}</p>
       <h1>${escapeHTML(post.title || "")}</h1>
       <p class="article-dek">${renderTextWithBreaks(post.excerpt || "")}</p>
-      ${getBlogTags(post).length ? `<div class="post-tags" aria-label="文章標籤">${renderBlogTagButtons(getBlogTags(post), { interactive: false })}</div>` : ""}
+      ${taxonomyLabels.length ? `<div class="post-tags" aria-label="文章系列與標籤">${series ? renderBlogSeriesButtons([series], { interactive: false }) : ""}${tags.length ? renderBlogTagButtons(tags, { interactive: false }) : ""}</div>` : ""}
     </header>
     <div class="article-body">
       ${image}
@@ -1139,7 +1269,8 @@ const publicationState = {
 };
 
 const blogState = {
-  tag: "all"
+  tag: "all",
+  series: "all"
 };
 
 const renderContent = (content) => {
@@ -1272,11 +1403,11 @@ const renderContent = (content) => {
   });
 
   document.querySelectorAll("[data-render='blog-index']").forEach((container) => {
-    const rows = publishedPosts.map(renderBlogRow).join("");
+    const rows = publishedPosts.map((post) => renderBlogRow(post, content)).join("");
     const note = publishedPosts.length < 2 ? renderBlogNote() : "";
 
     container.innerHTML = rows
-      ? `${renderBlogFilters(publishedPosts)}<div class="blog-post-list" data-blog-post-list>${rows}</div><p class="blog-empty" data-blog-empty hidden>目前沒有符合篩選條件的文章。</p>${note}`
+      ? `${renderBlogFilters(publishedPosts, content)}<div class="blog-post-list" data-blog-post-list>${rows}</div><p class="blog-empty" data-blog-empty hidden>目前沒有符合篩選條件的文章。</p>${note}`
       : renderBlogNote();
   });
 
@@ -1295,10 +1426,19 @@ const renderContent = (content) => {
 const setupBlogFilters = () => {
   const posts = document.querySelectorAll("[data-blog-post]");
   const tagFilters = document.querySelectorAll("[data-blog-tag-filter]");
+  const seriesFilters = document.querySelectorAll("[data-blog-series-filter]");
   const empty = document.querySelector("[data-blog-empty]");
 
   if (!posts.length) {
     return;
+  }
+
+  if (![...tagFilters].some((button) => button.dataset.blogTagFilter === blogState.tag)) {
+    blogState.tag = "all";
+  }
+
+  if (![...seriesFilters].some((button) => button.dataset.blogSeriesFilter === blogState.series)) {
+    blogState.series = "all";
   }
 
   const applyBlogFilters = () => {
@@ -1306,8 +1446,10 @@ const setupBlogFilters = () => {
 
     posts.forEach((post) => {
       const tags = (post.dataset.tags || "").split(" ").filter(Boolean);
+      const series = post.dataset.series || "";
       const matchesTag = blogState.tag === "all" || tags.includes(blogState.tag);
-      const isVisible = matchesTag;
+      const matchesSeries = blogState.series === "all" || series === blogState.series;
+      const isVisible = matchesTag && matchesSeries;
 
       post.hidden = !isVisible;
 
@@ -1318,6 +1460,13 @@ const setupBlogFilters = () => {
 
     tagFilters.forEach((button) => {
       const isActive = button.dataset.blogTagFilter === blogState.tag;
+
+      button.classList.toggle("is-active", isActive);
+      button.setAttribute("aria-pressed", String(isActive));
+    });
+
+    seriesFilters.forEach((button) => {
+      const isActive = button.dataset.blogSeriesFilter === blogState.series;
 
       button.classList.toggle("is-active", isActive);
       button.setAttribute("aria-pressed", String(isActive));
@@ -1336,6 +1485,18 @@ const setupBlogFilters = () => {
     button.dataset.blogTagBound = "true";
     button.addEventListener("click", () => {
       blogState.tag = button.dataset.blogTagFilter || "all";
+      applyBlogFilters();
+    });
+  });
+
+  seriesFilters.forEach((button) => {
+    if (button.dataset.blogSeriesBound === "true") {
+      return;
+    }
+
+    button.dataset.blogSeriesBound = "true";
+    button.addEventListener("click", () => {
+      blogState.series = button.dataset.blogSeriesFilter || "all";
       applyBlogFilters();
     });
   });

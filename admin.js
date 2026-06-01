@@ -11,7 +11,8 @@ if (adminApp) {
     dirty: false,
     publishing: false,
     baseContent: null,
-    quickImageFile: null
+    quickImageFile: null,
+    pendingAssetUploads: new Map()
   };
 
   const status = adminApp.querySelector("[data-admin-status]");
@@ -71,6 +72,8 @@ if (adminApp) {
   const cloneContent = (content) => JSON.parse(JSON.stringify(content || {}));
 
   const normalizeContent = (content) => {
+    content.blogPosts ||= [];
+    normalizeBlogTaxonomyContent(content);
     sortHonorCollections(content.honors ||= {});
     sortActivities(content.activities ||= []);
 
@@ -159,13 +162,14 @@ if (adminApp) {
     { slug: "rehabilitation", label: "Rehabilitation", group: "Topics" },
     { slug: "mortality", label: "Mortality", group: "Topics" }
   ];
-  const BLOG_TAG_OPTIONS = SITE_CONFIG.blogTagOptions || [
+  const DEFAULT_BLOG_TAG_OPTIONS = SITE_CONFIG.blogTagOptions || [
     { slug: "epidemiology-health-media-literacy", label: "流行病學與健康媒體識讀" },
     { slug: "health-prevention", label: "健康與預防" },
     { slug: "research-methods", label: "研究方法" },
     { slug: "research-notes", label: "研究筆記" },
     { slug: "academic-essay", label: "學術隨筆" }
   ];
+  const DEFAULT_BLOG_SERIES_OPTIONS = SITE_CONFIG.blogSeriesOptions || [];
   const HEIC_MIME_TYPES = new Set([
     "image/heic",
     "image/heif",
@@ -405,13 +409,36 @@ if (adminApp) {
       return entities[character];
     });
 
+  const MARKDOWN_IMAGE_PATTERN = /^!\[([^\]]*)\]\((\S+?)(?:\s+"([^"]+)")?\)$/;
+
+  const isSafeMarkdownImageSrc = (value = "") => {
+    const src = String(value || "").trim();
+
+    return Boolean(src) && (!/^[a-z][a-z0-9+.-]*:/i.test(src) || /^https?:\/\//i.test(src));
+  };
+
+  const renderMarkdownImageForStatic = (src = "", alt = "", caption = "") => {
+    const cleanSrc = String(src || "").trim();
+
+    if (!isSafeMarkdownImageSrc(cleanSrc)) {
+      return "";
+    }
+
+    return `
+      <figure class="article-inline-image">
+        <img src="${escapeHtmlContent(getNestedAssetPath(cleanSrc))}" alt="${escapeHtmlContent(alt)}" loading="lazy" decoding="async">
+        ${caption ? `<figcaption>${renderInlineMarkdownForStatic(caption)}</figcaption>` : ""}
+      </figure>
+    `;
+  };
+
   const renderInlineMarkdownForStatic = (value = "") => {
     let html = escapeHtmlContent(value);
 
     html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
     html = html.replace(
-      /\[([^\]]+)\]\((https?:\/\/[^)\s]+|mailto:[^)\s]+)\)/g,
-      '<a href="$2" rel="noreferrer">$1</a>'
+      /(^|[^!])\[([^\]]+)\]\((https?:\/\/[^)\s]+|mailto:[^)\s]+)\)/g,
+      '$1<a href="$3" rel="noreferrer">$2</a>'
     );
     html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
     html = html.replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
@@ -468,6 +495,14 @@ if (adminApp) {
     lines.forEach((line) => {
       if (!line.trim()) {
         flushOpenBlocks();
+        return;
+      }
+
+      const image = line.trim().match(MARKDOWN_IMAGE_PATTERN);
+
+      if (image) {
+        flushOpenBlocks();
+        html.push(renderMarkdownImageForStatic(image[2], image[1], image[3] || ""));
         return;
       }
 
@@ -563,14 +598,18 @@ if (adminApp) {
     const tags = adminNormalizeList(post.tags)
       .map((tag) => (tag && (tag.label || tag.slug)) || "")
       .filter(Boolean);
-    const tagsHtml = tags.length
-      ? `<div class="post-tags" aria-label="文章標籤">${tags.map((tag) => `<span class="tag-button tag-static">${escapeHtmlContent(tag)}</span>`).join("")}</div>`
+    const series = post.series && (post.series.label || post.series.slug)
+      ? post.series.label || post.series.slug
+      : "";
+    const taxonomyLabels = [series, ...tags].filter(Boolean);
+    const tagsHtml = taxonomyLabels.length
+      ? `<div class="post-tags" aria-label="文章系列與標籤">${taxonomyLabels.map((tag) => `<span class="tag-button tag-static">${escapeHtmlContent(tag)}</span>`).join("")}</div>`
       : "";
     const heroImage = post.image
       ? `<img class="article-image" src="${escapeHtmlContent(getNestedAssetPath(post.image))}" alt="${escapeHtmlContent(post.imageAlt || title)}" loading="lazy" decoding="async">`
       : "";
     const body = adminNormalizeList(post.body).map(renderMarkdownBlockForStatic).join("");
-    const jsonLd = JSON.stringify({
+    const jsonLdData = {
       "@context": "https://schema.org",
       "@type": "BlogPosting",
       "headline": title,
@@ -589,8 +628,14 @@ if (adminApp) {
         "name": "Szu-Han Chen",
         "url": `${SITE_ORIGIN}/`
       },
-      "keywords": tags.join(", ")
-    });
+      "keywords": taxonomyLabels.join(", ")
+    };
+
+    if (series) {
+      jsonLdData.articleSection = series;
+    }
+
+    const jsonLd = JSON.stringify(jsonLdData);
 
     return `<!doctype html>
 <html lang="zh-Hant">
@@ -1200,12 +1245,11 @@ if (adminApp) {
     return uploads;
   };
 
-  const savePreparedImage = async (upload, folder) => {
-    if (!upload?.file) {
+  const writePreparedImageToPath = async (upload, path) => {
+    if (!upload?.file || !path) {
       return "";
     }
 
-    const path = getAssetPath(upload.file, folder);
     const fileHandle = await getFileHandle(path, true);
     const writable = await fileHandle.createWritable();
 
@@ -1214,6 +1258,9 @@ if (adminApp) {
 
     return path;
   };
+
+  const savePreparedImage = async (upload, folder) =>
+    writePreparedImageToPath(upload, getAssetPath(upload?.file, folder));
 
   const saveImage = async (file, folder) => {
     const upload = await prepareImageUpload(file);
@@ -1238,6 +1285,56 @@ if (adminApp) {
       reader.addEventListener("error", () => reject(reader.error));
       reader.readAsDataURL(file);
     });
+
+  const registerPendingAssetUpload = (path, upload) => {
+    if (path && upload?.file) {
+      state.pendingAssetUploads.set(path, { path, upload });
+    }
+  };
+
+  const contentReferencesAssetPath = (content, path) =>
+    Boolean(path && JSON.stringify(content || {}).includes(path));
+
+  const getPendingAssetUploadsForContent = (content) =>
+    [...state.pendingAssetUploads.values()]
+      .filter((entry) => contentReferencesAssetPath(content, entry.path));
+
+  const clearPendingAssetUploads = (paths = []) => {
+    paths.forEach((path) => {
+      state.pendingAssetUploads.delete(path);
+    });
+  };
+
+  const getPendingAssetExtraFiles = async (content) => {
+    const entries = getPendingAssetUploadsForContent(content);
+    const files = [];
+
+    for (const entry of entries) {
+      files.push({
+        path: entry.path,
+        content: await fileToBase64(entry.upload.file)
+      });
+    }
+
+    return files;
+  };
+
+  const savePendingAssetUploads = async (content) => {
+    const entries = getPendingAssetUploadsForContent(content);
+    const savedPaths = [];
+
+    for (const entry of entries) {
+      const path = await writePreparedImageToPath(entry.upload, entry.path);
+
+      if (path) {
+        savedPaths.push(path);
+      }
+    }
+
+    clearPendingAssetUploads(savedPaths);
+
+    return savedPaths;
+  };
 
   const GITHUB_REQUEST_TIMEOUT_MS = 30000;
 
@@ -1385,24 +1482,139 @@ if (adminApp) {
       : null;
   };
 
-  const normalizeBlogTag = (tag) => {
-    const source = typeof tag === "string" ? { slug: tag, label: tag } : tag || {};
+  const normalizeBlogOption = (option) => {
+    const source = typeof option === "string" ? { slug: option, label: option } : option || {};
     const slug = slugify(source.slug || source.label || "");
-    const option = BLOG_TAG_OPTIONS.find((item) => item.slug === slug || item.label === source.label);
-    const normalizedSlug = option?.slug || slug;
 
-    return normalizedSlug
+    return slug
       ? {
-          slug: normalizedSlug,
-          label: option?.label || source.label || source.slug || normalizedSlug
+          slug,
+          label: source.label || source.slug || slug
         }
       : null;
   };
 
-  const getBlogTagOptions = () =>
-    BLOG_TAG_OPTIONS
-      .map((tag) => normalizeBlogTag(tag))
-      .filter(Boolean);
+  const mergeBlogOptions = (...optionLists) => {
+    const options = new Map();
+
+    optionLists.flat().forEach((option) => {
+      const normalized = normalizeBlogOption(option);
+
+      if (normalized && !options.has(normalized.slug)) {
+        options.set(normalized.slug, normalized);
+      }
+    });
+
+    return [...options.values()];
+  };
+
+  const hasOwnContentKey = (content, key) =>
+    Boolean(content && Object.prototype.hasOwnProperty.call(content, key));
+
+  const getBlogContentOptionSource = (content, key, fallbackOptions) =>
+    hasOwnContentKey(content, key) ? adminNormalizeList(content[key]) : fallbackOptions;
+
+  const getBlogPostTagItems = (content) =>
+    adminNormalizeList(content?.blogPosts).flatMap((post) => adminNormalizeList(post.tags));
+
+  const getBlogPostSeriesItems = (content) =>
+    adminNormalizeList(content?.blogPosts).map((post) => post.series).filter(Boolean);
+
+  const normalizeBlogTaxonomyContent = (content) => {
+    const tagOptions = mergeBlogOptions(
+      getBlogContentOptionSource(content, "blogTagOptions", DEFAULT_BLOG_TAG_OPTIONS),
+      getBlogPostTagItems(content)
+    );
+    const seriesOptions = mergeBlogOptions(
+      getBlogContentOptionSource(content, "blogSeriesOptions", DEFAULT_BLOG_SERIES_OPTIONS),
+      getBlogPostSeriesItems(content)
+    );
+    const tagMap = new Map(tagOptions.map((tag) => [tag.slug, tag]));
+    const seriesMap = new Map(seriesOptions.map((series) => [series.slug, series]));
+
+    content.blogTagOptions = tagOptions;
+    content.blogSeriesOptions = seriesOptions;
+
+    adminNormalizeList(content.blogPosts).forEach((post) => {
+      post.tags = mergeBlogOptions(adminNormalizeList(post.tags))
+        .map((tag) => tagMap.get(tag.slug) || tag);
+
+      const series = normalizeBlogOption(post.series);
+
+      if (series) {
+        post.series = seriesMap.get(series.slug) || series;
+      } else {
+        delete post.series;
+      }
+    });
+  };
+
+  const normalizeBlogTaxonomyWithOptions = (item, options) => {
+    const normalized = normalizeBlogOption(item);
+
+    if (!normalized) {
+      return null;
+    }
+
+    return options.find((option) => option.slug === normalized.slug || option.label === normalized.label)
+      || normalized;
+  };
+
+  const getBlogOptionConfig = (kind) =>
+    kind === "series"
+      ? {
+          optionsKey: "blogSeriesOptions",
+          inputName: "blogSeries",
+          label: "系列",
+          emptyLabel: "不設定系列"
+        }
+      : {
+          optionsKey: "blogTagOptions",
+          inputName: "blogTags",
+          label: "標籤",
+          emptyLabel: ""
+        };
+
+  const getManagedBlogOptions = (kind) => {
+    const config = getBlogOptionConfig(kind);
+    const fallback = kind === "series" ? DEFAULT_BLOG_SERIES_OPTIONS : DEFAULT_BLOG_TAG_OPTIONS;
+
+    if (!state.content) {
+      return mergeBlogOptions(fallback);
+    }
+
+    state.content[config.optionsKey] ||= [];
+
+    return mergeBlogOptions(state.content[config.optionsKey]);
+  };
+
+  const getBlogTagOptions = () => getManagedBlogOptions("tag");
+  const getBlogSeriesOptions = () => getManagedBlogOptions("series");
+
+  const normalizeBlogTag = (tag) =>
+    normalizeBlogTaxonomyWithOptions(tag, getBlogTagOptions());
+
+  const normalizeBlogSeries = (series) =>
+    normalizeBlogTaxonomyWithOptions(series, getBlogSeriesOptions());
+
+  const getBlogOptionBySlug = (kind, slug) =>
+    getManagedBlogOptions(kind).find((option) => option.slug === slugify(slug)) || null;
+
+  const getBlogOptionsFromSlugs = (kind, slugs = []) => {
+    const seen = new Set();
+
+    return slugs
+      .map((slug) => slugify(slug))
+      .filter((slug) => {
+        if (!slug || seen.has(slug)) {
+          return false;
+        }
+
+        seen.add(slug);
+        return true;
+      })
+      .map((slug) => getBlogOptionBySlug(kind, slug) || { slug, label: slug });
+  };
 
   const parseCustomTagLabels = (value = "") =>
     String(value || "")
@@ -1478,26 +1690,124 @@ if (adminApp) {
       [...root.querySelectorAll("input[name='tags']:checked")].map((input) => input.value)
     );
 
-  const getCheckedBlogTags = (root) => {
-    const tagMap = new Map(getBlogTagOptions().map((tag) => [tag.slug, tag]));
-    const seen = new Set();
+  const getCheckedBlogTagSlugs = (root) =>
+    [...root.querySelectorAll("input[name='blogTags']:checked")]
+      .map((input) => slugify(input.value))
+      .filter(Boolean);
 
-    return [...root.querySelectorAll("input[name='blogTags']:checked")]
-      .map((input) => {
-        const slug = slugify(input.value);
+  const getCheckedBlogTags = (root) =>
+    getBlogOptionsFromSlugs("tag", getCheckedBlogTagSlugs(root));
 
-        if (!slug || seen.has(slug)) {
-          return null;
+  const getSelectedBlogSeriesSlug = (root) =>
+    slugify(root.querySelector("input[name='blogSeries']:checked")?.value || "");
+
+  const getSelectedBlogSeries = (root) => {
+    const slug = getSelectedBlogSeriesSlug(root);
+
+    return slug ? getBlogOptionBySlug("series", slug) || { slug, label: slug } : null;
+  };
+
+  const getBlogOptionList = (kind) => {
+    if (!state.content) {
+      return [];
+    }
+
+    const key = getBlogOptionConfig(kind).optionsKey;
+
+    state.content[key] ||= [];
+
+    return state.content[key];
+  };
+
+  const updateBlogPostTaxonomyReferences = (kind, oldSlug, nextOption = null) => {
+    const normalizedOldSlug = slugify(oldSlug);
+
+    adminNormalizeList(state.content?.blogPosts).forEach((post) => {
+      if (kind === "series") {
+        const series = normalizeBlogOption(post.series);
+
+        if (!series || series.slug !== normalizedOldSlug) {
+          return;
         }
 
-        seen.add(slug);
+        if (nextOption) {
+          post.series = { ...nextOption };
+        } else {
+          delete post.series;
+        }
+        return;
+      }
 
-        return tagMap.get(slug) || normalizeBlogTag({
-          slug,
-          label: input.closest(".admin-tag-option")?.querySelector("span")?.textContent?.trim() || input.value
-        });
-      })
-      .filter(Boolean);
+      post.tags = mergeBlogOptions(adminNormalizeList(post.tags)
+        .map(normalizeBlogOption)
+        .filter(Boolean)
+        .map((tag) => tag.slug === normalizedOldSlug ? nextOption : tag)
+        .filter(Boolean));
+    });
+  };
+
+  const addBlogOption = (kind, label) => {
+    const option = normalizeBlogOption({ label });
+    const options = getBlogOptionList(kind);
+
+    if (!option) {
+      return { error: `請先輸入${getBlogOptionConfig(kind).label}名稱。` };
+    }
+
+    const existing = options.find((item) => item.slug === option.slug);
+
+    if (existing) {
+      return { option: existing, existing: true };
+    }
+
+    options.push(option);
+
+    return { option, existing: false };
+  };
+
+  const updateBlogOption = (kind, oldSlug, nextValues) => {
+    const options = getBlogOptionList(kind);
+    const index = options.findIndex((option) => option.slug === slugify(oldSlug));
+    const current = options[index];
+    const option = normalizeBlogOption({
+      slug: nextValues.slug || nextValues.label,
+      label: nextValues.label || nextValues.slug
+    });
+
+    if (index < 0 || !current) {
+      return { error: "找不到要更新的項目。" };
+    }
+
+    if (!option) {
+      return { error: `${getBlogOptionConfig(kind).label}名稱或 slug 不能留白。` };
+    }
+
+    const duplicate = options.find((item) => item.slug === option.slug && item.slug !== current.slug);
+
+    if (duplicate) {
+      return { error: `已有相同 slug：${option.slug}` };
+    }
+
+    options[index] = option;
+    updateBlogPostTaxonomyReferences(kind, current.slug, option);
+
+    return { option, previous: current };
+  };
+
+  const removeBlogOption = (kind, slug) => {
+    const options = getBlogOptionList(kind);
+    const normalizedSlug = slugify(slug);
+    const index = options.findIndex((option) => option.slug === normalizedSlug);
+
+    if (index < 0) {
+      return null;
+    }
+
+    const [removed] = options.splice(index, 1);
+
+    updateBlogPostTaxonomyReferences(kind, normalizedSlug, null);
+
+    return removed;
   };
 
   const getPublicationCategory = (value = "") =>
@@ -1571,24 +1881,62 @@ if (adminApp) {
         ${markdownToolbarButton("ordered-list", "1.", "編號清單")}
         ${markdownToolbarButton("quote", ">", "引用")}
         ${markdownToolbarButton("link", "Link", "加入連結")}
+        ${markdownToolbarButton("image", "Img", "插入圖片")}
       </div>
       <label class="admin-field">
         <span>${label}</span>
         <textarea name="${name}" rows="${rows}" data-markdown-editor>${escapeHTML(value)}</textarea>
       </label>
-      <p class="admin-help">段落請用空行分開；工具列會插入 Markdown 標記，文章頁會自動轉成標題、清單與基本文字樣式。</p>
+      <p class="admin-help">段落請用空行分開；工具列會插入 Markdown 標記，圖片會自動壓縮成 WebP 並插入游標位置。</p>
     </div>
   `;
 
-  const blogTagOption = (tag, checked = false, options = {}) => `
-    <div class="admin-tag-option admin-tag-option-removable" data-blog-tag-option="${escapeHTML(tag.slug)}">
-      <label>
-        <input type="checkbox" name="blogTags" value="${escapeHTML(tag.slug)}" ${checked ? "checked" : ""}>
-        <span>${escapeHTML(tag.label)}</span>
-      </label>
-      ${options.removable ? `<button class="admin-tag-remove" type="button" data-remove-blog-tag="${escapeHTML(tag.slug)}" title="刪除文章標籤" aria-label="刪除文章標籤 ${escapeHTML(tag.label)}">x</button>` : ""}
-    </div>
-  `;
+  const blogChoiceOption = (kind, option, checked = false) => {
+    const config = getBlogOptionConfig(kind);
+    const type = kind === "series" ? "radio" : "checkbox";
+
+    return `
+      <div class="admin-tag-option" data-blog-${kind}-option="${escapeHTML(option.slug)}">
+        <label>
+          <input type="${type}" name="${config.inputName}" value="${escapeHTML(option.slug)}" ${checked ? "checked" : ""}>
+          <span>${escapeHTML(option.label)}</span>
+        </label>
+      </div>
+    `;
+  };
+
+  const blogOptionManager = (kind, options = {}) => {
+    const config = getBlogOptionConfig(kind);
+    const items = getManagedBlogOptions(kind);
+
+    return `
+      <details class="admin-taxonomy-manager" data-blog-taxonomy-manager="${kind}" ${options.open ? "open" : ""}>
+        <summary>管理${escapeHTML(config.label)}</summary>
+        <div class="admin-taxonomy-list">
+          ${items.length ? items.map((item) => `
+            <div class="admin-taxonomy-row" data-blog-option-row data-blog-option-kind="${kind}" data-blog-option-slug="${escapeHTML(item.slug)}">
+              <label class="admin-field">
+                <span>名稱</span>
+                <input type="text" value="${escapeHTML(item.label)}" data-blog-option-field="label">
+              </label>
+              <label class="admin-field">
+                <span>Slug</span>
+                <input type="text" value="${escapeHTML(item.slug)}" data-blog-option-field="slug">
+              </label>
+              <button class="button button-outline" type="button" data-remove-blog-option="${escapeHTML(item.slug)}" data-blog-option-kind="${kind}">刪除</button>
+            </div>
+          `).join("") : `<p class="admin-help">尚未建立${escapeHTML(config.label)}。</p>`}
+        </div>
+        <div class="admin-taxonomy-add">
+          <label class="admin-field">
+            <span>新增${escapeHTML(config.label)}</span>
+            <input type="text" data-new-blog-option-label="${kind}">
+          </label>
+          <button class="button button-outline" type="button" data-add-blog-option="${kind}">新增${escapeHTML(config.label)}</button>
+        </div>
+      </details>
+    `;
+  };
 
   const blogTagField = (selectedTags = [], options = {}) => {
     const selectedSlugs = new Set(
@@ -1599,14 +1947,54 @@ if (adminApp) {
     const tags = getBlogTagOptions();
 
     return `
-      <fieldset class="admin-tag-field">
+      <fieldset class="admin-tag-field" data-blog-taxonomy-field="tag">
         <legend>文章標籤</legend>
         <div class="admin-tag-options">
-          ${tags.map((tag) => blogTagOption(tag, selectedSlugs.has(tag.slug), { removable: options.removable !== false })).join("")}
+          ${tags.map((tag) => blogChoiceOption("tag", tag, selectedSlugs.has(tag.slug))).join("")}
         </div>
-        <p class="admin-help">Blog 暫時統一使用這五個標籤；勾選代表加入文章，標籤旁的 x 可從文章移除。</p>
+        ${blogOptionManager("tag", { open: options.managerOpen })}
       </fieldset>
     `;
+  };
+
+  const blogSeriesField = (selectedSeries = null, options = {}) => {
+    const selectedSlug = normalizeBlogSeries(selectedSeries)?.slug || "";
+    const seriesOptions = getBlogSeriesOptions();
+
+    return `
+      <fieldset class="admin-tag-field" data-blog-taxonomy-field="series">
+        <legend>文章系列</legend>
+        <div class="admin-tag-options">
+          <div class="admin-tag-option">
+            <label>
+              <input type="radio" name="blogSeries" value="" ${selectedSlug ? "" : "checked"}>
+              <span>不設定系列</span>
+            </label>
+          </div>
+          ${seriesOptions.map((series) => blogChoiceOption("series", series, selectedSlug === series.slug)).join("")}
+        </div>
+        ${blogOptionManager("series", { open: options.managerOpen })}
+      </fieldset>
+    `;
+  };
+
+  const refreshBlogTaxonomyControls = (root, selections = {}) => {
+    const openManagers = new Set(
+      [...root.querySelectorAll("[data-blog-taxonomy-manager][open]")]
+        .map((manager) => manager.dataset.blogTaxonomyManager)
+    );
+    const selectedTags = "tags" in selections ? selections.tags : getCheckedBlogTags(root);
+    const selectedSeries = "series" in selections ? selections.series : getSelectedBlogSeries(root);
+    const tagField = root.querySelector("[data-blog-taxonomy-field='tag']");
+    const seriesField = root.querySelector("[data-blog-taxonomy-field='series']");
+
+    if (tagField) {
+      tagField.outerHTML = blogTagField(selectedTags, { managerOpen: openManagers.has("tag") });
+    }
+
+    if (seriesField) {
+      seriesField.outerHTML = blogSeriesField(selectedSeries, { managerOpen: openManagers.has("series") });
+    }
   };
 
   const checkbox = (name, label, checked = false) => `
@@ -1881,6 +2269,7 @@ if (adminApp) {
     if (type === "blogPosts") {
       quickFields.innerHTML = `
         ${field("title", "標題", "")}
+        ${blogSeriesField(null)}
         ${blogTagField([])}
         ${markdownEditorField("body", "你想發布的文字", "", 9)}
         <label class="admin-field">
@@ -1957,6 +2346,7 @@ if (adminApp) {
   const stripMarkdownForExcerpt = (value = "") =>
     String(value || "")
       .replace(/^#{1,6}\s+/gm, "")
+      .replace(/!\[([^\]]*)\]\([^)]+\)/g, "$1")
       .replace(/^\s*[-*]\s+/gm, "")
       .replace(/^\s*\d+\.\s+/gm, "")
       .replace(/^\s*>\s?/gm, "")
@@ -1972,7 +2362,7 @@ if (adminApp) {
       .replace(/\r\n?/g, "\n")
       .split("\n")
       .map((line) => line.trim())
-      .find((line) => line && !/^#{1,6}\s+/.test(line)) || "";
+      .find((line) => line && !/^#{1,6}\s+/.test(line) && !MARKDOWN_IMAGE_PATTERN.test(line)) || "";
 
   const getBlogExcerpt = (body = []) => {
     const blocks = adminNormalizeList(body);
@@ -2015,6 +2405,72 @@ if (adminApp) {
     const content = selected || placeholder;
 
     replaceTextareaSelection(textarea, `${before}${content}${after}`, before.length, before.length + content.length);
+  };
+
+  const insertMarkdownBlock = (textarea, block) => {
+    const start = textarea.selectionStart ?? textarea.value.length;
+    const end = textarea.selectionEnd ?? start;
+    const before = textarea.value.slice(0, start);
+    const after = textarea.value.slice(end);
+    const prefix = before.trim()
+      ? before.endsWith("\n\n") ? "" : before.endsWith("\n") ? "\n" : "\n\n"
+      : "";
+    const suffix = after.trim()
+      ? after.startsWith("\n\n") ? "" : after.startsWith("\n") ? "\n" : "\n\n"
+      : "";
+    const replacement = `${prefix}${block}${suffix}`;
+
+    replaceTextareaSelection(textarea, replacement, prefix.length + block.length, prefix.length + block.length);
+  };
+
+  const chooseMarkdownImageFile = () =>
+    new Promise((resolve) => {
+      const input = document.createElement("input");
+
+      input.type = "file";
+      input.accept = "image/*,.heic,.heif";
+      input.hidden = true;
+      input.addEventListener("change", () => {
+        resolve(input.files?.[0] || null);
+        input.remove();
+      }, { once: true });
+      document.body.append(input);
+      input.click();
+    });
+
+  const getMarkdownImageAlt = (file) =>
+    getFileBaseName(file?.name || "image")
+      .replace(/[-_]+/g, " ")
+      .replace(/[\[\]\n\r]+/g, " ")
+      .trim() || "圖片說明";
+
+  const insertMarkdownImage = async (textarea) => {
+    if (!textarea) {
+      return;
+    }
+
+    const file = await chooseMarkdownImageFile();
+
+    if (!file) {
+      return;
+    }
+
+    try {
+      setStatus("正在壓縮圖片並準備插入正文...", "");
+
+      const upload = await prepareImageUpload(file);
+      const path = makeAssetPath(upload.file, "blog");
+
+      registerPendingAssetUpload(path, upload);
+      insertMarkdownBlock(textarea, `![${getMarkdownImageAlt(file)}](${path})`);
+      setStatus(
+        `已插入正文圖片：${path}.${getUploadProcessingSummary([upload])}`,
+        "success"
+      );
+    } catch (error) {
+      console.error(error);
+      setStatus(error?.message || "圖片插入失敗，請重新選擇圖片。", "error");
+    }
   };
 
   const applyMarkdownAction = (textarea, action) => {
@@ -2070,6 +2526,7 @@ if (adminApp) {
       const title = formData.get("title") || "新文章";
       const body = splitParagraphs(formData.get("body") || "");
       const tags = getCheckedBlogTags(quickFields);
+      const series = getSelectedBlogSeries(quickFields);
 
       return {
         id: `${today}-${slugify(title)}`,
@@ -2081,6 +2538,7 @@ if (adminApp) {
         image: paths[0] || "",
         imageAlt: title,
         tags,
+        ...(series ? { series } : {}),
         body
       };
     }
@@ -2202,6 +2660,10 @@ if (adminApp) {
     if (type === "activities") {
       sortActivities(content.activities);
     }
+
+    if (type === "blogPosts") {
+      normalizeBlogTaxonomyContent(content);
+    }
   };
 
   const renderList = () => {
@@ -2265,6 +2727,7 @@ if (adminApp) {
           </label>
         </div>
         ${textarea("excerpt", "摘要", item.excerpt, 3)}
+        ${blogSeriesField(item.series)}
         ${blogTagField(item.tags)}
         ${imageField(item.image, "blog")}
         ${field("imageAlt", "圖片替代文字", item.imageAlt)}
@@ -2515,6 +2978,14 @@ if (adminApp) {
 
     if (name === "blogTags") {
       item.tags = getCheckedBlogTags(editor);
+    } else if (name === "blogSeries") {
+      const series = getSelectedBlogSeries(editor);
+
+      if (series) {
+        item.series = series;
+      } else {
+        delete item.series;
+      }
     } else if (name === "tags") {
       item.tags = getCheckedTags(editor);
     } else if (name === "url") {
@@ -2610,16 +3081,18 @@ if (adminApp) {
         return;
       }
 
-      if (mode === "github" && state.dirty) {
-        setStatus("目前編輯區還有未發布的變更。請先發布或儲存那些變更，再使用 Quick Publish，避免新舊內容互相覆蓋。", "error");
-        return;
-      }
-
       if (mode === "github") {
-        setStatus("正在讀取 GitHub 最新內容，避免覆蓋其他修改...", "");
+        setStatus(state.dirty ? "正在確認 GitHub 是否已有新版本..." : "正在讀取 GitHub 最新內容，避免覆蓋其他修改...", "");
       }
 
-      const nextContent = mode === "github" ? await getRemoteSiteContent() : cloneContent(state.content);
+      const nextContent = mode === "github" && !state.dirty
+        ? await getRemoteSiteContent()
+        : cloneContent(state.content);
+
+      if (mode === "github" && state.dirty) {
+        await assertRemoteContentIsCurrent(nextContent);
+      }
+
       const imagePaths = [];
       let coverPath = "";
       const galleryPaths = [];
@@ -2674,6 +3147,10 @@ if (adminApp) {
       insertQuickItem(nextContent, type, item);
 
       if (mode === "github") {
+        const pendingAssetFiles = await getPendingAssetExtraFiles(nextContent);
+
+        extraFiles.push(...pendingAssetFiles);
+
         if (type === "activities") {
           if (coverUpload?.file && coverPath) {
             extraFiles.push({
@@ -2720,6 +3197,7 @@ if (adminApp) {
         await publishToGitHub(nextContent, extraFiles, `Publish ${item.title || "website content"}`);
         state.content = nextContent;
         state.baseContent = cloneContent(nextContent);
+        clearPendingAssetUploads(pendingAssetFiles.map((file) => file.path));
         setDirty(false);
 
         setStatus(
@@ -2728,6 +3206,7 @@ if (adminApp) {
         );
       } else {
         state.content = nextContent;
+        await savePendingAssetUploads(nextContent);
         await writeContentFile();
         await writeSitemapFile();
 
@@ -2779,6 +3258,9 @@ if (adminApp) {
         path: "sitemap.xml",
         content: utf8ToBase64(buildSitemapXml(nextContent))
       }];
+      const pendingAssetFiles = await getPendingAssetExtraFiles(nextContent);
+
+      extraFiles.push(...pendingAssetFiles);
 
       adminNormalizeList(nextContent.blogPosts)
         .filter((post) => post && post.status !== "draft" && post.id)
@@ -2800,6 +3282,7 @@ if (adminApp) {
 
       await publishToGitHub(nextContent, extraFiles, "Update website content");
       state.baseContent = cloneContent(nextContent);
+      clearPendingAssetUploads(pendingAssetFiles.map((file) => file.path));
       setDirty(false);
       setStatus("已發布到 GitHub。本機檔案不會自動改動；需要本機同步時請用 git pull。", "success");
     } catch (error) {
@@ -2822,6 +3305,7 @@ if (adminApp) {
     }
 
     try {
+      await savePendingAssetUploads(state.content);
       await writeContentFile();
       await writeSitemapFile();
       await writeAllBlogPostFiles();
@@ -2846,6 +3330,7 @@ if (adminApp) {
       state.baseContent = cloneContent(state.content);
       setDirty(false);
       setStatus("內容已載入。可以直接編輯並發布到 GitHub；若要儲存回本機，請先選擇網站資料夾。", "success");
+      renderQuickFields();
       render();
     } catch (error) {
       console.warn(error);
@@ -2877,11 +3362,148 @@ if (adminApp) {
         setStatus("內容已載入，可以開始編輯。", "success");
       }
 
+      renderQuickFields();
       render();
     } catch (error) {
       console.error(error);
       setStatus("無法讀取 data/site-content.json，請確認選到網站根目錄。", "error");
     }
+  };
+
+  const getBlogTaxonomySelections = (root) => {
+    const item = root === editor && state.section === "blogPosts" ? getCurrentItem() : null;
+
+    return {
+      tags: item ? adminNormalizeList(item.tags) : getCheckedBlogTags(root),
+      series: item ? item.series || null : getSelectedBlogSeries(root)
+    };
+  };
+
+  const selectBlogOptionForRoot = (root, kind, option) => {
+    const item = root === editor && state.section === "blogPosts" ? getCurrentItem() : null;
+    let tags = item ? adminNormalizeList(item.tags) : getCheckedBlogTags(root);
+    let series = item ? item.series || null : getSelectedBlogSeries(root);
+
+    if (kind === "series") {
+      series = option;
+
+      if (item) {
+        item.series = { ...option };
+      }
+    } else {
+      tags = mergeBlogOptions(tags, [option]);
+
+      if (item) {
+        item.tags = tags;
+      }
+    }
+
+    refreshBlogTaxonomyControls(root, { tags, series });
+  };
+
+  const handleBlogTaxonomyClick = (root, event) => {
+    const target = event.target instanceof Element ? event.target : null;
+    const addButton = target?.closest("[data-add-blog-option]");
+    const removeButton = target?.closest("[data-remove-blog-option]");
+
+    if (!addButton && !removeButton) {
+      return false;
+    }
+
+    event.preventDefault();
+
+    if (!state.content) {
+      setStatus("內容尚未載入，請稍等或選擇網站資料夾。", "error");
+      return true;
+    }
+
+    if (addButton) {
+      const kind = addButton.dataset.addBlogOption || "tag";
+      const input = root.querySelector(`[data-new-blog-option-label="${kind}"]`);
+      const result = addBlogOption(kind, input?.value || "");
+
+      if (result.error) {
+        setStatus(result.error, "error");
+        return true;
+      }
+
+      selectBlogOptionForRoot(root, kind, result.option);
+      if (!result.existing || root === editor) {
+        setDirty(true);
+      }
+      setStatus(
+        result.existing
+          ? `已選取既有${getBlogOptionConfig(kind).label}：${result.option.label}`
+          : `已新增${getBlogOptionConfig(kind).label}：${result.option.label}`,
+        "success"
+      );
+      return true;
+    }
+
+    const kind = removeButton.dataset.blogOptionKind || "tag";
+    const slug = removeButton.dataset.removeBlogOption || "";
+    const option = getBlogOptionBySlug(kind, slug);
+    const label = option?.label || slug;
+
+    if (!window.confirm(`確定刪除「${label}」嗎？這會從所有 Blog 文章移除。`)) {
+      return true;
+    }
+
+    const selectedBeforeRemoval = getBlogTaxonomySelections(root);
+    const removed = removeBlogOption(kind, slug);
+
+    if (!removed) {
+      setStatus("找不到要刪除的項目。", "error");
+      return true;
+    }
+
+    const fallbackSelections = {
+      tags: adminNormalizeList(selectedBeforeRemoval.tags).filter((tag) => normalizeBlogOption(tag)?.slug !== removed.slug),
+      series: normalizeBlogOption(selectedBeforeRemoval.series)?.slug === removed.slug ? null : selectedBeforeRemoval.series
+    };
+
+    refreshBlogTaxonomyControls(root, root === editor ? getBlogTaxonomySelections(root) : fallbackSelections);
+    setDirty(true);
+    setStatus(`已刪除${getBlogOptionConfig(kind).label}：${removed.label}`, "success");
+    return true;
+  };
+
+  const handleBlogTaxonomyChange = (root, event) => {
+    const target = event.target instanceof Element ? event.target : null;
+
+    if (!target?.matches("[data-blog-option-field]")) {
+      return false;
+    }
+
+    const row = target.closest("[data-blog-option-row]");
+    const kind = row?.dataset.blogOptionKind || "tag";
+    const oldSlug = row?.dataset.blogOptionSlug || "";
+    const result = updateBlogOption(kind, oldSlug, {
+      label: row?.querySelector("[data-blog-option-field='label']")?.value || "",
+      slug: row?.querySelector("[data-blog-option-field='slug']")?.value || ""
+    });
+
+    if (result.error) {
+      setStatus(result.error, "error");
+      refreshBlogTaxonomyControls(root);
+      return true;
+    }
+
+    const selectedBeforeRefresh = getBlogTaxonomySelections(root);
+    const updatedSelections = root === editor
+      ? getBlogTaxonomySelections(root)
+      : {
+          tags: adminNormalizeList(selectedBeforeRefresh.tags)
+            .map((tag) => normalizeBlogOption(tag)?.slug === result.previous.slug ? result.option : tag),
+          series: normalizeBlogOption(selectedBeforeRefresh.series)?.slug === result.previous.slug
+            ? result.option
+            : selectedBeforeRefresh.series
+        };
+
+    refreshBlogTaxonomyControls(root, updatedSelections);
+    setDirty(true);
+    setStatus(`已更新${getBlogOptionConfig(kind).label}：${result.option.label}`, "success");
+    return true;
   };
 
   openFolderButton.addEventListener("click", openWebsiteFolder);
@@ -2930,38 +3552,31 @@ if (adminApp) {
 
   editor.addEventListener("input", updateCurrentItem);
   editor.addEventListener("change", updateCurrentItem);
-  editor.addEventListener("click", (event) => {
+  editor.addEventListener("change", (event) => {
+    handleBlogTaxonomyChange(editor, event);
+  });
+  editor.addEventListener("click", async (event) => {
     const target = event.target instanceof Element ? event.target : null;
-    const removeBlogTagButton = target?.closest("[data-remove-blog-tag]");
     const addTagButton = target?.closest("[data-add-publication-tag]");
     const markdownButton = target?.closest("[data-markdown-action]");
     const actionButton = target?.closest("[data-editor-open-folder], [data-editor-save], [data-editor-publish-github]");
 
-    if (markdownButton) {
-      const markdownEditor = markdownButton.closest(".admin-markdown-editor");
-
-      event.preventDefault();
-      applyMarkdownAction(markdownEditor?.querySelector("[data-markdown-editor]"), markdownButton.dataset.markdownAction);
+    if (handleBlogTaxonomyClick(editor, event)) {
       return;
     }
 
-    if (removeBlogTagButton) {
-      const item = getCurrentItem();
-      const slug = slugify(removeBlogTagButton.dataset.removeBlogTag || "");
-      const label = removeBlogTagButton.closest("[data-blog-tag-option]")?.querySelector("span")?.textContent?.trim() || slug;
+    if (markdownButton) {
+      const markdownEditor = markdownButton.closest(".admin-markdown-editor");
+      const markdownTextarea = markdownEditor?.querySelector("[data-markdown-editor]");
 
       event.preventDefault();
 
-      if (!item || state.section !== "blogPosts" || !slug) {
-        return;
+      if (markdownButton.dataset.markdownAction === "image") {
+        await insertMarkdownImage(markdownTextarea);
+      } else {
+        applyMarkdownAction(markdownTextarea, markdownButton.dataset.markdownAction);
       }
 
-      item.tags = adminNormalizeList(item.tags)
-        .map((tag) => normalizeBlogTag(tag))
-        .filter((tag) => tag && tag.slug !== slug);
-      setDirty(true);
-      setStatus(`已刪除文章標籤：${label}`, "success");
-      render();
       return;
     }
 
@@ -3006,27 +3621,11 @@ if (adminApp) {
     publishCurrentContent();
   });
   quickType.addEventListener("change", renderQuickFields);
-  quickFields.addEventListener("click", (event) => {
+  quickFields.addEventListener("click", async (event) => {
     const target = event.target instanceof Element ? event.target : null;
-    const removeBlogTagButton = target?.closest("[data-remove-blog-tag]");
     const button = target?.closest("[data-markdown-action]");
 
-    if (removeBlogTagButton) {
-      const option = removeBlogTagButton.closest("[data-blog-tag-option]");
-      const input = option?.querySelector("input[name='blogTags']");
-      const label = option?.querySelector("span")?.textContent?.trim() || removeBlogTagButton.dataset.removeBlogTag || "";
-
-      event.preventDefault();
-
-      if (quickType.value !== "blogPosts") {
-        return;
-      }
-
-      if (input) {
-        input.checked = false;
-      }
-
-      setStatus(`已刪除文章標籤：${label}`, "success");
+    if (handleBlogTaxonomyClick(quickFields, event)) {
       return;
     }
 
@@ -3035,9 +3634,18 @@ if (adminApp) {
     }
 
     event.preventDefault();
-    applyMarkdownAction(quickFields.querySelector("[data-markdown-editor]"), button.dataset.markdownAction);
+
+    if (button.dataset.markdownAction === "image") {
+      await insertMarkdownImage(quickFields.querySelector("[data-markdown-editor]"));
+    } else {
+      applyMarkdownAction(quickFields.querySelector("[data-markdown-editor]"), button.dataset.markdownAction);
+    }
   });
   quickFields.addEventListener("change", (event) => {
+    if (handleBlogTaxonomyChange(quickFields, event)) {
+      return;
+    }
+
     if (event.target.name === "honorCategory") {
       renderQuickHonorFields(event.target.value || "awards");
     }

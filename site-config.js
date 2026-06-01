@@ -25,6 +25,7 @@ window.SITE_CONFIG = {
     { slug: "research-notes", label: "研究筆記" },
     { slug: "academic-essay", label: "學術隨筆" }
   ],
+  blogSeriesOptions: [],
   publicationCategoryOptions: [
     { slug: "peer-reviewed-journal-publications", label: "Peer-Reviewed Journal Publications" },
     { slug: "published-conference-abstracts", label: "Published Conference Abstracts" },

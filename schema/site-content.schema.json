@@ -2,12 +2,20 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Personal website content",
   "type": "object",
-  "required": ["homeHighlights", "publications", "honors", "activities", "blogPosts"],
+  "required": ["homeHighlights", "blogTagOptions", "blogSeriesOptions", "publications", "honors", "activities", "blogPosts"],
   "additionalProperties": false,
   "properties": {
     "homeHighlights": {
       "type": "array",
       "items": { "$ref": "#/$defs/homeHighlight" }
+    },
+    "blogTagOptions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/tag" }
+    },
+    "blogSeriesOptions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/tag" }
     },
     "publications": {
       "type": "array",
@@ -185,6 +193,12 @@
         "tags": {
           "type": "array",
           "items": { "$ref": "#/$defs/tag" }
+        },
+        "series": {
+          "anyOf": [
+            { "$ref": "#/$defs/tag" },
+            { "type": "null" }
+          ]
         },
         "body": {
           "type": "array",

@@ -928,6 +928,70 @@ const renderBlogArticleTaxonomy = (tags = [], series = null) => {
     : "";
 };
 
+const upgradeLegacyArticleTaxonomy = () => {
+  const getArticleFooter = (article) => {
+    let footer = [...article.children].find((child) => child.classList?.contains("article-footer"));
+
+    if (!footer) {
+      footer = document.createElement("footer");
+      footer.className = "article-footer";
+      article.append(footer);
+    }
+
+    return footer;
+  };
+
+  document.querySelectorAll(".article > .article-header > .article-taxonomy").forEach((taxonomy) => {
+    const article = taxonomy.closest(".article");
+
+    if (article) {
+      getArticleFooter(article).append(taxonomy);
+    }
+  });
+
+  document.querySelectorAll(".article > .article-header > .post-tags").forEach((legacyTaxonomy) => {
+    if (legacyTaxonomy.dataset.articleTaxonomyUpgraded === "true") {
+      return;
+    }
+
+    const article = legacyTaxonomy.closest(".article");
+    const items = [...legacyTaxonomy.querySelectorAll(".tag-button")];
+
+    if (!article || !items.length) {
+      return;
+    }
+
+    const taxonomy = document.createElement("div");
+    const seriesItems = items.length > 1 ? [items[0]] : [];
+    const tagItems = items.length > 1 ? items.slice(1) : items;
+    const addRow = (label, rowItems) => {
+      if (!rowItems.length) {
+        return;
+      }
+
+      const row = document.createElement("div");
+      const labelElement = document.createElement("span");
+      const itemList = document.createElement("div");
+
+      row.className = "article-taxonomy-row";
+      labelElement.className = "article-taxonomy-label";
+      labelElement.textContent = label;
+      itemList.className = "article-taxonomy-items";
+      rowItems.forEach((item) => itemList.append(item));
+      row.append(labelElement, itemList);
+      taxonomy.append(row);
+    };
+
+    taxonomy.className = "article-taxonomy";
+    taxonomy.setAttribute("aria-label", legacyTaxonomy.getAttribute("aria-label") || "文章系列與標籤");
+    addRow("標籤：", tagItems);
+    addRow("系列：", seriesItems);
+    legacyTaxonomy.dataset.articleTaxonomyUpgraded = "true";
+    legacyTaxonomy.remove();
+    getArticleFooter(article).append(taxonomy);
+  });
+};
+
 const getBlogFilters = (posts = [], content) => {
   const usedTags = normalizeList(posts).flatMap((post) => normalizeList(post.tags));
   const usedSeries = normalizeList(posts).map((post) => post.series).filter(Boolean);
@@ -1129,7 +1193,7 @@ const renderBlogPost = (content) => {
   injectJsonLd("blog-post", blogPostJsonLd);
 
   const image = post.image
-    ? `<img class="article-image" src="${escapeHTML(post.image)}" alt="${escapeHTML(post.imageAlt || post.title)}" loading="lazy" decoding="async">`
+    ? `<figure class="article-cover-image"><img class="article-image" src="${escapeHTML(post.image)}" alt="${escapeHTML(post.imageAlt || post.title)}" loading="lazy" decoding="async"></figure>`
     : "";
   const body = normalizeList(post.body)
     .map(renderMarkdownBlock)
@@ -1141,12 +1205,12 @@ const renderBlogPost = (content) => {
       <p class="post-category">${escapeHTML(post.dateLabel || post.date || "")}</p>
       <h1>${escapeHTML(post.title || "")}</h1>
       <p class="article-dek">${renderTextWithBreaks(post.excerpt || "")}</p>
-      ${articleTaxonomy}
     </header>
     <div class="article-body">
       ${image}
       ${body}
     </div>
+    ${articleTaxonomy ? `<footer class="article-footer">${articleTaxonomy}</footer>` : ""}
   `;
 };
 
@@ -1603,6 +1667,7 @@ const setupPublicationFilters = () => {
 
 const loadSiteContent = async () => {
   if (!document.querySelector("[data-render]")) {
+    upgradeLegacyArticleTaxonomy();
     setupPublicationFilters();
     return;
   }
@@ -1615,8 +1680,10 @@ const loadSiteContent = async () => {
     }
 
     renderContent(await response.json());
+    upgradeLegacyArticleTaxonomy();
   } catch (error) {
     console.warn("Site content could not be loaded. Static fallback content is still visible.", error);
+    upgradeLegacyArticleTaxonomy();
     setupPublicationFilters();
   }
 };

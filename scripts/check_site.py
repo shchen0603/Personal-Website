@@ -340,7 +340,7 @@ def build_blog_post_html(post: dict) -> str:
     taxonomy_labels = [label for label in [series_label, *tags] if label]
     tags_html = article_taxonomy_html(tags, series_label)
     hero_image = (
-        f'<img class="article-image" src="{escape(nested_asset(post["image"]))}" alt="{escape(post.get("imageAlt") or title)}" loading="lazy" decoding="async">'
+        f'<figure class="article-cover-image"><img class="article-image" src="{escape(nested_asset(post["image"]))}" alt="{escape(post.get("imageAlt") or title)}" loading="lazy" decoding="async"></figure>'
         if post.get("image") else ""
     )
     body = "".join(render_markdown_block(part) for part in as_list(post.get("body")))
@@ -398,12 +398,12 @@ def build_blog_post_html(post: dict) -> str:
           <p class="post-category">{escape(post.get("dateLabel") or post.get("date") or "")}</p>
           <h1>{escape(title)}</h1>
           <p class="article-dek">{escape(excerpt)}</p>
-          {tags_html}
         </header>
         <div class="article-body">
           {hero_image}
           {body}
         </div>
+        {f'<footer class="article-footer">{tags_html}</footer>' if tags_html else ""}
       </article>
     </main>
 

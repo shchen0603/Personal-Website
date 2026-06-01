@@ -1095,8 +1095,8 @@ h3 {
 
 .article-taxonomy {
   display: grid;
-  gap: 0.55rem;
-  margin-top: 1rem;
+  gap: 0.45rem;
+  margin-top: 0;
 }
 
 .article-taxonomy-row {
@@ -1108,9 +1108,9 @@ h3 {
 
 .article-taxonomy-label {
   color: var(--muted);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 850;
-  line-height: 30px;
+  line-height: 28px;
   white-space: nowrap;
 }
 
@@ -1122,9 +1122,9 @@ h3 {
 }
 
 .article-taxonomy-items .tag-button {
-  min-height: 30px;
-  padding: 0.24rem 0.55rem;
-  font-size: 0.8rem;
+  min-height: 28px;
+  padding: 0.18rem 0.5rem;
+  font-size: 0.76rem;
 }
 
 .post-row.draft {
@@ -1169,6 +1169,12 @@ h3 {
 
 .article-body {
   padding-top: 2rem;
+}
+
+.article-footer {
+  margin-top: 3rem;
+  padding-top: 1.35rem;
+  border-top: 1px solid var(--line);
 }
 
 .article-body p,
@@ -1249,15 +1255,24 @@ h3 {
   font-weight: 800;
 }
 
+.article-cover-image {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin: 0 0 2.4rem;
+  overflow: visible;
+}
+
 .article-image {
   display: block;
   width: auto;
-  max-width: 100%;
+  max-width: min(100%, 720px);
   height: auto;
-  max-height: min(72vh, 620px);
-  margin: 0 auto 2rem;
+  max-height: none;
+  margin: 0;
   border-radius: 8px;
   object-fit: contain;
+  object-position: center;
 }
 
 .article-inline-image {

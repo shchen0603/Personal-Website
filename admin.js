@@ -619,7 +619,7 @@ if (adminApp) {
     const taxonomyLabels = [series, ...tags].filter(Boolean);
     const tagsHtml = renderStaticArticleTaxonomy(tags, series);
     const heroImage = post.image
-      ? `<img class="article-image" src="${escapeHtmlContent(getNestedAssetPath(post.image))}" alt="${escapeHtmlContent(post.imageAlt || title)}" loading="lazy" decoding="async">`
+      ? `<figure class="article-cover-image"><img class="article-image" src="${escapeHtmlContent(getNestedAssetPath(post.image))}" alt="${escapeHtmlContent(post.imageAlt || title)}" loading="lazy" decoding="async"></figure>`
       : "";
     const body = adminNormalizeList(post.body).map(renderMarkdownBlockForStatic).join("");
     const jsonLdData = {
@@ -687,12 +687,12 @@ if (adminApp) {
           <p class="post-category">${escapeHtmlContent(post.dateLabel || post.date || "")}</p>
           <h1>${escapeHtmlContent(title)}</h1>
           <p class="article-dek">${escapeHtmlContent(excerpt)}</p>
-          ${tagsHtml}
         </header>
         <div class="article-body">
           ${heroImage}
           ${body}
         </div>
+        ${tagsHtml ? `<footer class="article-footer">${tagsHtml}</footer>` : ""}
       </article>
     </main>
 

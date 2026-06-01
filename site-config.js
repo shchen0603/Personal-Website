@@ -27,7 +27,7 @@ window.SITE_CONFIG = {
   ],
   blogSeriesOptions: [],
   publicationCategoryOptions: [
-    { slug: "peer-reviewed-journal-publications", label: "Peer-Reviewed Journal Publications" },
+    { slug: "journal-publications", label: "Journal Publications" },
     { slug: "published-conference-abstracts", label: "Published Conference Abstracts" },
     { slug: "journal-cover-features", label: "Journal Cover Features" }
   ],

@@ -295,7 +295,7 @@ Publication 建議包含：
 
 `category` 目前常用：
 
-- `Peer-Reviewed Journal Publications`
+- `Journal Publications`
 - `Published Conference Abstracts`
 - `Journal Cover Features`
 

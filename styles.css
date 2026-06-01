@@ -856,11 +856,6 @@ h3 {
   font-size: 0.85rem;
 }
 
-[data-publication-group-slug="published-conference-abstracts"] .publication-item,
-[data-publication-group-slug="journal-cover-features"] .publication-item {
-  background: var(--wash);
-}
-
 [data-publication-group-slug="published-conference-abstracts"] .publication-item h3 {
   font-size: 1.02rem;
 }

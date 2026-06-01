@@ -134,7 +134,7 @@ if (adminApp) {
   const honorCategoryUsesDate = (category) =>
     category === "talks" || category === "presentations";
   const PUBLICATION_CATEGORY_OPTIONS = SITE_CONFIG.publicationCategoryOptions || [
-    { slug: "peer-reviewed-journal-publications", label: "Peer-Reviewed Journal Publications" },
+    { slug: "journal-publications", label: "Journal Publications" },
     { slug: "published-conference-abstracts", label: "Published Conference Abstracts" },
     { slug: "journal-cover-features", label: "Journal Cover Features" }
   ];
@@ -1823,9 +1823,15 @@ if (adminApp) {
     return removed;
   };
 
-  const getPublicationCategory = (value = "") =>
-    PUBLICATION_CATEGORY_OPTIONS.find((category) => slugify(value) === category.slug)
-    || PUBLICATION_CATEGORY_OPTIONS[0];
+  const getPublicationCategory = (value = "") => {
+    const aliases = {
+      "peer-reviewed-journal-publications": "journal-publications"
+    };
+    const slug = aliases[slugify(value)] || slugify(value);
+
+    return PUBLICATION_CATEGORY_OPTIONS.find((category) => slug === category.slug)
+      || PUBLICATION_CATEGORY_OPTIONS[0];
+  };
 
   const getFirstLinkHref = (links) => adminNormalizeList(links)[0]?.href || "";
 

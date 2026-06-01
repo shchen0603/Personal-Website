@@ -422,7 +422,7 @@ const honorCategoryUsesDate = (category) =>
   category === "talks" || category === "presentations";
 
 const PUBLICATION_CATEGORY_OPTIONS = SITE_CONFIG.publicationCategoryOptions || [
-  { slug: "peer-reviewed-journal-publications", label: "Peer-Reviewed Journal Publications" },
+  { slug: "journal-publications", label: "Journal Publications" },
   { slug: "published-conference-abstracts", label: "Published Conference Abstracts" },
   { slug: "journal-cover-features", label: "Journal Cover Features" }
 ];
@@ -452,7 +452,10 @@ const PUBLICATION_TAG_OPTIONS = SITE_CONFIG.publicationTagOptions || [
 ];
 
 const getPublicationCategoryOption = (category) => {
-  const slug = slugify(category || "");
+  const aliases = {
+    "peer-reviewed-journal-publications": "journal-publications"
+  };
+  const slug = aliases[slugify(category || "")] || slugify(category || "");
 
   return PUBLICATION_CATEGORY_OPTIONS.find((option) => option.slug === slug) || null;
 };
@@ -461,18 +464,22 @@ const inferPublicationCategory = (publication) => {
   const tags = normalizeList(publication.tags).map((tag) => tag.slug);
 
   if (tags.includes("cover-feature")) {
-    return PUBLICATION_CATEGORY_OPTIONS[2];
+    return getPublicationCategoryOption("journal-cover-features") || PUBLICATION_CATEGORY_OPTIONS[PUBLICATION_CATEGORY_OPTIONS.length - 1];
   }
 
   if (/^abstract\b/i.test(publication.title || "")) {
-    return PUBLICATION_CATEGORY_OPTIONS[1];
+    return getPublicationCategoryOption("published-conference-abstracts") || PUBLICATION_CATEGORY_OPTIONS[0];
   }
 
   return PUBLICATION_CATEGORY_OPTIONS[0];
 };
 
-const getPublicationCategory = (publication) =>
-  getPublicationCategoryOption(publication.category) || inferPublicationCategory(publication);
+const getPublicationCategory = (publication) => {
+  const selected = getPublicationCategoryOption(publication.category);
+  const inferred = inferPublicationCategory(publication);
+
+  return selected || inferred;
+};
 
 const getPublicationTagOption = (slug) =>
   PUBLICATION_TAG_OPTIONS.find((tag) => tag.slug === slug) || null;

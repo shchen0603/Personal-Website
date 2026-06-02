@@ -1327,6 +1327,20 @@ h3 {
   gap: 0.85rem;
 }
 
+.honor-award-group {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.honor-award-group h3 {
+  margin: 0;
+  color: var(--teal-dark);
+  font-size: 0.92rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .honor-item {
   display: grid;
   grid-template-columns: 120px 1fr;

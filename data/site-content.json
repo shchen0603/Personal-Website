@@ -392,52 +392,62 @@
       {
         "year": "2026",
         "title": "Third Place, Oral Research Presentation Award",
-        "description": "Taiwan Society of Aldosteronism Scientific Meeting"
+        "description": "Taiwan Society of Aldosteronism Scientific Meeting",
+        "scope": "domestic"
       },
       {
         "year": "2026",
         "title": "Abstract Review Ranking 1st",
-        "description": "Pulse of Asia International Conference."
+        "description": "Pulse of Asia International Conference.",
+        "scope": "international"
       },
       {
         "year": "2026",
         "title": "Paul Dudley White International Scholar Award",
-        "description": "American Heart Association EPI|Lifestyle Scientific Sessions."
+        "description": "American Heart Association EPI|Lifestyle Scientific Sessions.",
+        "scope": "international"
       },
       {
         "year": "2024-2026",
         "title": "Scholarship for Outstanding Medical Talent",
-        "description": "Taipei Veterans General Hospital & National Yang Ming Chiao Tung University. Awarded four times."
+        "description": "Taipei Veterans General Hospital & National Yang Ming Chiao Tung University. Awarded four times.",
+        "scope": "domestic"
       },
       {
         "year": "2025",
         "title": "Second Place, Oral Research Presentation Award",
-        "description": "Taiwan Society of Hypertension Annual Scientific Meeting."
+        "description": "Taiwan Society of Hypertension Annual Scientific Meeting.",
+        "scope": "domestic"
       },
       {
         "year": "2025",
         "title": "Incentives for Students' Excellent Research",
-        "description": "National Yang Ming Chiao Tung University. Awarded twice."
+        "description": "National Yang Ming Chiao Tung University. Awarded twice.",
+        "scope": "domestic"
       },
       {
         "year": "2025",
         "title": "Undergraduate Research Project Scholarship",
-        "description": "Ministry of Science and Technology, Taiwan."
+        "description": "Ministry of Science and Technology, Taiwan.",
+        "scope": "domestic"
       },
       {
         "year": "2024",
         "title": "Gen. & Mrs. M.C. Peng Fellowship",
-        "description": "National Yang Ming Chiao Tung University School of Medicine. Awarded twice."
+        "description": "National Yang Ming Chiao Tung University School of Medicine. Awarded twice.",
+        "scope": "domestic"
       },
       {
         "year": "2024",
         "title": "2024 Outstanding Paper Award",
-        "description": "National Yang Ming Chiao Tung University College of Medicine."
+        "description": "National Yang Ming Chiao Tung University College of Medicine.",
+        "scope": "domestic"
       },
       {
         "year": "2024",
         "title": "2024 Q1 Distinguished Journal Article Award",
-        "description": "National Yang Ming Chiao Tung University."
+        "description": "National Yang Ming Chiao Tung University.",
+        "scope": "domestic"
       }
     ],
     "talks": [

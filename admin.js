@@ -2130,6 +2130,20 @@ if (adminApp) {
     <option value="mediaCoverage" ${selected === "mediaCoverage" ? "selected" : ""}>Media Coverage</option>
   `;
 
+  const honorAwardScopeField = (selected = "domestic") => {
+    const current = selected === "international" ? "international" : "domestic";
+
+    return `
+      <label class="admin-field">
+        <span>獎項範圍</span>
+        <select name="scope">
+          <option value="international" ${current === "international" ? "selected" : ""}>International Awards</option>
+          <option value="domestic" ${current === "domestic" ? "selected" : ""}>Domestic Awards</option>
+        </select>
+      </label>
+    `;
+  };
+
   const quickHonorCategoryField = (selected = "awards") => `
     <label class="admin-field">
       <span>類型</span>
@@ -2178,7 +2192,7 @@ if (adminApp) {
     quickFields.innerHTML = `
       <div class="admin-grid two">
         ${quickHonorCategoryField(category)}
-        ${field("date", dateLabel, "", "date")}
+        ${category === "awards" ? honorAwardScopeField("domestic") : field("date", dateLabel, "", "date")}
       </div>
       <div class="admin-grid two">
         ${field("dateLabel", "顯示日期", "")}
@@ -2285,7 +2299,8 @@ if (adminApp) {
     return {
       year: new Date().getFullYear().toString(),
       title: "New honor",
-      description: ""
+      description: "",
+      ...(state.honorCategory === "awards" ? { scope: "domestic" } : {})
     };
   };
 
@@ -2660,6 +2675,10 @@ if (adminApp) {
         honorCategory
       };
 
+      if (honorCategory === "awards") {
+        item.scope = formData.get("scope") === "international" ? "international" : "domestic";
+      }
+
       if (honorCategoryUsesDate(honorCategory) || date || dateLabel) {
         item.date = date;
         item.dateLabel = dateLabel || (date ? formatDateForDisplay(date) : "");
@@ -2909,6 +2928,7 @@ if (adminApp) {
       <div class="admin-grid two">
         ${field("year", "年份", item.year)}
         ${field("title", "標題", item.title)}
+        ${state.honorCategory === "awards" ? honorAwardScopeField(item.scope) : ""}
       </div>
       ${textarea("description", "說明", item.description, 5)}
       ${editorActionsMarkup()}

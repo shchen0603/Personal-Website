@@ -316,7 +316,7 @@ Publication 建議包含：
 - `mediaCoverage`: 媒體報導。
 - `services`: 學術服務，例如 reviewer 紀錄。
 
-`talks` 與 `presentations` 支援日期排序；建議同時維護 `date` 與 `dateLabel`。
+`awards` 可用 `scope` 分成 `international` 與 `domestic`。`talks` 與 `presentations` 支援日期排序；建議同時維護 `date` 與 `dateLabel`。
 
 ### 更新首頁亮點
 

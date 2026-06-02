@@ -727,6 +727,31 @@ const renderHonorItem = (item) => `
   </article>
 `;
 
+const getAwardScope = (item) =>
+  String(item?.scope || "").toLowerCase() === "international" ? "international" : "domestic";
+
+const getAwardGroups = (awards = []) => [
+  {
+    scope: "international",
+    label: "International Awards",
+    items: awards.filter((award) => getAwardScope(award) === "international")
+  },
+  {
+    scope: "domestic",
+    label: "Domestic Awards",
+    items: awards.filter((award) => getAwardScope(award) === "domestic")
+  }
+].filter((group) => group.items.length);
+
+const renderAwardGroup = (group) => `
+  <section class="honor-award-group" data-award-scope="${escapeHTML(group.scope)}">
+    <h3>${escapeHTML(group.label)}</h3>
+    <div class="honor-list">
+      ${group.items.map(renderHonorItem).join("")}
+    </div>
+  </section>
+`;
+
 const HONORS_LOAD_MORE_LIMIT = 3;
 const HONORS_LOAD_MORE_RENDER_TARGETS = [
   "honor-awards",
@@ -739,11 +764,14 @@ const HONORS_LOAD_MORE_RENDER_TARGETS = [
 const setupHonorsLoadMore = () => {
   HONORS_LOAD_MORE_RENDER_TARGETS.forEach((target) => {
     document.querySelectorAll(`[data-render='${target}']`).forEach((container) => {
-      const items = [...container.children].filter((child) =>
-        child.matches(".honor-item, .media-coverage-item, .service-list-block")
-      );
+      const items = [...container.querySelectorAll(".honor-item, .media-coverage-item, .service-list-block")];
       const parent = container.parentElement;
       const previousControl = parent?.querySelector(`[data-honors-load-more='${target}']`);
+      const syncAwardGroups = () => {
+        container.querySelectorAll(".honor-award-group").forEach((group) => {
+          group.hidden = ![...group.querySelectorAll(".honor-item")].some((item) => !item.hidden);
+        });
+      };
 
       if (previousControl) {
         previousControl.remove();
@@ -753,6 +781,7 @@ const setupHonorsLoadMore = () => {
         items.forEach((item) => {
           item.hidden = false;
         });
+        syncAwardGroups();
         container.dataset.honorsExpanded = "false";
         return;
       }
@@ -774,6 +803,7 @@ const setupHonorsLoadMore = () => {
         items.forEach((item, index) => {
           item.hidden = !expanded && index >= HONORS_LOAD_MORE_LIMIT;
         });
+        syncAwardGroups();
 
         button.textContent = expanded ? "show less..." : "load more...";
         button.setAttribute("aria-label", expanded ? "Show fewer items" : `Load ${hiddenCount} more items`);
@@ -1465,7 +1495,7 @@ const renderContent = (content) => {
   });
 
   document.querySelectorAll("[data-render='honor-awards']").forEach((container) => {
-    container.innerHTML = awardHonors.map(renderHonorItem).join("");
+    container.innerHTML = getAwardGroups(awardHonors).map(renderAwardGroup).join("");
   });
 
   document.querySelectorAll("[data-render='honor-talks']").forEach((container) => {

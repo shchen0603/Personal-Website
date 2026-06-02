@@ -873,7 +873,7 @@ const renderServiceCard = (item) => {
       const serviceItem = typeof entry === "string" ? { label: entry } : entry;
       const label = escapeHTML(serviceItem.label || serviceItem.title || "");
 
-      return `<li>${serviceItem.highlight ? `<strong>${label}</strong>` : label}</li>`;
+      return `<li>${serviceItem.highlight ? `<strong class="service-highlight">${label}</strong>` : label}</li>`;
     })
     .join("");
   const memberships = normalizeList(item.memberships)

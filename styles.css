@@ -615,6 +615,12 @@ h3 {
   display: list-item;
 }
 
+.service-bullet-list strong,
+.service-highlight {
+  color: var(--teal-dark);
+  font-weight: 850;
+}
+
 .service-period {
   display: inline-block;
   min-width: 120px;

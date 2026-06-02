@@ -1497,7 +1497,13 @@ if (adminApp) {
 
   const normalizeBlogOption = (option) => {
     const source = typeof option === "string" ? { slug: option, label: option } : option || {};
-    const slug = slugify(source.slug || source.label || "");
+    const value = source.slug || source.label || "";
+
+    if (!String(value).trim()) {
+      return null;
+    }
+
+    const slug = slugify(value);
 
     return slug
       ? {
@@ -1711,8 +1717,11 @@ if (adminApp) {
   const getCheckedBlogTags = (root) =>
     getBlogOptionsFromSlugs("tag", getCheckedBlogTagSlugs(root));
 
-  const getSelectedBlogSeriesSlug = (root) =>
-    slugify(root.querySelector("input[name='blogSeries']:checked")?.value || "");
+  const getSelectedBlogSeriesSlug = (root) => {
+    const value = root.querySelector("input[name='blogSeries']:checked")?.value || "";
+
+    return value.trim() ? slugify(value) : "";
+  };
 
   const getSelectedBlogSeries = (root) => {
     const slug = getSelectedBlogSeriesSlug(root);

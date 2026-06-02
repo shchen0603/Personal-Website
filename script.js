@@ -343,7 +343,13 @@ const DEFAULT_BLOG_SERIES_OPTIONS = SITE_CONFIG.blogSeriesOptions || [];
 
 const normalizeBlogTaxonomyItem = (item) => {
   const source = typeof item === "string" ? { slug: item, label: item } : item || {};
-  const slug = slugify(source.slug || source.label || "");
+  const value = source.slug || source.label || "";
+
+  if (!String(value).trim()) {
+    return null;
+  }
+
+  const slug = slugify(value);
 
   return slug
     ? {

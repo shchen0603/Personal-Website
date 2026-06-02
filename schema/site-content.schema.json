@@ -131,7 +131,7 @@
         "description": { "type": "string" },
         "items": {
           "type": "array",
-          "items": { "type": ["string", "object"] }
+          "items": { "$ref": "#/$defs/serviceListItem" }
         },
         "memberships": {
           "type": "array",
@@ -142,6 +142,20 @@
           "items": { "$ref": "#/$defs/link" }
         }
       }
+    },
+    "serviceListItem": {
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "object",
+          "required": ["label"],
+          "properties": {
+            "label": { "type": "string", "minLength": 1 },
+            "title": { "type": "string" },
+            "highlight": { "type": "boolean" }
+          }
+        }
+      ]
     },
     "activityImage": {
       "type": "object",

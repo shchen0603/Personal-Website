@@ -248,14 +248,6 @@ python3 -m http.server 8000
 python3 scripts/check_site.py
 ```
 
-目前若看到這個 warning：
-
-```text
-assets/Personal Photo.jpeg looks like a raw image
-```
-
-意思是那張照片看起來像原始照片，建議不要放進公開網站。這不是錯誤；只要最後出現 `Site check passed`，網站檢查就是通過。
-
 ## 內容更新流程
 
 建議日常更新使用管理頁。
@@ -316,7 +308,7 @@ Publication 建議包含：
 - `mediaCoverage`: 媒體報導。
 - `services`: 學術服務，例如 reviewer 紀錄。
 
-`awards` 可用 `scope` 分成 `international` 與 `domestic`。`talks` 與 `presentations` 支援日期排序；建議同時維護 `date` 與 `dateLabel`。
+`awards` 可用 `scope` 分成 `international` 與 `domestic`。`services.items` 可使用純文字，或 `{ "label": "...", "highlight": true }` 讓 reviewer 項目以粗體顯示。`talks` 與 `presentations` 支援日期排序；建議同時維護 `date` 與 `dateLabel`。
 
 ### 更新首頁亮點
 

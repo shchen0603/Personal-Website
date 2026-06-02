@@ -869,7 +869,12 @@ const renderServiceCard = (item) => {
     .map((link) => `<a href="${escapeHTML(link.href || "#")}" rel="noreferrer">${escapeHTML(link.label || "Link")}</a>`)
     .join("");
   const items = normalizeList(item.items)
-    .map((entry) => `<li>${escapeHTML(typeof entry === "string" ? entry : entry.label || entry.title || "")}</li>`)
+    .map((entry) => {
+      const serviceItem = typeof entry === "string" ? { label: entry } : entry;
+      const label = escapeHTML(serviceItem.label || serviceItem.title || "");
+
+      return `<li>${serviceItem.highlight ? `<strong>${label}</strong>` : label}</li>`;
+    })
     .join("");
   const memberships = normalizeList(item.memberships)
     .map((entry) => {

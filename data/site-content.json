@@ -551,13 +551,32 @@
           "BMC Health Services Research",
           "BMC Ophthalmology",
           "BMC Public Health",
-          "Diabetes Research and Clinical Practice",
+          {
+            "label": "Cardiac Failure Review",
+            "highlight": true
+          },
+          {
+            "label": "Diabetes Research and Clinical Practice",
+            "highlight": true
+          },
           "Diabetology & Metabolic Syndrome",
           "Discover Public Health",
           "Discover Social Science and Health",
-          "European Journal of Preventive Cardiology",
+          {
+            "label": "European Heart Journal",
+            "highlight": true
+          },
+          "European Heart Journal - Quality of Care and Clinical Outcomes",
+          {
+            "label": "European Journal of Preventive Cardiology",
+            "highlight": true
+          },
           "Scientific Reports",
-          "The American Journal of Clinical Nutrition"
+          "Journal of the Chinese Medical Association",
+          {
+            "label": "The American Journal of Clinical Nutrition",
+            "highlight": true
+          }
         ],
         "links": []
       },
@@ -571,6 +590,10 @@
           {
             "period": "2025-present",
             "label": "Member of Taiwan Hypertension Society (THS)"
+          },
+          {
+            "period": "2026-present",
+            "label": "Member of Taiwan Society of Aldosteronism (TSA)"
           }
         ],
         "links": []

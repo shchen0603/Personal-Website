@@ -16,11 +16,11 @@ admin.html
   -> admin.js loads/edits data/site-content.json
   -> optionally writes local files through File System Access API
   -> optionally publishes directly to GitHub through GitHub API
-  -> regenerates sitemap.xml, static blog pages under posts/, and static activity pages under activities/
+  -> regenerates sitemap.xml, blog.html static fallback links, static blog pages under posts/, and static activity pages under activities/
 
 scripts/check_site.py
-  -> checks content data, image paths, generated pages, and sitemap
-  -> can regenerate static pages with --fix
+  -> checks content data, image paths, generated pages, blog.html fallback links, noindex usage, and sitemap
+  -> can regenerate sitemap, blog.html fallback links, and static pages with --fix
 ```
 
 目前的內容資料流有兩層：
@@ -119,9 +119,10 @@ scripts/check_site.py
 - 編輯 JSON 對應內容。
 - 本機儲存 `data/site-content.json`。
 - 本機重新產生 `sitemap.xml`。
+- 本機重新產生 `blog.html` 裡的靜態文章列表，讓搜尋引擎不靠 JavaScript 也能看到公開文章連結。
 - 本機重新產生已發布 Blog 的 `posts/<id>.html`。
 - 本機重新產生 Activity 的 `activities/<id>.html`。
-- 直接透過 GitHub API 發布到 repository。
+- 直接透過 GitHub API 發布到 repository，並同步提交 `sitemap.xml`、`blog.html` 靜態文章列表與預生成頁面。
 - 發布前比對 GitHub 最新內容，降低覆蓋遠端修改的風險。
 - 上傳圖片時自動壓縮、轉成 WebP、移除 EXIF/GPS metadata。
 - 上傳 `.heic` / `.heif` 時先透過 `vendor/heic2any.min.js` 轉檔。
@@ -213,7 +214,9 @@ python3 scripts/check_site.py
 - 圖片路徑是否真的找得到檔案。
 - 已發布 Blog 是否有 `posts/<id>.html`。
 - Activity 是否有 `activities/<id>.html`。
+- `blog.html` 的靜態文章列表是否和目前已發布 Blog 一致。
 - `sitemap.xml` 是否包含目前應該公開的頁面。
+- 是否有非預期的 `noindex`。
 
 ### 修正/重產生網站檔案後再檢查
 

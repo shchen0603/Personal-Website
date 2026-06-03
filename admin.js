@@ -336,6 +336,8 @@ if (adminApp) {
   const SITE_ORIGIN = SITE_CONFIG.siteOrigin || "https://shchen0603.github.io/Personal-Website";
   const getStaticBlogPath = (post) => `posts/${encodeURIComponent(post.id)}.html`;
   const getStaticActivityPath = (activity) => `activities/${encodeURIComponent(activity.id)}.html`;
+  const BLOG_INDEX_FALLBACK_START = "<!-- BLOG INDEX STATIC FALLBACK START -->";
+  const BLOG_INDEX_FALLBACK_END = "<!-- BLOG INDEX STATIC FALLBACK END -->";
 
   const buildSitemapXml = (content) => {
     const today = new Date().toISOString().slice(0, 10);
@@ -382,6 +384,92 @@ if (adminApp) {
     const writable = await fileHandle.createWritable();
 
     await writable.write(buildSitemapXml(state.content));
+    await writable.close();
+  };
+
+  const getPublishedBlogPosts = (content) =>
+    adminNormalizeList(content?.blogPosts)
+      .filter((post) => post && post.status !== "draft" && post.id);
+
+  const buildBlogIndexFallbackHtml = (content) => {
+    const posts = getPublishedBlogPosts(content);
+
+    if (!posts.length) {
+      return [
+        `        ${BLOG_INDEX_FALLBACK_START}`,
+        '        <p class="blog-note">More research notes coming soon.</p>',
+        `        ${BLOG_INDEX_FALLBACK_END}`
+      ].join("\n");
+    }
+
+    const rows = posts.map((post) => {
+      const date = post.date || "";
+      const dateLabel = post.dateLabel || date;
+      const title = post.title || "";
+      const excerpt = post.excerpt || "";
+
+      return [
+        '        <article class="post-row">',
+        `          <time datetime="${escapeHtmlContent(date)}">${escapeHtmlContent(dateLabel)}</time>`,
+        "          <div>",
+        `            <h2><a href="${escapeHtmlContent(getStaticBlogPath(post))}">${escapeHtmlContent(title)}</a></h2>`,
+        `            <p>${escapeHtmlContent(excerpt).replace(/\r\n?/g, "\n").replace(/\n/g, "<br>")}</p>`,
+        "          </div>",
+        "        </article>"
+      ].join("\n");
+    });
+
+    return [
+      `        ${BLOG_INDEX_FALLBACK_START}`,
+      rows.join("\n"),
+      `        ${BLOG_INDEX_FALLBACK_END}`
+    ].join("\n");
+  };
+
+  const replaceBlogIndexFallbackHtml = (template, content) => {
+    const start = template.indexOf(BLOG_INDEX_FALLBACK_START);
+    const end = template.indexOf(BLOG_INDEX_FALLBACK_END);
+
+    if (start === -1 || end === -1 || end < start) {
+      throw new Error("blog.html is missing static fallback markers.");
+    }
+
+    return [
+      template.slice(0, start),
+      buildBlogIndexFallbackHtml(content),
+      template.slice(end + BLOG_INDEX_FALLBACK_END.length)
+    ].join("");
+  };
+
+  const readBlogIndexTemplate = async () => {
+    if (state.rootHandle) {
+      const fileHandle = await getFileHandle("blog.html");
+      const file = await fileHandle.getFile();
+      return file.text();
+    }
+
+    const response = await fetch("blog.html", { cache: "no-store" });
+
+    if (!response.ok) {
+      throw new Error(`Unable to read blog.html: HTTP ${response.status}`);
+    }
+
+    return response.text();
+  };
+
+  const buildBlogIndexHtml = async (content) =>
+    replaceBlogIndexFallbackHtml(await readBlogIndexTemplate(), content);
+
+  const writeBlogIndexFile = async () => {
+    if (!state.rootHandle || !state.content) {
+      return;
+    }
+
+    const fileHandle = await getFileHandle("blog.html", true);
+    const nextHtml = replaceBlogIndexFallbackHtml(await readBlogIndexTemplate(), state.content);
+    const writable = await fileHandle.createWritable();
+
+    await writable.write(nextHtml);
     await writable.close();
   };
 
@@ -3325,6 +3413,11 @@ if (adminApp) {
           content: utf8ToBase64(buildSitemapXml(nextContent))
         });
 
+        extraFiles.push({
+          path: "blog.html",
+          content: utf8ToBase64(await buildBlogIndexHtml(nextContent))
+        });
+
         if (type === "blogPosts") {
           extraFiles.push({
             path: getStaticBlogPath(item),
@@ -3355,6 +3448,7 @@ if (adminApp) {
         await savePendingAssetUploads(nextContent);
         await writeContentFile();
         await writeSitemapFile();
+        await writeBlogIndexFile();
 
         if (type === "blogPosts") {
           await writeBlogPostFile(item);
@@ -3400,10 +3494,17 @@ if (adminApp) {
       await assertRemoteContentIsCurrent(nextContent);
       setStatus("正在發布到 GitHub...", "");
 
-      const extraFiles = [{
-        path: "sitemap.xml",
-        content: utf8ToBase64(buildSitemapXml(nextContent))
-      }];
+      const blogIndexHtml = await buildBlogIndexHtml(nextContent);
+      const extraFiles = [
+        {
+          path: "sitemap.xml",
+          content: utf8ToBase64(buildSitemapXml(nextContent))
+        },
+        {
+          path: "blog.html",
+          content: utf8ToBase64(blogIndexHtml)
+        }
+      ];
       const pendingAssetFiles = await getPendingAssetExtraFiles(nextContent);
 
       extraFiles.push(...pendingAssetFiles);
@@ -3454,10 +3555,11 @@ if (adminApp) {
       await savePendingAssetUploads(state.content);
       await writeContentFile();
       await writeSitemapFile();
+      await writeBlogIndexFile();
       await writeAllBlogPostFiles();
       await writeAllActivityFiles();
       setDirty(false);
-      setStatus("已儲存 data/site-content.json、sitemap.xml、blog 靜態檔與 activity 靜態檔。", "success");
+      setStatus("已儲存 data/site-content.json、sitemap.xml、blog 列表、blog 靜態檔與 activity 靜態檔。", "success");
     } catch (error) {
       console.error(error);
       setStatus("儲存失敗，請確認瀏覽器仍有資料夾寫入權限。", "error");

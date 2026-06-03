@@ -22,6 +22,13 @@ BASE_PAGES = [
     "blog.html",
     "contact.html",
 ]
+BLOG_INDEX_FALLBACK_START = "<!-- BLOG INDEX STATIC FALLBACK START -->"
+BLOG_INDEX_FALLBACK_END = "<!-- BLOG INDEX STATIC FALLBACK END -->"
+INTENTIONAL_NOINDEX_PAGES = {
+    "posts/_template.html",
+    "posts/2026-06-01-association.html",
+    "posts/2026-06-01-item.html",
+}
 ALLOWED_RAW_ASSETS = {"assets/cardiovascular-epidemiology-hero-og.jpg"}
 RAW_IMAGE_PATTERN = re.compile(r"\.(jpe?g|png|heic|heif|tiff?)$", re.I)
 
@@ -561,8 +568,60 @@ def build_sitemap_xml(content: dict) -> str:
     return f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{entries}\n</urlset>\n'
 
 
+def published_blog_posts(content: dict) -> list[dict]:
+    return [
+        post for post in as_list(content.get("blogPosts"))
+        if post.get("status") != "draft" and post.get("id")
+    ]
+
+
+def build_blog_index_fallback_html(content: dict) -> str:
+    posts = published_blog_posts(content)
+
+    if not posts:
+        return (
+            f"        {BLOG_INDEX_FALLBACK_START}\n"
+            '        <p class="blog-note">More research notes coming soon.</p>\n'
+            f"        {BLOG_INDEX_FALLBACK_END}"
+        )
+
+    rows = []
+    for post in posts:
+        date = post.get("date") or ""
+        date_label = post.get("dateLabel") or date
+        title = post.get("title") or ""
+        excerpt = post.get("excerpt") or ""
+        rows.append(
+            '        <article class="post-row">\n'
+            f'          <time datetime="{escape(date)}">{escape(date_label)}</time>\n'
+            "          <div>\n"
+            f'            <h2><a href="{escape(blog_path(post))}">{escape(title)}</a></h2>\n'
+            f"            <p>{render_text_with_breaks(excerpt)}</p>\n"
+            "          </div>\n"
+            "        </article>"
+        )
+
+    return (
+        f"        {BLOG_INDEX_FALLBACK_START}\n"
+        + "\n".join(rows)
+        + f"\n        {BLOG_INDEX_FALLBACK_END}"
+    )
+
+
+def replace_blog_index_fallback_html(template: str, content: dict) -> str:
+    start = template.find(BLOG_INDEX_FALLBACK_START)
+    end = template.find(BLOG_INDEX_FALLBACK_END)
+
+    if start == -1 or end == -1 or end < start:
+        raise ValueError("blog.html is missing blog index fallback markers.")
+
+    end += len(BLOG_INDEX_FALLBACK_END)
+    return f"{template[:start]}{build_blog_index_fallback_html(content)}{template[end:]}"
+
+
 def generate_static_files(content: dict) -> None:
     write_text("sitemap.xml", build_sitemap_xml(content))
+    write_text("blog.html", replace_blog_index_fallback_html(read_text("blog.html"), content))
     for post in as_list(content.get("blogPosts")):
         if post.get("status") != "draft" and post.get("id"):
             write_text(blog_path(post), build_blog_post_html(post))
@@ -654,8 +713,14 @@ def check_content(content: dict) -> None:
 def check_generated_files(content: dict) -> None:
     sitemap_path = ROOT / "sitemap.xml"
     sitemap = sitemap_path.read_text(encoding="utf-8") if sitemap_path.exists() else ""
+    blog_index_path = ROOT / "blog.html"
+    blog_index_html = blog_index_path.read_text(encoding="utf-8") if blog_index_path.exists() else ""
     if not sitemap:
         add_error("sitemap.xml is missing.")
+    if not blog_index_html:
+        add_error("blog.html is missing.")
+    elif build_blog_index_fallback_html(content) not in blog_index_html:
+        add_error("blog.html static fallback is stale. Run python3 scripts/check_site.py --fix.")
     for page in BASE_PAGES:
         url = site_url(page)
         if sitemap and url.replace("&", "&amp;") not in sitemap:
@@ -669,6 +734,8 @@ def check_generated_files(content: dict) -> None:
             add_error(f"Missing generated blog page: {path}")
         if sitemap and url not in sitemap:
             add_error(f"sitemap.xml is missing {url}")
+        if blog_index_html and path not in blog_index_html:
+            add_error(f"blog.html static fallback is missing {path}")
     for activity in as_list(content.get("activities")):
         if not activity.get("id"):
             continue
@@ -680,6 +747,11 @@ def check_generated_files(content: dict) -> None:
             add_error(f"sitemap.xml is missing {url}")
     if "activity.html?id=" in sitemap:
         add_warning("sitemap.xml still contains old activity.html?id=... URLs. Run python3 scripts/check_site.py --fix.")
+    for html_path in ROOT.rglob("*.html"):
+        relative_path = html_path.relative_to(ROOT).as_posix()
+        html = html_path.read_text(encoding="utf-8")
+        if "noindex" in html.lower() and relative_path not in INTENTIONAL_NOINDEX_PAGES:
+            add_error(f"Unexpected noindex tag in {relative_path}")
 
 
 def check_raw_assets() -> None:

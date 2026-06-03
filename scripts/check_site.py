@@ -61,6 +61,7 @@ def is_safe_markdown_image_src(value="") -> bool:
 
 def render_inline_markdown(value="") -> str:
     output = escape(value)
+    output = re.sub(r"\\\((.+?)\\\)", r'<span class="math-inline">\\(\1\\)</span>', output)
     output = re.sub(r"`([^`]+)`", r"<code>\1</code>", output)
     output = re.sub(
         r"(^|[^!])\[([^\]]+)\]((?:\(https?://[^)\s]+\)|\(mailto:[^)\s]+\)))",
@@ -91,6 +92,7 @@ def render_markdown_block(value="") -> str:
     list_type: str | None = None
     list_items: list[str] = []
     quote_lines: list[str] = []
+    math_lines: list[str] | None = None
 
     def flush_paragraph() -> None:
         nonlocal paragraph
@@ -112,14 +114,38 @@ def render_markdown_block(value="") -> str:
             output.append(f"<blockquote><p>{'<br>'.join(render_inline_markdown(line) for line in quote_lines)}</p></blockquote>")
             quote_lines = []
 
+    def flush_math() -> None:
+        nonlocal math_lines
+        if math_lines is not None:
+            output.append(f'<div class="math-display">\\[{escape(chr(10).join(math_lines))}\\]</div>')
+            math_lines = None
+
     def flush_all() -> None:
         flush_paragraph()
         flush_list()
         flush_quote()
 
     for line in lines:
+        if math_lines is not None:
+            if line.strip() in {"$$", r"\]"}:
+                flush_math()
+                continue
+            math_lines.append(line)
+            continue
+
         if not line.strip():
             flush_all()
+            continue
+
+        if line.strip() in {"$$", r"\["}:
+            flush_all()
+            math_lines = []
+            continue
+
+        single_line_math = re.match(r"^\$\$(.+)\$\$$", line.strip()) or re.match(r"^\\\[(.+)\\\]$", line.strip())
+        if single_line_math:
+            flush_all()
+            output.append(f'<div class="math-display">\\[{escape(single_line_math.group(1).strip())}\\]</div>')
             continue
 
         image = MARKDOWN_IMAGE_PATTERN.match(line.strip())
@@ -160,6 +186,7 @@ def render_markdown_block(value="") -> str:
         paragraph.append(line)
 
     flush_all()
+    flush_math()
     return "".join(output)
 
 
@@ -379,7 +406,8 @@ def build_blog_post_html(post: dict) -> str:
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+    <link rel="stylesheet" href="../styles.css?v=20260603-blog-math">
     <script type="application/ld+json">{json_ld}</script>
     <!-- Cloudflare Web Analytics -->
     <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{{"token":"a8f57387064d4f27b1ba086354d6ac5f"}}'></script>
@@ -412,7 +440,9 @@ def build_blog_post_html(post: dict) -> str:
     <button class="back-to-top" data-back-to-top aria-label="回到頂部" title="回到頂部">↑</button>
 
     <script src="../site-config.js"></script>
-    <script src="../script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+    <script src="../script.js?v=20260603-blog-math"></script>
   </body>
 </html>
 """

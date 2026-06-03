@@ -435,6 +435,7 @@ if (adminApp) {
   const renderInlineMarkdownForStatic = (value = "") => {
     let html = escapeHtmlContent(value);
 
+    html = html.replace(/\\\((.+?)\\\)/g, '<span class="math-inline">\\($1\\)</span>');
     html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
     html = html.replace(
       /(^|[^!])\[([^\]]+)\]\((https?:\/\/[^)\s]+|mailto:[^)\s]+)\)/g,
@@ -458,6 +459,7 @@ if (adminApp) {
     let paragraph = [];
     let list = null;
     let quote = [];
+    let math = null;
 
     const flushParagraph = () => {
       if (!paragraph.length) {
@@ -486,6 +488,15 @@ if (adminApp) {
       quote = [];
     };
 
+    const flushMath = () => {
+      if (!math) {
+        return;
+      }
+
+      html.push(`<div class="math-display">\\[${escapeHtmlContent(math.lines.join("\n"))}\\]</div>`);
+      math = null;
+    };
+
     const flushOpenBlocks = () => {
       flushParagraph();
       flushList();
@@ -493,8 +504,32 @@ if (adminApp) {
     };
 
     lines.forEach((line) => {
+      if (math) {
+        if (line.trim() === "$$" || line.trim() === "\\]") {
+          flushMath();
+          return;
+        }
+
+        math.lines.push(line);
+        return;
+      }
+
       if (!line.trim()) {
         flushOpenBlocks();
+        return;
+      }
+
+      if (line.trim() === "$$" || line.trim() === "\\[") {
+        flushOpenBlocks();
+        math = { lines: [] };
+        return;
+      }
+
+      const singleLineMath = line.trim().match(/^\$\$(.+)\$\$$/) || line.trim().match(/^\\\[(.+)\\\]$/);
+
+      if (singleLineMath) {
+        flushOpenBlocks();
+        html.push(`<div class="math-display">\\[${escapeHtmlContent(singleLineMath[1].trim())}\\]</div>`);
         return;
       }
 
@@ -550,6 +585,7 @@ if (adminApp) {
     });
 
     flushOpenBlocks();
+    flushMath();
 
     return html.join("");
   };
@@ -668,7 +704,8 @@ if (adminApp) {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+    <link rel="stylesheet" href="../styles.css?v=20260603-blog-math">
     <script type="application/ld+json">${jsonLd}</script>
     <!-- Cloudflare Web Analytics -->
     <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"a8f57387064d4f27b1ba086354d6ac5f"}'></script>
@@ -701,7 +738,9 @@ if (adminApp) {
     <button class="back-to-top" data-back-to-top aria-label="回到頂部" title="回到頂部">↑</button>
 
     <script src="../site-config.js"></script>
-    <script src="../script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+    <script src="../script.js?v=20260603-blog-math"></script>
   </body>
 </html>
 `;
@@ -1910,12 +1949,14 @@ if (adminApp) {
         ${markdownToolbarButton("quote", ">", "引用")}
         ${markdownToolbarButton("link", "Link", "加入連結")}
         ${markdownToolbarButton("image", "Img", "插入圖片")}
+        ${markdownToolbarButton("inline-math", "Math", "插入行內公式")}
+        ${markdownToolbarButton("math-block", "$$", "插入區塊公式")}
       </div>
       <label class="admin-field">
         <span>${label}</span>
         <textarea name="${name}" rows="${rows}" data-markdown-editor>${escapeHTML(value)}</textarea>
       </label>
-      <p class="admin-help">段落請用空行分開；工具列會插入 Markdown 標記，圖片會自動壓縮成 WebP 並插入游標位置。</p>
+      <p class="admin-help">段落請用空行分開；工具列會插入 Markdown 標記，圖片會自動壓縮成 WebP。公式可用行內 \\( ... \\) 或區塊 $$ ... $$。</p>
     </div>
   `;
 
@@ -2493,6 +2534,26 @@ if (adminApp) {
     replaceTextareaSelection(textarea, replacement, prefix.length + block.length, prefix.length + block.length);
   };
 
+  const insertMathBlock = (textarea) => {
+    const start = textarea.selectionStart ?? textarea.value.length;
+    const end = textarea.selectionEnd ?? start;
+    const before = textarea.value.slice(0, start);
+    const after = textarea.value.slice(end);
+    const selected = textarea.value.slice(start, end);
+    const content = selected || "OR_{\\mathrm{true}} = \\frac{100/100}{100/900} = 9";
+    const prefix = before.trim()
+      ? before.endsWith("\n\n") ? "" : before.endsWith("\n") ? "\n" : "\n\n"
+      : "";
+    const suffix = after.trim()
+      ? after.startsWith("\n\n") ? "" : after.startsWith("\n") ? "\n" : "\n\n"
+      : "";
+    const block = `$$\n${content}\n$$`;
+    const replacement = `${prefix}${block}${suffix}`;
+    const contentStart = prefix.length + "$$\n".length;
+
+    replaceTextareaSelection(textarea, replacement, contentStart, contentStart + content.length);
+  };
+
   const chooseMarkdownImageFile = () =>
     new Promise((resolve) => {
       const input = document.createElement("input");
@@ -2585,6 +2646,16 @@ if (adminApp) {
 
     if (action === "link") {
       wrapSelection(textarea, "[", "](https://)", "連結文字");
+      return;
+    }
+
+    if (action === "inline-math") {
+      wrapSelection(textarea, "\\(", "\\)", "OR_{\\mathrm{true}} = 9");
+      return;
+    }
+
+    if (action === "math-block") {
+      insertMathBlock(textarea);
     }
   };
 

@@ -262,6 +262,19 @@ python3 scripts/check_site.py
 
 發布後會更新 `blogPosts`，並為 published 文章產生 `posts/<id>.html`。公開網站主要 canonical URL 指向 `posts/<id>.html`，動態頁 `post.html?id=...` 仍可用於預覽與 fallback。
 
+Blog 正文支援 Markdown 工具列與數學公式：
+
+- 行內公式：`\( OR_{\mathrm{true}} = 9 \)`
+- 區塊公式：
+
+```text
+$$
+OR_{\mathrm{true}} = \frac{100/100}{100/900} = 9
+$$
+```
+
+在 `admin.html` 可用 `Math` 按鈕插入行內公式，用 `$$` 按鈕插入區塊公式。若直接編輯 `data/site-content.json`，反斜線需要寫成 `\\mathrm`、`\\frac` 這種 JSON escape 形式。
+
 ### 新增 Activity
 
 1. Quick Publish 選 `Activity / 活動照片`。

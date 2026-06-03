@@ -129,6 +129,7 @@ const renderMarkdownImage = (src = "", alt = "", caption = "") => {
 const renderInlineMarkdown = (value = "") => {
   let html = escapeHTML(value);
 
+  html = html.replace(/\\\((.+?)\\\)/g, '<span class="math-inline">\\($1\\)</span>');
   html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
   html = html.replace(
     /(^|[^!])\[([^\]]+)\]\((https?:\/\/[^)\s]+|mailto:[^)\s]+)\)/g,
@@ -158,6 +159,7 @@ const renderMarkdownBlock = (value = "") => {
   let list = null;
   let quote = [];
   let code = null;
+  let math = null;
 
   const flushParagraph = () => {
     if (!paragraph.length) {
@@ -195,6 +197,15 @@ const renderMarkdownBlock = (value = "") => {
     code = null;
   };
 
+  const flushMath = () => {
+    if (!math) {
+      return;
+    }
+
+    html.push(`<div class="math-display">\\[${escapeHTML(math.lines.join("\n"))}\\]</div>`);
+    math = null;
+  };
+
   const flushOpenBlocks = () => {
     flushParagraph();
     flushList();
@@ -220,8 +231,32 @@ const renderMarkdownBlock = (value = "") => {
       return;
     }
 
+    if (math) {
+      if (line.trim() === "$$" || line.trim() === "\\]") {
+        flushMath();
+        return;
+      }
+
+      math.lines.push(line);
+      return;
+    }
+
     if (!line.trim()) {
       flushOpenBlocks();
+      return;
+    }
+
+    if (line.trim() === "$$" || line.trim() === "\\[") {
+      flushOpenBlocks();
+      math = { lines: [] };
+      return;
+    }
+
+    const singleLineMath = line.trim().match(/^\$\$(.+)\$\$$/) || line.trim().match(/^\\\[(.+)\\\]$/);
+
+    if (singleLineMath) {
+      flushOpenBlocks();
+      html.push(`<div class="math-display">\\[${escapeHTML(singleLineMath[1].trim())}\\]</div>`);
       return;
     }
 
@@ -277,8 +312,32 @@ const renderMarkdownBlock = (value = "") => {
 
   flushOpenBlocks();
   flushCode();
+  flushMath();
 
   return html.join("");
+};
+
+const renderArticleMath = (root = document) => {
+  if (typeof window.renderMathInElement !== "function") {
+    return;
+  }
+
+  root.querySelectorAll(".article-body").forEach((articleBody) => {
+    if (articleBody.dataset.mathRendered === "true") {
+      return;
+    }
+
+    window.renderMathInElement(articleBody, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "\\[", right: "\\]", display: true },
+        { left: "\\(", right: "\\)", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code"],
+      throwOnError: false
+    });
+    articleBody.dataset.mathRendered = "true";
+  });
 };
 
 const normalizeList = (value) => (Array.isArray(value) ? value : []);
@@ -1260,6 +1319,7 @@ const renderBlogPost = (content) => {
     </div>
     ${articleTaxonomy ? `<footer class="article-footer">${articleTaxonomy}</footer>` : ""}
   `;
+  renderArticleMath(container);
 };
 
 const renderActivityPost = (content) => {
@@ -1876,4 +1936,7 @@ const setupStatCounters = () => {
   );
   counters.forEach((el) => observer.observe(el));
 };
-loadSiteContent().finally(setupStatCounters);
+loadSiteContent().finally(() => {
+  renderArticleMath();
+  setupStatCounters();
+});

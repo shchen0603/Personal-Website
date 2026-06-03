@@ -1251,6 +1251,22 @@ h3 {
   background: transparent;
 }
 
+.article-body .math-display {
+  margin: 1.8rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.2rem 0;
+}
+
+.article-body .math-display .katex-display {
+  margin: 0;
+  min-width: max-content;
+}
+
+.article-body .math-inline {
+  white-space: nowrap;
+}
+
 .article-body a {
   color: var(--teal-dark);
   font-weight: 800;

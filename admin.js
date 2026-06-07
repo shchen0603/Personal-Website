@@ -2036,7 +2036,7 @@ if (adminApp) {
         ${markdownToolbarButton("ordered-list", "1.", "編號清單")}
         ${markdownToolbarButton("quote", ">", "引用")}
         ${markdownToolbarButton("link", "Link", "加入連結")}
-        ${markdownToolbarButton("image", "Img", "插入圖片")}
+        ${markdownToolbarButton("image", "Img", "插入圖片與圖說")}
         ${markdownToolbarButton("inline-math", "Math", "插入行內公式")}
         ${markdownToolbarButton("math-block", "$$", "插入區塊公式")}
       </div>
@@ -2044,7 +2044,7 @@ if (adminApp) {
         <span>${label}</span>
         <textarea name="${name}" rows="${rows}" data-markdown-editor>${escapeHTML(value)}</textarea>
       </label>
-      <p class="admin-help">段落請用空行分開；工具列會插入 Markdown 標記，圖片會自動壓縮成 WebP。公式可用行內 \\( ... \\) 或區塊 $$ ... $$。</p>
+      <p class="admin-help">段落請用空行分開；工具列會插入 Markdown 標記，圖片會自動壓縮成 WebP。圖片圖說可寫成 ![替代文字](圖片路徑 "圖說文字")，會顯示為圖片下方的小灰字。公式可用行內 \\( ... \\) 或區塊 $$ ... $$。</p>
     </div>
   `;
 
@@ -2663,6 +2663,12 @@ if (adminApp) {
       .replace(/[\[\]\n\r]+/g, " ")
       .trim() || "圖片說明";
 
+  const cleanMarkdownImageText = (value = "") =>
+    String(value || "")
+      .replace(/[\[\]\n\r]+/g, " ")
+      .replace(/"/g, "'")
+      .trim();
+
   const insertMarkdownImage = async (textarea) => {
     if (!textarea) {
       return;
@@ -2679,11 +2685,17 @@ if (adminApp) {
 
       const upload = await prepareImageUpload(file);
       const path = makeAssetPath(upload.file, "blog");
+      const defaultAlt = getMarkdownImageAlt(file);
+      const rawCaption = window.prompt("圖片圖說（可留空；會顯示為圖片下方小灰字）", "");
+      const caption = cleanMarkdownImageText(rawCaption || "");
+      const imageMarkdown = caption
+        ? `![${defaultAlt}](${path} "${caption}")`
+        : `![${defaultAlt}](${path})`;
 
       registerPendingAssetUpload(path, upload);
-      insertMarkdownBlock(textarea, `![${getMarkdownImageAlt(file)}](${path})`);
+      insertMarkdownBlock(textarea, imageMarkdown);
       setStatus(
-        `已插入正文圖片：${path}.${getUploadProcessingSummary([upload])}`,
+        `已插入正文圖片：${path}${caption ? "，並加入圖說" : ""}.${getUploadProcessingSummary([upload])}`,
         "success"
       );
     } catch (error) {

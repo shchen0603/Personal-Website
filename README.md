@@ -82,7 +82,7 @@ scripts/check_site.py
 - `tags`: Blog 與 publications 使用。Publication tags 建議含 `slug`、`label`、`group`。
 - `series`: Blog 使用，格式同 tag object；每篇文章最多一個。
 - `featured`: Publications 用於 research 代表作；activities 可用於活動排序/展示。
-- `body`: Blog 與 activities 的正文陣列。Blog body 支援簡化 Markdown 區塊，包含標題、清單、引用、連結與獨立一行的圖片語法 `![圖片說明](assets/blog/example.webp)`。
+- `body`: Blog 與 activities 的正文陣列。Blog body 支援簡化 Markdown 區塊，包含標題、清單、引用、連結與獨立一行的圖片語法 `![替代文字](assets/blog/example.webp "圖片圖說")`；圖說會顯示為圖片下方的小灰字。
 
 ## 前台渲染
 
@@ -267,6 +267,7 @@ python3 scripts/check_site.py
 
 Blog 正文支援 Markdown 工具列與數學公式：
 
+- 圖片：`![替代文字](assets/blog/example.webp "圖片圖說")`
 - 行內公式：`\( OR_{\mathrm{true}} = 9 \)`
 - 區塊公式：
 

@@ -28,7 +28,7 @@ const renderSiteChrome = () => {
   const resolve = (href) => (/^https?:\/\//.test(href) || href.startsWith("mailto:") ? href : `${base}${href}`);
 
   if (header) {
-    const tagline = header.dataset.tagline || "MD · Cardiovascular Epidemiology";
+    const tagline = header.dataset.tagline || "Cardiovascular & Nutritional Epidemiology";
     const navHtml = SITE_NAV_ITEMS.map((item) => {
       const isCurrent = item.page === currentPage;
       const aria = isCurrent ? ' aria-current="page"' : "";

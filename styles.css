@@ -1244,6 +1244,34 @@ h3 {
   margin-bottom: 0.65rem;
 }
 
+.article-body li > ul,
+.article-body li > ol {
+  margin: 0.65rem 0 0.2rem;
+  padding-left: 1.45rem;
+}
+
+.article-body li > ul {
+  list-style-type: circle;
+}
+
+.article-body li > ul li > ul {
+  list-style-type: square;
+}
+
+.article-body li > ol {
+  list-style-type: lower-alpha;
+}
+
+.article-body li > ol li > ol {
+  list-style-type: lower-roman;
+}
+
+.article-body li > ul li,
+.article-body li > ol li {
+  margin-bottom: 0.45rem;
+  font-size: 1em;
+}
+
 .article-body blockquote {
   margin: 1.7rem 0;
   padding: 1rem 1.2rem;

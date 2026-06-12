@@ -614,7 +614,7 @@ if (adminApp) {
     const lines = text.split("\n");
     const html = [];
     let paragraph = [];
-    let list = null;
+    let listStack = [];
     let quote = [];
     let math = null;
 
@@ -627,13 +627,51 @@ if (adminApp) {
       paragraph = [];
     };
 
-    const flushList = () => {
-      if (!list) {
+    const closeListLevel = () => {
+      if (!listStack.length) {
         return;
       }
 
-      html.push(`<${list.type}>${list.items.map((item) => `<li>${renderInlineMarkdownForStatic(item)}</li>`).join("")}</${list.type}>`);
-      list = null;
+      const current = listStack.pop();
+
+      if (current.openItem) {
+        html.push("</li>");
+      }
+
+      html.push(`</${current.type}>`);
+    };
+
+    const flushList = () => {
+      while (listStack.length) {
+        closeListLevel();
+      }
+    };
+
+    const openListLevel = (type, indent) => {
+      html.push(`<${type}>`);
+      listStack.push({ type, indent, openItem: false });
+    };
+
+    const addListItem = (type, indent, text) => {
+      while (listStack.length && indent < listStack[listStack.length - 1].indent) {
+        closeListLevel();
+      }
+
+      if (!listStack.length || indent > listStack[listStack.length - 1].indent) {
+        openListLevel(type, indent);
+      } else if (listStack[listStack.length - 1].type !== type) {
+        closeListLevel();
+        openListLevel(type, indent);
+      }
+
+      const current = listStack[listStack.length - 1];
+
+      if (current.openItem) {
+        html.push("</li>");
+      }
+
+      html.push(`<li>${renderInlineMarkdownForStatic(text)}`);
+      current.openItem = true;
     };
 
     const flushQuote = () => {
@@ -743,21 +781,17 @@ if (adminApp) {
         continue;
       }
 
-      const unordered = line.match(/^\s*[-*]\s+(.+)$/);
-      const ordered = line.match(/^\s*\d+\.\s+(.+)$/);
+      const unordered = line.match(/^(\s*)[-*]\s+(.+)$/);
+      const ordered = line.match(/^(\s*)\d+\.\s+(.+)$/);
 
       if (unordered || ordered) {
         const type = unordered ? "ul" : "ol";
+        const indent = (unordered || ordered)[1].replace(/\t/g, "    ").length;
+        const itemText = (unordered || ordered)[2];
 
         flushParagraph();
         flushQuote();
-
-        if (!list || list.type !== type) {
-          flushList();
-          list = { type, items: [] };
-        }
-
-        list.items.push(unordered ? unordered[1] : ordered[1]);
+        addListItem(type, indent, itemText);
         lineIndex += 1;
         continue;
       }
@@ -899,7 +933,7 @@ if (adminApp) {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-    <link rel="stylesheet" href="../styles.css?v=20260603-blog-math">
+    <link rel="stylesheet" href="../styles.css?v=20260612-nested-lists">
     <script type="application/ld+json">${jsonLd}</script>
     <!-- Cloudflare Web Analytics -->
     <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"a8f57387064d4f27b1ba086354d6ac5f"}'></script>
@@ -934,7 +968,7 @@ if (adminApp) {
     <script src="../site-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-    <script src="../script.js?v=20260603-blog-math"></script>
+    <script src="../script.js?v=20260612-nested-lists"></script>
   </body>
 </html>
 `;

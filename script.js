@@ -212,7 +212,7 @@ const renderMarkdownBlock = (value = "") => {
   const lines = text.split("\n");
   const html = [];
   let paragraph = [];
-  let list = null;
+  let listStack = [];
   let quote = [];
   let code = null;
   let math = null;
@@ -226,13 +226,51 @@ const renderMarkdownBlock = (value = "") => {
     paragraph = [];
   };
 
-  const flushList = () => {
-    if (!list) {
+  const closeListLevel = () => {
+    if (!listStack.length) {
       return;
     }
 
-    html.push(`<${list.type}>${list.items.map((item) => `<li>${renderInlineMarkdown(item)}</li>`).join("")}</${list.type}>`);
-    list = null;
+    const current = listStack.pop();
+
+    if (current.openItem) {
+      html.push("</li>");
+    }
+
+    html.push(`</${current.type}>`);
+  };
+
+  const flushList = () => {
+    while (listStack.length) {
+      closeListLevel();
+    }
+  };
+
+  const openListLevel = (type, indent) => {
+    html.push(`<${type}>`);
+    listStack.push({ type, indent, openItem: false });
+  };
+
+  const addListItem = (type, indent, text) => {
+    while (listStack.length && indent < listStack[listStack.length - 1].indent) {
+      closeListLevel();
+    }
+
+    if (!listStack.length || indent > listStack[listStack.length - 1].indent) {
+      openListLevel(type, indent);
+    } else if (listStack[listStack.length - 1].type !== type) {
+      closeListLevel();
+      openListLevel(type, indent);
+    }
+
+    const current = listStack[listStack.length - 1];
+
+    if (current.openItem) {
+      html.push("</li>");
+    }
+
+    html.push(`<li>${renderInlineMarkdown(text)}`);
+    current.openItem = true;
   };
 
   const flushQuote = () => {
@@ -371,21 +409,17 @@ const renderMarkdownBlock = (value = "") => {
       continue;
     }
 
-    const unordered = line.match(/^\s*[-*]\s+(.+)$/);
-    const ordered = line.match(/^\s*\d+\.\s+(.+)$/);
+    const unordered = line.match(/^(\s*)[-*]\s+(.+)$/);
+    const ordered = line.match(/^(\s*)\d+\.\s+(.+)$/);
 
     if (unordered || ordered) {
       const type = unordered ? "ul" : "ol";
+      const indent = (unordered || ordered)[1].replace(/\t/g, "    ").length;
+      const itemText = (unordered || ordered)[2];
 
       flushParagraph();
       flushQuote();
-
-      if (!list || list.type !== type) {
-        flushList();
-        list = { type, items: [] };
-      }
-
-      list.items.push(unordered ? unordered[1] : ordered[1]);
+      addListItem(type, indent, itemText);
       lineIndex += 1;
       continue;
     }

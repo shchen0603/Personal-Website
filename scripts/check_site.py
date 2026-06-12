@@ -158,8 +158,7 @@ def render_markdown_block(value="") -> str:
     lines = str(value or "").replace("\r\n", "\n").replace("\r", "\n").split("\n")
     output: list[str] = []
     paragraph: list[str] = []
-    list_type: str | None = None
-    list_items: list[str] = []
+    list_stack: list[dict[str, object]] = []
     quote_lines: list[str] = []
     math_lines: list[str] | None = None
 
@@ -169,13 +168,37 @@ def render_markdown_block(value="") -> str:
             output.append(f"<p>{'<br>'.join(render_inline_markdown(line) for line in paragraph)}</p>")
             paragraph = []
 
+    def close_list_level() -> None:
+        if not list_stack:
+            return
+        current = list_stack.pop()
+        if current.get("open_item"):
+            output.append("</li>")
+        output.append(f"</{current['type']}>")
+
     def flush_list() -> None:
-        nonlocal list_type, list_items
-        if list_type and list_items:
-            items = "".join(f"<li>{render_inline_markdown(item)}</li>" for item in list_items)
-            output.append(f"<{list_type}>{items}</{list_type}>")
-        list_type = None
-        list_items = []
+        while list_stack:
+            close_list_level()
+
+    def open_list_level(list_type: str, indent: int) -> None:
+        output.append(f"<{list_type}>")
+        list_stack.append({"type": list_type, "indent": indent, "open_item": False})
+
+    def add_list_item(list_type: str, indent: int, text: str) -> None:
+        while list_stack and indent < int(list_stack[-1]["indent"]):
+            close_list_level()
+
+        if not list_stack or indent > int(list_stack[-1]["indent"]):
+            open_list_level(list_type, indent)
+        elif list_stack[-1]["type"] != list_type:
+            close_list_level()
+            open_list_level(list_type, indent)
+
+        current = list_stack[-1]
+        if current.get("open_item"):
+            output.append("</li>")
+        output.append(f"<li>{render_inline_markdown(text)}")
+        current["open_item"] = True
 
     def flush_quote() -> None:
         nonlocal quote_lines
@@ -257,16 +280,15 @@ def render_markdown_block(value="") -> str:
             line_index += 1
             continue
 
-        unordered = re.match(r"^\s*[-*]\s+(.+)$", line)
-        ordered = re.match(r"^\s*\d+\.\s+(.+)$", line)
+        unordered = re.match(r"^(\s*)[-*]\s+(.+)$", line)
+        ordered = re.match(r"^(\s*)\d+\.\s+(.+)$", line)
         if unordered or ordered:
             current_type = "ul" if unordered else "ol"
+            current_indent = len((unordered or ordered).group(1).replace("\t", "    "))
+            current_text = (unordered or ordered).group(2)
             flush_paragraph()
             flush_quote()
-            if list_type != current_type:
-                flush_list()
-                list_type = current_type
-            list_items.append((unordered or ordered).group(1))
+            add_list_item(current_type, current_indent, current_text)
             line_index += 1
             continue
 
@@ -505,7 +527,7 @@ def build_blog_post_html(post: dict) -> str:
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-    <link rel="stylesheet" href="../styles.css?v=20260603-blog-math">
+    <link rel="stylesheet" href="../styles.css?v=20260612-nested-lists">
     <script type="application/ld+json">{json_ld}</script>
     <!-- Cloudflare Web Analytics -->
     <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{{"token":"a8f57387064d4f27b1ba086354d6ac5f"}}'></script>
@@ -540,7 +562,7 @@ def build_blog_post_html(post: dict) -> str:
     <script src="../site-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-    <script src="../script.js?v=20260603-blog-math"></script>
+    <script src="../script.js?v=20260612-nested-lists"></script>
   </body>
 </html>
 """

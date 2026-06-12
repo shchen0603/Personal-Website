@@ -785,6 +785,49 @@
   ],
   "blogPosts": [
     {
+      "id": "2026-06-12-LCD-T2DM",
+      "status": "published",
+      "date": "2026-06-12",
+      "dateLabel": "2026.06.12",
+      "title": "低碳水飲食與第二型糖尿病風險：營養素的來源與品質是關鍵",
+      "excerpt": "Low-Carbohydrate Diets of Varying Macronutrient Quality and Risk of Type 2 Diabetes in Three U.S. Prospective Cohort Studies",
+      "image": "",
+      "imageAlt": "低碳水飲食與第二型糖尿病風險：營養素的來源與品質是關鍵",
+      "tags": [
+        {
+          "slug": "health-prevention",
+          "label": "健康與預防"
+        },
+        {
+          "slug": "research-notes",
+          "label": "研究筆記"
+        }
+      ],
+      "body": [
+        "## 零、文章基本資料\n- Low-Carbohydrate Diets of Varying Macronutrient Quality and Risk of Type 2 Diabetes in Three U.S. Prospective Cohort Studies\n- First author: Binkai Liu; Corresponding author: Qi Sun\n- Diabetes Care. 2025;48:2095–2102\n- https://doi.org/10.2337/dc25-1401",
+        "## 一、研究試圖回答什麼？背景有什麼？",
+        "### （一）核心問題\n低碳飲食常被視為減重、控糖與改善代謝健康的飲食策略。但「低碳」其實不是一種單一飲食型態：有些人少吃精製澱粉、增加豆類、堅果與植物性油脂；也有人少吃白飯與麵包，卻增加紅肉、加工肉品與飽和脂肪。",
+        "因此，真正值得問的問題可能不是「低碳飲食好不好」，而是：**什麼樣的低碳飲食，可能與較低或較高的第二型糖尿病風險有關？**",
+        "這篇發表於 Diabetes Care 的大型前瞻性世代研究，正是試圖回答這個問題。",
+        "### （二）為什麼這個問題值得探討？\n1. 部分觀念建議低碳飲食作為促進健康的飲食方法。\n2. 第二型糖尿病為眾多疾病（心血管疾病、癌症、代謝疾病、腎臟疾病⋯⋯）的風險因子，影響人類健康甚大。",
+        "### （三）背景知識\n1. 因低碳飲食在部分研究中呈現有益健康的趨勢，有人主張低碳飲食可促進健康。然而，低碳飲食與極低碳飲食並未比其他飲食策略更能幫助減重，以及控制血糖。（[Kirkpatrick et al. 2019](https://doi.org/10.1016/j.jacl.2019.08.003)）\n2. 在無糖尿病健康者中，過去的系統性回顧與統合分析從已發表的11個cohorts中發現，低碳飲食與糖尿病風險的關係分歧。Pooled RR = 1.03 (95% CI, 0.91–1.16)。（[Noto et al. 2016](https://doi.org/10.14442/jgfm.17.1_60)）",
+        "## 二、研究設計：這篇研究怎麼做？",
+        "### （一）研究類型\nProspective cohort study\n### （二）研究對象\n- NHS, NHS II, HPFS\n  - NHS：1976 開始追蹤。121,700 美國女性護理人員，時年介於30–55歲。\n  - NHS II：1989 開始追蹤。116,340 美國女性護理人員，時年介於25–42歲。\n  - HPFS：1986 開始追蹤。51,529 美國男性醫療人員，時年介於40–75歲。\n- 每兩年會寄送問卷重複追蹤生活習慣、醫療狀況，累積填答率超過90%\n### （三）暴露\n透過重複飲食問卷，演算出五種LCD相關分數：\n1. Overall LCD score：強調總體脂肪與蛋白質比例\n2. animal-based LCD score：強調動物來源的脂肪和蛋白質\n3. vegetable-based LCD score：強調植物來源的脂肪和蛋白質\n4. unhealthy LCD score：基於animal-based LCD，進一步強調碳水化合物攝取為低品質來源\n5. healthy LCD score：基於vegetable-based LCD，進一步強調碳水化合物攝取為高品質來源\n### （四）主要結果\n- 第二型糖尿病（type 2 diabetes mellitus, T2DM）的發生\n### （五）分析方法的重點\n1. Cox proportional hazard model評估5種LCD scores與T2DM的關係\n2. Subgroup analysis：BMI三分組（<25, 25–30, >30）\n3. Mediation analysis：time-varying BMI作為中介因子\n4. 為避免reverse causation：（1）發生重大醫療事件（如心肌梗塞、中風、癌症）後不再更新飲食分數，用先前最近一次carry forward。（2）sensitivity analysis剔除2年內發生T2DM者",
+        "## 三、研究發現",
+        "### （一）主要結果\n- 追蹤：4,987,761 人年、追蹤中位數 28.0 年、20,452 例 T2DM 發生",
+        "| LCD score type | Q5 vs Q1 Multivariable-adjusted HR | BMI mediation effect in BMI < 30 kg/m<sup>2</sup> (%) | BMI mediation effect in BMI ≥ 30 kg/m<sup>2</sup> (%) | \n|:---:|:---:|:---:|:---:| \n| Overall LCD score | 1.31 (1.25–1.37) | 67.9 (40.0–87.0) | 52.7 (1.5–98.8) |\n| Animal-based LCD score | 1.39 (1.32–1.45) | 59.4 (41.8–74.9) | 24.5 (8.6–52.9) |\n| Vegetable-based LCD score | 0.94 (0.90–0.98) | Not mediated | Not mediated |\n| Unhealthy LCD score | 1.44 (1.37–1.51) | 44.0 (33.2–55.3) | 25.2 (10.3–49.7) |\n| Healthy LCD score | 0.84 (0.81–0.88) | 9.1 (4.0–19.3) | 6.4 (1.7–21.2) |",
+        "### （二）其他結果\n- Overall, Animal-based, Unhealthy LCD 與 Glycemic load 高度負相關，Vegetable-based LCD, Healthy LCD 也是負相關但沒有這麼負\n- RCS：Overall, Animal-based, Healthy LCD 的 P<sub>linear</sub> < 0.0001; vegetable-based LCD P<sub>linear</sub> = 0.29; unhealthy LCD P<sub>non-linear</sub> = 0.01",
+        "## 四、研究優勢與限制",
+        "### （一）優勢\n- 追蹤時間長（>30 年）、追蹤人數大（199,006 人）\n- 利用 **2-year Lag** 敏感性分析，試圖減低 reverse causation\n- 參與者皆為醫療從業人員，教育程度與健康資訊可近性相對一致，可能降低部分社經與健康識能差異造成的混雜\n- 重複追蹤，減少 within-person variation，並可捕捉長期飲食變化\n### （二）限制\n- Unmeasured confounding 難以避免\n- 儘管是低碳水飲食，碳水占比仍有30–40%，難以確認極低碳水飲食的真實效果\n- 族群以美國醫療從業人員為主，白人為主，外推時需注意\n- FFQ 是營養流行病學中常用且經驗證的工具，但它仍然依賴自我回報，難免有記憶誤差與分類錯誤\n- LCD score 反映的是相對飲食型態，而不是一套固定菜單。因此，研究中的 healthy LCD 高分者，不等於正在執行某個標準化低碳飲食計畫；它比較像是在一般生活中，長期呈現某種較低碳、較高品質蛋白質與脂肪來源的飲食傾向。",
+        "## 五、放回證據脈絡：這篇研究和其他研究怎麼對話？",
+        "### （一）可能的機轉解釋\n- 植物性 LCD 的保護機轉\n  - 植物性飲食可**預防長期體重增加**（[Qian et al. 2019](https://doi.org/10.1001/jamainternmed.2019.2195)），而體重控制是降低糖尿病風險的重要中介因素\n  - 植物性食物較為富含**纖維、維生素、礦物質、抗氧化劑、酚類化合物和不飽和脂肪酸**，這些成分在既有研究中發現可能有改善胰島素敏感性、降低血壓、減少系統性發炎，並改善 adiponectin, leptin, hs-CRP 等代謝指標的效果\n- 動物性 LCD 的不利機轉\n  - 動物性 LCD 通常含**較高飽和脂肪和動物性蛋白質**\n  - 動物性LCD往往**同時減少全穀類等高品質碳水化合物**的攝取（根據 Supplementary Figure S2，Animal-based LCD score 與 Unhealthy LCD score 的 Spearman 相關係數介於 0.82–0.88）",
+        "### （二）與既有研究是否一致\n- 同團隊過往研究指出，Vegetable-based LCD 和 Healthy LCD 與體重下降相關，而 Overall, Animal-based, Unhealthy LCD 則與體重上升相關（[Liu et al. 2023](https://doi.org/10.1001/jamanetworkopen.2023.49552)）\n- 過去文獻發現 Overall LCD 與糖尿病風險上升或下降相關，此歧異可能來自於**未能區分主要營養素攝取差異**的不同 LCD",
+        "### （三）仍然存在的爭議\n- 特定植物營養來源與 T2DM 的相關性，如 Cruciferous vegetables 在 Overall LCD score 高於中位數組別中呈現與糖尿病風險上升相關之趨勢（Supplementary Table S6）\n- BMI 可能如何參與 LCD 與 T2DM 的相關性？不同 BMI 的人群是否有不同的保護、風險效果",
+        "## 六、未來方向\n未來研究若要更進一步回答這個問題，可能需要在不同族群中重複驗證，尤其是亞洲族群與不同飲食文化下的低碳飲食型態。此外，若能結合更客觀的飲食生物標記、長期體重變化與代謝指標，將有助於釐清不同 LCD 與 T2D 風險之間的機轉。對極低碳或生酮飲食的長期安全性與代謝影響，也仍需要更多高品質研究。",
+        "## 七、結論與對讀者的意義\n### （一）這篇研究最合理的 take-home message\n這篇研究最重要的提醒，不是要告訴我們「低碳飲食一定好」或「低碳飲食一定不好」，而是指出「低碳」這個標籤本身太粗略。當一個人減少碳水化合物攝取時，真正重要的是：被減少的是什麼碳水？增加的是什麼蛋白質與脂肪？整體飲食品質是否變得更好？從這篇研究來看，較偏植物性、強調健康脂肪與高品質碳水來源的 LCD，與較低的第二型糖尿病風險相關。\n> 在採取低碳水飲食時，應當同時注意優先攝取植物性蛋白質、好的脂肪來源、高品質碳水化合物來源\n### （二）讀者不應該過度解讀什麼\n> 不應解讀為低碳水飲食對人體有害，而是應當注意主要營養素的來源和品質為何。"
+      ]
+    },
+    {
       "id": "2026-06-07-reverse-causation",
       "status": "published",
       "date": "2026-06-07",

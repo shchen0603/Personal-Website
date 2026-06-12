@@ -71,7 +71,7 @@ const renderSiteChrome = () => {
     footer.innerHTML = `
       <div class="footer-brand">
         <strong>陳思翰 Szu-Han Chen</strong>
-        <p>MD candidate and cardiovascular epidemiology researcher focusing on cardiometabolic health, nutrition, obesity, hypertension, and heart failure.</p>
+        <p>MD candidate and cardiovascular and nutritional epidemiology researcher focusing on cardiometabolic health, nutrition, obesity, hypertension, and heart failure.</p>
         <p>© <span data-year></span> All rights reserved.</p>
       </div>
       <nav class="footer-links" aria-label="Footer navigation">

@@ -1,6 +1,6 @@
 # Szu-Han Chen Personal Website
 
-陳思翰 Szu-Han Chen 的個人學術網站。網站聚焦心血管流行病學、心血管-腎臟-代謝健康、心臟衰竭、高血壓、營養與代謝體學研究，也整理學術發表、榮譽紀錄、活動照片、部落格與聯繫方式。
+陳思翰 Szu-Han Chen 的個人學術網站。網站聚焦心血管與營養流行病學、心血管-腎臟-代謝健康、心臟衰竭、高血壓、營養與代謝體學研究，也整理學術發表、榮譽紀錄、活動照片、部落格與聯繫方式。
 
 這個專案是可直接部署到 GitHub Pages 的靜態網站，沒有 npm、bundler 或後端服務。公開頁面由 HTML/CSS/vanilla JavaScript 組成；可維護內容集中在 `data/site-content.json`，再由前台 `script.js` 動態渲染。
 

@@ -25,10 +25,16 @@ BASE_PAGES = [
 BLOG_INDEX_FALLBACK_START = "<!-- BLOG INDEX STATIC FALLBACK START -->"
 BLOG_INDEX_FALLBACK_END = "<!-- BLOG INDEX STATIC FALLBACK END -->"
 INTENTIONAL_NOINDEX_PAGES = {
+    "activity.html",
+    "admin.html",
+    "post.html",
     "posts/_template.html",
     "posts/2026-06-01-association.html",
     "posts/2026-06-01-item.html",
+    "posts/2026-06-07-item.html",
+    "posts/welcome.html",
 }
+PLACEHOLDER_BLOG_TITLES = {"新文章", "New post", "Untitled post"}
 ALLOWED_RAW_ASSETS = {"assets/cardiovascular-epidemiology-hero-og.jpg"}
 RAW_IMAGE_PATTERN = re.compile(r"\.(jpe?g|png|heic|heif|tiff?)$", re.I)
 
@@ -616,6 +622,14 @@ def replace_blog_index_fallback_html(template: str, content: dict) -> str:
         raise ValueError("blog.html is missing blog index fallback markers.")
 
     end += len(BLOG_INDEX_FALLBACK_END)
+    line_start = template.rfind("\n", 0, start) + 1
+    line_end = template.find("\n", end)
+
+    if not template[line_start:start].strip():
+        start = line_start
+    if line_end != -1:
+        end = line_end
+
     return f"{template[:start]}{build_blog_index_fallback_html(content)}{template[end:]}"
 
 
@@ -681,6 +695,8 @@ def check_content(content: dict) -> None:
         check_date(post.get("date"), f"blogPosts[{index}].date")
         if post.get("status") not in {"published", "draft"}:
             add_error(f"blogPosts[{index}].status should be published or draft.")
+        if post.get("status") == "published" and str(post.get("title", "")).strip() in PLACEHOLDER_BLOG_TITLES:
+            add_error(f"blogPosts[{index}].title is still a placeholder.")
         if not as_list(post.get("body")):
             add_error(f"blogPosts[{index}].body should have at least one paragraph.")
         check_local_asset(post.get("image"), f"blogPosts[{index}].image")
@@ -730,8 +746,11 @@ def check_generated_files(content: dict) -> None:
             continue
         path = blog_path(post)
         url = site_url(path)
-        if not (ROOT / path).exists():
+        post_path = ROOT / path
+        if not post_path.exists():
             add_error(f"Missing generated blog page: {path}")
+        elif post_path.read_text(encoding="utf-8") != build_blog_post_html(post):
+            add_error(f"Generated blog page is stale: {path}. Run python3 scripts/check_site.py --fix.")
         if sitemap and url not in sitemap:
             add_error(f"sitemap.xml is missing {url}")
         if blog_index_html and path not in blog_index_html:
@@ -741,12 +760,20 @@ def check_generated_files(content: dict) -> None:
             continue
         path = activity_path(activity)
         url = site_url(path)
-        if not (ROOT / path).exists():
+        activity_page_path = ROOT / path
+        if not activity_page_path.exists():
             add_error(f"Missing generated activity page: {path}")
+        elif activity_page_path.read_text(encoding="utf-8") != build_activity_html(activity):
+            add_error(f"Generated activity page is stale: {path}. Run python3 scripts/check_site.py --fix.")
         if sitemap and url not in sitemap:
             add_error(f"sitemap.xml is missing {url}")
     if "activity.html?id=" in sitemap:
         add_warning("sitemap.xml still contains old activity.html?id=... URLs. Run python3 scripts/check_site.py --fix.")
+    for html_path in (ROOT / "posts").glob("*.html"):
+        relative_path = html_path.relative_to(ROOT).as_posix()
+        html = html_path.read_text(encoding="utf-8").lower()
+        if relative_path not in {blog_path(post) for post in published_blog_posts(content)} and "noindex" not in html:
+            add_error(f"Public orphan post page is not in blogPosts or sitemap: {relative_path}")
     for html_path in ROOT.rglob("*.html"):
         relative_path = html_path.relative_to(ROOT).as_posix()
         html = html_path.read_text(encoding="utf-8")

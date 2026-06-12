@@ -427,17 +427,30 @@ if (adminApp) {
   };
 
   const replaceBlogIndexFallbackHtml = (template, content) => {
-    const start = template.indexOf(BLOG_INDEX_FALLBACK_START);
-    const end = template.indexOf(BLOG_INDEX_FALLBACK_END);
+    let start = template.indexOf(BLOG_INDEX_FALLBACK_START);
+    let end = template.indexOf(BLOG_INDEX_FALLBACK_END);
 
     if (start === -1 || end === -1 || end < start) {
       throw new Error("blog.html is missing static fallback markers.");
     }
 
+    end += BLOG_INDEX_FALLBACK_END.length;
+
+    const lineStart = template.lastIndexOf("\n", start - 1) + 1;
+    const lineEnd = template.indexOf("\n", end);
+
+    if (!template.slice(lineStart, start).trim()) {
+      start = lineStart;
+    }
+
+    if (lineEnd !== -1) {
+      end = lineEnd;
+    }
+
     return [
       template.slice(0, start),
       buildBlogIndexFallbackHtml(content),
-      template.slice(end + BLOG_INDEX_FALLBACK_END.length)
+      template.slice(end)
     ].join("");
   };
 
@@ -2350,7 +2363,7 @@ if (adminApp) {
     if (state.section === "blogPosts") {
       return {
         id: `post-${today}`,
-        status: "published",
+        status: "draft",
         date: today,
         dateLabel: today.replaceAll("-", "."),
         title: "新文章",

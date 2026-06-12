@@ -131,6 +131,7 @@ const renderInlineMarkdown = (value = "") => {
 
   html = html.replace(/\\\((.+?)\\\)/g, '<span class="math-inline">\\($1\\)</span>');
   html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
+  html = html.replace(/&lt;(sup|sub)&gt;(.+?)&lt;\/\1&gt;/g, "<$1>$2</$1>");
   html = html.replace(
     /(^|[^!])\[([^\]]+)\]\((https?:\/\/[^)\s]+|mailto:[^)\s]+)\)/g,
     '$1<a href="$3" rel="noreferrer">$2</a>'
@@ -145,6 +146,61 @@ const stripClosingHeadingMarkers = (value = "") =>
   String(value || "")
     .replace(/\s+#+\s*$/, "")
     .trim();
+
+const splitMarkdownTableRow = (line = "") => {
+  const trimmed = String(line || "").trim();
+
+  if (!trimmed.includes("|")) {
+    return [];
+  }
+
+  return trimmed
+    .replace(/^\|/, "")
+    .replace(/\|$/, "")
+    .split("|")
+    .map((cell) => cell.trim());
+};
+
+const getMarkdownTableAlignments = (line = "") => {
+  const cells = splitMarkdownTableRow(line);
+
+  if (cells.length < 2) {
+    return null;
+  }
+
+  const alignments = cells.map((cell) => {
+    if (!/^:?-{3,}:?$/.test(cell)) {
+      return null;
+    }
+
+    if (cell.startsWith(":") && cell.endsWith(":")) {
+      return "center";
+    }
+
+    if (cell.endsWith(":")) {
+      return "right";
+    }
+
+    return "left";
+  });
+
+  return alignments.includes(null) ? null : alignments;
+};
+
+const renderMarkdownTable = (headerCells = [], alignments = [], bodyRows = []) => {
+  const columnCount = headerCells.length;
+  const normalizeCells = (cells) =>
+    Array.from({ length: columnCount }, (_, index) => cells[index] || "");
+  const alignmentClass = (alignment) => (alignment && alignment !== "left" ? ` class="is-${alignment}"` : "");
+  const header = normalizeCells(headerCells)
+    .map((cell, index) => `<th${alignmentClass(alignments[index])}>${renderInlineMarkdown(cell)}</th>`)
+    .join("");
+  const body = bodyRows
+    .map((row) => `<tr>${normalizeCells(row).map((cell, index) => `<td${alignmentClass(alignments[index])}>${renderInlineMarkdown(cell)}</td>`).join("")}</tr>`)
+    .join("");
+
+  return `<div class="article-table-wrap"><table class="article-table"><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table></div>`;
+};
 
 const renderMarkdownBlock = (value = "") => {
   const text = String(value || "").replace(/\r\n?/g, "\n").trim();
@@ -212,44 +268,54 @@ const renderMarkdownBlock = (value = "") => {
     flushQuote();
   };
 
-  lines.forEach((line) => {
+  let lineIndex = 0;
+
+  while (lineIndex < lines.length) {
+    const line = lines[lineIndex];
     const fence = line.match(/^\s*```/);
 
     if (fence) {
       if (code) {
         flushCode();
-        return;
+        lineIndex += 1;
+        continue;
       }
 
       flushOpenBlocks();
       code = { lines: [] };
-      return;
+      lineIndex += 1;
+      continue;
     }
 
     if (code) {
       code.lines.push(line);
-      return;
+      lineIndex += 1;
+      continue;
     }
 
     if (math) {
       if (line.trim() === "$$" || line.trim() === "\\]") {
         flushMath();
-        return;
+        lineIndex += 1;
+        continue;
       }
 
       math.lines.push(line);
-      return;
+      lineIndex += 1;
+      continue;
     }
 
     if (!line.trim()) {
       flushOpenBlocks();
-      return;
+      lineIndex += 1;
+      continue;
     }
 
     if (line.trim() === "$$" || line.trim() === "\\[") {
       flushOpenBlocks();
       math = { lines: [] };
-      return;
+      lineIndex += 1;
+      continue;
     }
 
     const singleLineMath = line.trim().match(/^\$\$(.+)\$\$$/) || line.trim().match(/^\\\[(.+)\\\]$/);
@@ -257,7 +323,8 @@ const renderMarkdownBlock = (value = "") => {
     if (singleLineMath) {
       flushOpenBlocks();
       html.push(`<div class="math-display">\\[${escapeHTML(singleLineMath[1].trim())}\\]</div>`);
-      return;
+      lineIndex += 1;
+      continue;
     }
 
     const image = line.trim().match(MARKDOWN_IMAGE_PATTERN);
@@ -265,7 +332,32 @@ const renderMarkdownBlock = (value = "") => {
     if (image) {
       flushOpenBlocks();
       html.push(renderMarkdownImage(image[2], image[1], image[3] || ""));
-      return;
+      lineIndex += 1;
+      continue;
+    }
+
+    const tableAlignments = getMarkdownTableAlignments(lines[lineIndex + 1] || "");
+
+    if (splitMarkdownTableRow(line).length >= 2 && tableAlignments) {
+      flushOpenBlocks();
+
+      const headerCells = splitMarkdownTableRow(line);
+      const bodyRows = [];
+      lineIndex += 2;
+
+      while (lineIndex < lines.length && lines[lineIndex].trim()) {
+        const rowCells = splitMarkdownTableRow(lines[lineIndex]);
+
+        if (rowCells.length < 2) {
+          break;
+        }
+
+        bodyRows.push(rowCells);
+        lineIndex += 1;
+      }
+
+      html.push(renderMarkdownTable(headerCells, tableAlignments, bodyRows));
+      continue;
     }
 
     const heading = line.match(/^(#{1,6})\s+(.+)$/);
@@ -275,7 +367,8 @@ const renderMarkdownBlock = (value = "") => {
 
       const level = Math.min(Math.max(heading[1].length, 2), 6);
       html.push(`<h${level}>${renderInlineMarkdown(stripClosingHeadingMarkers(heading[2]))}</h${level}>`);
-      return;
+      lineIndex += 1;
+      continue;
     }
 
     const unordered = line.match(/^\s*[-*]\s+(.+)$/);
@@ -293,7 +386,8 @@ const renderMarkdownBlock = (value = "") => {
       }
 
       list.items.push(unordered ? unordered[1] : ordered[1]);
-      return;
+      lineIndex += 1;
+      continue;
     }
 
     const quoteLine = line.match(/^\s*>\s?(.*)$/);
@@ -302,13 +396,15 @@ const renderMarkdownBlock = (value = "") => {
       flushParagraph();
       flushList();
       quote.push(quoteLine[1]);
-      return;
+      lineIndex += 1;
+      continue;
     }
 
     flushList();
     flushQuote();
     paragraph.push(line);
-  });
+    lineIndex += 1;
+  }
 
   flushOpenBlocks();
   flushCode();

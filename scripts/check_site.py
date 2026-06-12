@@ -31,6 +31,7 @@ INTENTIONAL_NOINDEX_PAGES = {
     "posts/_template.html",
     "posts/2026-06-01-association.html",
     "posts/2026-06-01-item.html",
+    "posts/2026-06-12-item.html",
     "posts/2026-06-07-item.html",
     "posts/welcome.html",
 }
@@ -76,6 +77,7 @@ def render_inline_markdown(value="") -> str:
     output = escape(value)
     output = re.sub(r"\\\((.+?)\\\)", r'<span class="math-inline">\\(\1\\)</span>', output)
     output = re.sub(r"`([^`]+)`", r"<code>\1</code>", output)
+    output = re.sub(r"&lt;(sup|sub)&gt;(.+?)&lt;/\1&gt;", r"<\1>\2</\1>", output)
     output = re.sub(
         r"(^|[^!])\[([^\]]+)\]((?:\(https?://[^)\s]+\)|\(mailto:[^)\s]+\)))",
         lambda match: f'{match.group(1)}<a href="{match.group(3)[1:-1]}" rel="noreferrer">{match.group(2)}</a>',
@@ -84,6 +86,60 @@ def render_inline_markdown(value="") -> str:
     output = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", output)
     output = re.sub(r"(^|[^*])\*([^*\n]+)\*", r"\1<em>\2</em>", output)
     return output
+
+
+def split_markdown_table_row(line="") -> list[str]:
+    trimmed = str(line or "").strip()
+    if "|" not in trimmed:
+        return []
+    return [cell.strip() for cell in trimmed.strip("|").split("|")]
+
+
+def get_markdown_table_alignments(line="") -> list[str] | None:
+    cells = split_markdown_table_row(line)
+    if len(cells) < 2:
+        return None
+
+    alignments: list[str] = []
+    for cell in cells:
+        if not re.match(r"^:?-{3,}:?$", cell):
+            return None
+        if cell.startswith(":") and cell.endswith(":"):
+            alignments.append("center")
+        elif cell.endswith(":"):
+            alignments.append("right")
+        else:
+            alignments.append("left")
+    return alignments
+
+
+def render_markdown_table(header_cells: list[str], alignments: list[str], body_rows: list[list[str]]) -> str:
+    column_count = len(header_cells)
+
+    def normalize_cells(cells: list[str]) -> list[str]:
+        return [(cells[index] if index < len(cells) else "") for index in range(column_count)]
+
+    def alignment_attr(alignment: str | None) -> str:
+        return f' class="is-{alignment}"' if alignment and alignment != "left" else ""
+
+    header = "".join(
+        f"<th{alignment_attr(alignments[index] if index < len(alignments) else None)}>{render_inline_markdown(cell)}</th>"
+        for index, cell in enumerate(normalize_cells(header_cells))
+    )
+    body = "".join(
+        "<tr>"
+        + "".join(
+            f"<td{alignment_attr(alignments[index] if index < len(alignments) else None)}>{render_inline_markdown(cell)}</td>"
+            for index, cell in enumerate(normalize_cells(row))
+        )
+        + "</tr>"
+        for row in body_rows
+    )
+    return (
+        '<div class="article-table-wrap"><table class="article-table">'
+        f"<thead><tr>{header}</tr></thead><tbody>{body}</tbody>"
+        "</table></div>"
+    )
 
 
 def render_markdown_image(src="", alt="", caption="") -> str:
@@ -138,33 +194,58 @@ def render_markdown_block(value="") -> str:
         flush_list()
         flush_quote()
 
-    for line in lines:
+    line_index = 0
+    while line_index < len(lines):
+        line = lines[line_index]
         if math_lines is not None:
             if line.strip() in {"$$", r"\]"}:
                 flush_math()
+                line_index += 1
                 continue
             math_lines.append(line)
+            line_index += 1
             continue
 
         if not line.strip():
             flush_all()
+            line_index += 1
             continue
 
         if line.strip() in {"$$", r"\["}:
             flush_all()
             math_lines = []
+            line_index += 1
             continue
 
         single_line_math = re.match(r"^\$\$(.+)\$\$$", line.strip()) or re.match(r"^\\\[(.+)\\\]$", line.strip())
         if single_line_math:
             flush_all()
             output.append(f'<div class="math-display">\\[{escape(single_line_math.group(1).strip())}\\]</div>')
+            line_index += 1
             continue
 
         image = MARKDOWN_IMAGE_PATTERN.match(line.strip())
         if image:
             flush_all()
             output.append(render_markdown_image(image.group(2), image.group(1), image.group(3) or ""))
+            line_index += 1
+            continue
+
+        table_alignments = get_markdown_table_alignments(lines[line_index + 1] if line_index + 1 < len(lines) else "")
+        if len(split_markdown_table_row(line)) >= 2 and table_alignments:
+            flush_all()
+            header_cells = split_markdown_table_row(line)
+            body_rows: list[list[str]] = []
+            line_index += 2
+
+            while line_index < len(lines) and lines[line_index].strip():
+                row_cells = split_markdown_table_row(lines[line_index])
+                if len(row_cells) < 2:
+                    break
+                body_rows.append(row_cells)
+                line_index += 1
+
+            output.append(render_markdown_table(header_cells, table_alignments, body_rows))
             continue
 
         heading = re.match(r"^(#{2,4})\s+(.+)$", line)
@@ -173,6 +254,7 @@ def render_markdown_block(value="") -> str:
             level = len(heading.group(1))
             text = re.sub(r"\s+#+\s*$", "", heading.group(2)).strip()
             output.append(f"<h{level}>{render_inline_markdown(text)}</h{level}>")
+            line_index += 1
             continue
 
         unordered = re.match(r"^\s*[-*]\s+(.+)$", line)
@@ -185,6 +267,7 @@ def render_markdown_block(value="") -> str:
                 flush_list()
                 list_type = current_type
             list_items.append((unordered or ordered).group(1))
+            line_index += 1
             continue
 
         quote_match = re.match(r"^\s*>\s?(.*)$", line)
@@ -192,11 +275,13 @@ def render_markdown_block(value="") -> str:
             flush_paragraph()
             flush_list()
             quote_lines.append(quote_match.group(1))
+            line_index += 1
             continue
 
         flush_list()
         flush_quote()
         paragraph.append(line)
+        line_index += 1
 
     flush_all()
     flush_math()

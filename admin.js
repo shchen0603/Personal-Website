@@ -128,6 +128,63 @@ if (adminApp) {
       .replace(/^-+|-+$/g, "")
       .slice(0, 72) || "item";
 
+  const normalizeBlogPostId = (value = "") =>
+    String(value || "")
+      .trim()
+      .replace(/^posts\//i, "")
+      .replace(/\.html$/i, "")
+      .replace(/\s+/g, "-")
+      .replace(/[^A-Za-z0-9_-]+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 90);
+
+  const getSuggestedBlogPostId = (title = "", date = new Date().toISOString().slice(0, 10)) => {
+    const titleSlug = slugify(title);
+    const suffix = titleSlug && titleSlug !== "item" ? titleSlug : "blog";
+
+    return normalizeBlogPostId(`${date}-${suffix}`);
+  };
+
+  const getExistingBlogPostIds = (content) =>
+    new Set(
+      adminNormalizeList(content?.blogPosts)
+        .map((post) => normalizeBlogPostId(post?.id).toLowerCase())
+        .filter(Boolean)
+    );
+
+  const requestQuickBlogPostId = (formData, content) => {
+    const today = new Date().toISOString().slice(0, 10);
+    const title = formData.get("title") || "新文章";
+    const suggestedId = getSuggestedBlogPostId(title, today);
+    const existingIds = getExistingBlogPostIds(content);
+
+    while (true) {
+      const rawId = window.prompt(
+        "請設定這篇 blog 的文章 ID。這會成為網址 posts/<ID>.html；建議使用英文、數字與 hyphen。",
+        suggestedId
+      );
+
+      if (rawId === null) {
+        return "";
+      }
+
+      const id = normalizeBlogPostId(rawId);
+
+      if (!id) {
+        window.alert("文章 ID 不能空白，請重新輸入。");
+        continue;
+      }
+
+      if (existingIds.has(id.toLowerCase())) {
+        window.alert(`文章 ID 已經存在：${id}\n請換一個 ID，避免產生重複網址。`);
+        continue;
+      }
+
+      return id;
+    }
+  };
+
   const adminNormalizeList = (value) => (Array.isArray(value) ? value : []);
 
   const formatDateForDisplay = (date) => String(date || "").replaceAll("-", ".");
@@ -2899,7 +2956,7 @@ if (adminApp) {
     }
   };
 
-  const buildQuickItem = (type, formData, imageInput = []) => {
+  const buildQuickItem = (type, formData, imageInput = [], options = {}) => {
     const today = new Date().toISOString().slice(0, 10);
     const paths = Array.isArray(imageInput) ? imageInput.filter(Boolean) : [imageInput].filter(Boolean);
 
@@ -2910,7 +2967,7 @@ if (adminApp) {
       const series = getSelectedBlogSeries(quickFields);
 
       return {
-        id: `${today}-${slugify(title)}`,
+        id: options.id || getSuggestedBlogPostId(title, today),
         status: "published",
         date: today,
         dateLabel: today.replaceAll("-", "."),
@@ -3479,6 +3536,18 @@ if (adminApp) {
         await assertRemoteContentIsCurrent(nextContent);
       }
 
+      const quickFormData = new FormData(quickForm);
+      let requestedBlogPostId = "";
+
+      if (type === "blogPosts") {
+        requestedBlogPostId = requestQuickBlogPostId(quickFormData, nextContent);
+
+        if (!requestedBlogPostId) {
+          setStatus("已取消發布。", "");
+          return;
+        }
+      }
+
       const imagePaths = [];
       let coverPath = "";
       const galleryPaths = [];
@@ -3525,8 +3594,9 @@ if (adminApp) {
 
       const item = buildQuickItem(
         type,
-        new FormData(quickForm),
-        type === "activities" ? { coverPath, galleryPaths } : imagePaths
+        quickFormData,
+        type === "activities" ? { coverPath, galleryPaths } : imagePaths,
+        type === "blogPosts" ? { id: requestedBlogPostId } : {}
       );
       const extraFiles = [];
 

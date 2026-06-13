@@ -6,6 +6,7 @@ import argparse
 import datetime as dt
 import html
 import json
+import posixpath
 import re
 import sys
 from pathlib import Path
@@ -29,13 +30,6 @@ INTENTIONAL_NOINDEX_PAGES = {
     "admin.html",
     "post.html",
     "posts/_template.html",
-    "posts/2026-05-26-blog.html",
-    "posts/2026-06-01-association.html",
-    "posts/2026-06-01-item.html",
-    "posts/2026-06-05-01-50.html",
-    "posts/2026-06-12-item.html",
-    "posts/2026-06-07-item.html",
-    "posts/welcome.html",
 }
 PLACEHOLDER_BLOG_TITLES = {"新文章", "New post", "Untitled post"}
 ALLOWED_RAW_ASSETS = {"assets/cardiovascular-epidemiology-hero-og.jpg"}
@@ -68,6 +62,7 @@ def render_text_with_breaks(value="") -> str:
 
 
 MARKDOWN_IMAGE_PATTERN = re.compile(r'^!\[([^\]]*)\]\((\S+?)(?:\s+"([^"]+)")?\)$')
+HTML_LINK_PATTERN = re.compile(r"""(?:href|src)=["']([^"']+)["']""", re.I)
 
 
 def is_safe_markdown_image_src(value="") -> bool:
@@ -353,6 +348,30 @@ def local_asset_path(value: str) -> str:
     if not value or is_remote_url(value) or is_mailto(value) or str(value).startswith("#"):
         return ""
     return str(value).lstrip("/").split("#", 1)[0].split("?", 1)[0]
+
+
+def local_link_path(value: str, source_relative_path: str) -> str:
+    link = str(value or "").strip()
+    if not link or link.startswith("#") or is_mailto(link) or re.match(r"^javascript:", link, re.I):
+        return ""
+    is_root_relative = False
+    if link.startswith(f"{SITE_ORIGIN}/"):
+        link = link[len(SITE_ORIGIN) + 1 :]
+        is_root_relative = True
+    elif is_remote_url(link):
+        return ""
+    link = link.split("#", 1)[0].split("?", 1)[0]
+    if not link:
+        return ""
+    if link.startswith("/Personal-Website/"):
+        link = link[len("/Personal-Website/") :]
+        is_root_relative = True
+    elif link.startswith("/"):
+        link = link.lstrip("/")
+        is_root_relative = True
+    if not is_root_relative:
+        link = (Path(source_relative_path).parent / link).as_posix()
+    return posixpath.normpath(link)
 
 
 def check_required_string(value, label: str) -> None:
@@ -888,6 +907,10 @@ def check_generated_files(content: dict) -> None:
         html = html_path.read_text(encoding="utf-8")
         if "noindex" in html.lower() and relative_path not in INTENTIONAL_NOINDEX_PAGES:
             add_error(f"Unexpected noindex tag in {relative_path}")
+        for match in HTML_LINK_PATTERN.finditer(html):
+            target_path = local_link_path(match.group(1), relative_path)
+            if target_path.startswith("posts/") and target_path.endswith(".html") and not (ROOT / target_path).exists():
+                add_error(f"{relative_path} links to missing post page: {match.group(1)}")
 
 
 def check_raw_assets() -> None:

@@ -146,23 +146,33 @@ if (adminApp) {
     return normalizeBlogPostId(`${date}-${suffix}`);
   };
 
-  const getExistingBlogPostIds = (content) =>
+  const getExistingBlogPostIds = (content, excludedPost = null) =>
     new Set(
       adminNormalizeList(content?.blogPosts)
+        .filter((post) => post !== excludedPost)
         .map((post) => normalizeBlogPostId(post?.id).toLowerCase())
         .filter(Boolean)
     );
 
-  const requestQuickBlogPostId = (formData, content) => {
-    const today = new Date().toISOString().slice(0, 10);
-    const title = formData.get("title") || "新文章";
-    const suggestedId = getSuggestedBlogPostId(title, today);
-    const existingIds = getExistingBlogPostIds(content);
+  const isDefaultBlogPostId = (value = "") =>
+    /^post-\d{4}-\d{2}-\d{2}$/i.test(normalizeBlogPostId(value));
+
+  const isBlogPostIdTaken = (id, content, excludedPost = null) =>
+    getExistingBlogPostIds(content, excludedPost).has(normalizeBlogPostId(id).toLowerCase());
+
+  const requestBlogPostId = (post, content, options = {}) => {
+    const date = post?.date || new Date().toISOString().slice(0, 10);
+    const suggestedId = getSuggestedBlogPostId(post?.title || "新文章", date);
+    const existingIds = getExistingBlogPostIds(content, options.excludedPost || null);
+    const currentId = normalizeBlogPostId(post?.id || "");
+    const defaultId = options.forceSuggestion || !currentId || isDefaultBlogPostId(currentId)
+      ? suggestedId
+      : currentId;
 
     while (true) {
       const rawId = window.prompt(
         "請設定這篇 blog 的文章 ID。這會成為網址 posts/<ID>.html；建議使用英文、數字與 hyphen。",
-        suggestedId
+        defaultId
       );
 
       if (rawId === null) {
@@ -183,6 +193,50 @@ if (adminApp) {
 
       return id;
     }
+  };
+
+  const requestQuickBlogPostId = (formData, content) => {
+    const today = new Date().toISOString().slice(0, 10);
+    const post = {
+      id: getSuggestedBlogPostId(formData.get("title") || "新文章", today),
+      date: today,
+      title: formData.get("title") || "新文章"
+    };
+
+    return requestBlogPostId(post, content, { forceSuggestion: true });
+  };
+
+  const ensurePublishedBlogPostIds = (content) => {
+    for (const post of adminNormalizeList(content?.blogPosts)) {
+      if (!post || post.status === "draft") {
+        continue;
+      }
+
+      const currentId = String(post.id || "");
+      const normalizedId = normalizeBlogPostId(currentId);
+      const needsPrompt =
+        !normalizedId ||
+        normalizedId !== currentId ||
+        isDefaultBlogPostId(normalizedId) ||
+        isBlogPostIdTaken(normalizedId, content, post);
+
+      if (!needsPrompt) {
+        continue;
+      }
+
+      const id = requestBlogPostId(post, content, {
+        excludedPost: post,
+        forceSuggestion: isDefaultBlogPostId(normalizedId) || isBlogPostIdTaken(normalizedId, content, post)
+      });
+
+      if (!id) {
+        return false;
+      }
+
+      post.id = id;
+    }
+
+    return true;
   };
 
   const adminNormalizeList = (value) => (Array.isArray(value) ? value : []);
@@ -3712,6 +3766,12 @@ if (adminApp) {
 
     try {
       const nextContent = cloneContent(state.content);
+
+      if (!ensurePublishedBlogPostIds(nextContent)) {
+        setStatus("已取消發布。", "");
+        return;
+      }
+
       setStatus("正在確認 GitHub 是否已有新版本...", "");
       await assertRemoteContentIsCurrent(nextContent);
       setStatus("正在發布到 GitHub...", "");
@@ -3750,9 +3810,11 @@ if (adminApp) {
         });
 
       await publishToGitHub(nextContent, extraFiles, "Update website content");
+      state.content = nextContent;
       state.baseContent = cloneContent(nextContent);
       clearPendingAssetUploads(pendingAssetFiles.map((file) => file.path));
       setDirty(false);
+      render();
       setStatus("已發布到 GitHub。本機檔案不會自動改動；需要本機同步時請用 git pull。", "success");
     } catch (error) {
       console.error(error);
@@ -3774,6 +3836,11 @@ if (adminApp) {
     }
 
     try {
+      if (!ensurePublishedBlogPostIds(state.content)) {
+        setStatus("已取消儲存。", "");
+        return;
+      }
+
       await savePendingAssetUploads(state.content);
       await writeContentFile();
       await writeSitemapFile();
@@ -3781,6 +3848,7 @@ if (adminApp) {
       await writeAllBlogPostFiles();
       await writeAllActivityFiles();
       setDirty(false);
+      render();
       setStatus("已儲存 data/site-content.json、sitemap.xml、blog 列表、blog 靜態檔與 activity 靜態檔。", "success");
     } catch (error) {
       console.error(error);

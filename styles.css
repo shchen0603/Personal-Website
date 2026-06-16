@@ -843,6 +843,15 @@ h3 {
   padding-top: 0;
 }
 
+.research-block .research-impact-note {
+  margin-top: 1.15rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 0.96rem;
+  font-weight: 750;
+}
+
 .publication-section {
   border-top: 1px solid var(--line);
 }

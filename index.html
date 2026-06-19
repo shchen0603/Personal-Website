@@ -69,32 +69,32 @@
     // Prevent flash of wrong theme
     (function () { var t = localStorage.getItem('theme'); if (t === 'dark' || (t !== 'light' && matchMedia('(prefers-color-scheme:dark)').matches)) { document.documentElement.setAttribute('data-theme', 'dark') } })();
   </script>
-</head>
+    <script>(function(){var l=localStorage.getItem("lang");if(l!=="en"&&l!=="zh-Hant"){l=(navigator.language||navigator.userLanguage||"").toLowerCase().indexOf("zh")===0?"zh-Hant":"en";}document.documentElement.setAttribute("lang",l);})();</script>
+  </head>
 
 <body data-page="home">
   <a class="skip-link" href="#main">跳到主要內容</a>
 
-  <header class="site-header" data-header data-tagline="Cardiovascular &amp; Nutritional Epidemiology"></header>
+  <header class="site-header" data-header data-tagline="Cardiovascular &amp; Nutritional Epidemiology" data-tagline-zh="心血管與營養流行病學"></header>
 
   <main id="main">
     <section class="hero">
       <img class="hero-image" src="assets/cardiovascular-epidemiology-hero.webp" alt="心血管與營養流行病學研究桌面，包含風險曲線、地圖與臨床研究物件" width="1672" height="941" decoding="async" fetchpriority="high">
       <div class="hero-overlay" aria-hidden="true"></div>
       <div class="hero-content">
-        <p class="eyebrow">MD Candidate · Cardiovascular &amp; Nutritional Epidemiology</p>
+        <p class="eyebrow"><span data-lang="zh">醫學系學生 · 心血管與營養流行病學</span><span data-lang="en">MD Candidate · Cardiovascular &amp; Nutritional Epidemiology</span></p>
         <h1>陳思翰</h1>
         <h1>Szu-Han Chen</h1>
         <p class="hero-copy">
-          MD candidate at National Yang Ming Chiao Tung University and research collaborator at Harvard T.H. Chan School of Public Health. Cardiovascular and nutritional epidemiology researcher working at the intersection of heart failure, hypertension, and cardiometabolic risk.
+          <span data-lang="zh">國立陽明交通大學醫學系學生，哈佛大學陳曾熙公共衛生學院研究合作者。研究聚焦心臟衰竭、高血壓與心血管代謝風險的交會，並嘗試把族群資料轉化為更公平、更有效的預防策略。</span><span data-lang="en">MD candidate at National Yang Ming Chiao Tung University and research collaborator at Harvard T.H. Chan School of Public Health. Cardiovascular and nutritional epidemiology researcher working at the intersection of heart failure, hypertension, and cardiometabolic risk.</span>
         </p>
-        <div class="hero-actions" aria-label="主要連結">
-          <a class="button button-primary" href="publications.html">完整著作</a>
-          <a class="button button-secondary button-cv" href="assets/cv.pdf" target="_blank" rel="noreferrer">Download
-            CV</a>
-          <a class="button button-secondary" href="blog.html">Blog</a>
+        <div class="hero-actions" aria-label="主要連結 / Primary links">
+          <a class="button button-primary" href="publications.html"><span data-lang="zh">完整著作</span><span data-lang="en">Publications</span></a>
+          <a class="button button-secondary button-cv" href="assets/cv.pdf" target="_blank" rel="noreferrer"><span data-lang="zh">下載 CV</span><span data-lang="en">Download CV</span></a>
+          <a class="button button-secondary" href="blog.html"><span data-lang="zh">網誌</span><span data-lang="en">Blog</span></a>
         </div>
       </div>
-      <a class="scroll-indicator" href="#intro-title" aria-label="向下滾動">
+      <a class="scroll-indicator" href="#intro-title" aria-label="向下滾動 / Scroll down">
         <span>Scroll</span>
         <span class="scroll-indicator-arrow" aria-hidden="true"></span>
       </a>
@@ -102,16 +102,16 @@
 
     <section class="section intro-grid" aria-labelledby="intro-title">
       <div class="intro-side">
-        <div class="section-kicker">Research Identity</div>
+        <div class="section-kicker"><span data-lang="zh">研究身份</span><span data-lang="en">Research Identity</span></div>
         <figure class="intro-portrait reveal">
           <img src="assets/portrait.webp" alt="Szu-Han Chen at Harvard T.H. Chan School of Public Health" width="900" height="1200" loading="lazy" decoding="async">
           <figcaption>Harvard T.H. Chan School of Public Health, Boston.</figcaption>
         </figure>
       </div>
       <div>
-        <h2 id="intro-title" class="reveal">心血管與營養流行病學，從族群資料到臨床照護。</h2>
+        <h2 id="intro-title" class="reveal"><span data-lang="zh">心血管與營養流行病學，從族群資料到臨床照護。</span><span data-lang="en">Cardiovascular and nutritional epidemiology, from population data to clinical care.</span></h2>
         <p class="reveal reveal-delay-1">
-          這個網站整理我的研究興趣、進行中的計畫、學術發表與寫作。核心問題很直接：哪些人會在什麼條件下承受較高的心血管、腎臟與代謝風險，我們又該如何用資料設計更公平、更有效的預防策略？
+          <span data-lang="zh">這個網站整理我的研究興趣、進行中的計畫、學術發表與寫作。核心問題很直接：哪些人會在什麼條件下承受較高的心血管、腎臟與代謝風險，我們又該如何用資料設計更公平、更有效的預防策略？</span><span data-lang="en">This site collects my research interests, ongoing projects, publications, and writing. The core question is simple: who carries higher cardiovascular, kidney, and metabolic risk, under what conditions, and how can we use data to design fairer and more effective prevention?</span>
         </p>
         <div class="profile-links reveal reveal-delay-2" aria-label="學術與專業連結">
           <a href="https://orcid.org/0009-0006-4557-9097" rel="noreferrer">ORCID</a>
@@ -125,23 +125,23 @@
       </div>
     </section>
 
-    <section class="section" aria-label="研究成果統計">
+    <section class="section" aria-label="研究成果統計 / Research output">
       <div class="stats-row reveal">
         <div class="stat-item">
           <span class="stat-number" data-stat="publications" data-count="11">11</span>
-          <span class="stat-label">Publications</span>
+          <span class="stat-label"><span data-lang="zh">著作</span><span data-lang="en">Publications</span></span>
         </div>
         <div class="stat-item">
           <span class="stat-number" data-stat="awards" data-count="10">10</span>
-          <span class="stat-label">Awards</span>
+          <span class="stat-label"><span data-lang="zh">獎項</span><span data-lang="en">Awards</span></span>
         </div>
         <div class="stat-item">
           <span class="stat-number" data-stat="appearances" data-count="7">7</span>
-          <span class="stat-label">Talks & Presentations</span>
+          <span class="stat-label"><span data-lang="zh">演講與報告</span><span data-lang="en">Talks &amp; Presentations</span></span>
         </div>
         <div class="stat-item">
           <span class="stat-number" data-stat="activities" data-count="5">5</span>
-          <span class="stat-label">Activities</span>
+          <span class="stat-label"><span data-lang="zh">活動</span><span data-lang="en">Activities</span></span>
         </div>
       </div>
     </section>
@@ -149,7 +149,7 @@
     <section class="section highlight-section" aria-labelledby="highlights-title">
       <div class="section-heading reveal">
         <p class="eyebrow">Highlights</p>
-        <h2 id="highlights-title">近期學術亮點</h2>
+        <h2 id="highlights-title"><span data-lang="zh">近期學術亮點</span><span data-lang="en">Recent highlights</span></h2>
       </div>
       <div class="highlight-grid" data-render="home-highlights">
         <article class="highlight-card reveal">
@@ -169,30 +169,30 @@
         </article>
       </div>
       <div class="section-action">
-        <a class="button button-outline" href="activities.html">View activity notes</a>
+        <a class="button button-outline" href="activities.html"><span data-lang="zh">查看活動紀錄</span><span data-lang="en">View activity notes</span></a>
       </div>
     </section>
 
     <section class="section feature-band" aria-labelledby="focus-title">
       <div class="section-heading reveal">
         <p class="eyebrow">Focus Areas</p>
-        <h2 id="focus-title">研究焦點</h2>
+        <h2 id="focus-title"><span data-lang="zh">研究焦點</span><span data-lang="en">Focus areas</span></h2>
       </div>
       <div class="focus-grid">
         <article class="focus-card reveal">
           <span class="card-index">01</span>
-          <h3>Cardiometabolic Health & Heart Failure</h3>
-          <p>Obesity, central adiposity, inflammation, CKM staging, myocardial strain, and heart failure risk.</p>
+          <h3><span data-lang="zh">心血管代謝健康與心臟衰竭</span><span data-lang="en">Cardiometabolic Health &amp; Heart Failure</span></h3>
+          <p><span data-lang="zh">肥胖、中央型脂肪、發炎、CKM 分期、心肌應變與心臟衰竭風險。</span><span data-lang="en">Obesity, central adiposity, inflammation, CKM staging, myocardial strain, and heart failure risk.</span></p>
         </article>
         <article class="focus-card reveal reveal-delay-1">
           <span class="card-index">02</span>
-          <h3>Hypertension, Sodium, and Vascular Risk</h3>
-          <p>Salt sensitivity, personalized BP-sodium response, nocturnal hypertension, and hemodynamics.</p>
+          <h3><span data-lang="zh">高血壓、鈉攝取與血管風險</span><span data-lang="en">Hypertension, Sodium, and Vascular Risk</span></h3>
+          <p><span data-lang="zh">鹽敏感性、個人化血壓–鈉反應、夜間高血壓與血流動力學。</span><span data-lang="en">Salt sensitivity, personalized BP-sodium response, nocturnal hypertension, and hemodynamics.</span></p>
         </article>
         <article class="focus-card reveal reveal-delay-2">
           <span class="card-index">03</span>
-          <h3>Nutrition, Metabolomics, and Chronic Disease</h3>
-          <p>Dietary patterns, UPF subclassification, metabolomic profiling, and cardiometabolic outcomes.</p>
+          <h3><span data-lang="zh">營養、代謝體學與慢性病</span><span data-lang="en">Nutrition, Metabolomics, and Chronic Disease</span></h3>
+          <p><span data-lang="zh">飲食型態、超加工食品分類、代謝體特徵與心血管代謝結局。</span><span data-lang="en">Dietary patterns, UPF subclassification, metabolomic profiling, and cardiometabolic outcomes.</span></p>
         </article>
       </div>
     </section>
@@ -200,31 +200,31 @@
     <section class="section split-section" aria-labelledby="projects-title">
       <div class="reveal">
         <p class="eyebrow">Academic Path</p>
-        <h2 id="projects-title">跨臨床醫學、流行病學與國際研究訓練。</h2>
+        <h2 id="projects-title"><span data-lang="zh">跨臨床醫學、流行病學與國際研究訓練。</span><span data-lang="en">Across clinical medicine, epidemiology, and international research training.</span></h2>
         <p>
-          我目前就讀於國立陽明交通大學醫學系，並在公共衛生、心血管流行病學與實證醫學研究中累積跨機構訓練經驗。
+          <span data-lang="zh">我目前就讀於國立陽明交通大學醫學系，並在公共衛生、心血管流行病學與實證醫學研究中累積跨機構訓練經驗。</span><span data-lang="en">I am an MD candidate at National Yang Ming Chiao Tung University, with cross-institutional training in public health, cardiovascular epidemiology, and evidence-based medicine.</span>
         </p>
       </div>
       <div class="timeline">
         <article class="timeline-item reveal">
           <p class="timeline-meta">2025-present</p>
           <h3>Research Collaborator, Harvard T.H. Chan School of Public Health</h3>
-          <p>參與心血管與營養流行病學相關研究合作。</p>
+          <p><span data-lang="zh">參與心血管與營養流行病學相關研究合作。</span><span data-lang="en">Collaborating on cardiovascular and nutritional epidemiology research.</span></p>
         </article>
         <article class="timeline-item reveal reveal-delay-1">
           <p class="timeline-meta">2022-present</p>
           <h3>Research Student, Institute of Public Health, NYCU</h3>
-          <p>聚焦族群資料、慢性病照護與公共衛生研究方法。</p>
+          <p><span data-lang="zh">聚焦族群資料、慢性病照護與公共衛生研究方法。</span><span data-lang="en">Focused on population data, chronic disease care, and public health research methods.</span></p>
         </article>
         <article class="timeline-item reveal reveal-delay-2">
           <p class="timeline-meta">2025</p>
           <h3>Visiting Research Student, Harvard T.H. Chan School of Public Health</h3>
-          <p>延伸國際研究訓練與大型 cohort data 的應用經驗。</p>
+          <p><span data-lang="zh">延伸國際研究訓練與大型 cohort data 的應用經驗。</span><span data-lang="en">Extending international research training and work with large cohort data.</span></p>
         </article>
         <article class="timeline-item reveal reveal-delay-3">
           <p class="timeline-meta">2024</p>
           <h3>Research Trainee, University of Tokyo</h3>
-          <p>累積海外研究訓練與跨領域學術交流經驗。</p>
+          <p><span data-lang="zh">累積海外研究訓練與跨領域學術交流經驗。</span><span data-lang="en">Overseas research training and interdisciplinary academic exchange.</span></p>
         </article>
       </div>
     </section>
@@ -232,7 +232,7 @@
     <section class="section writing-section" aria-labelledby="writing-title">
       <div class="section-heading reveal">
         <p class="eyebrow">Writing</p>
-        <h2 id="writing-title">最新文章</h2>
+        <h2 id="writing-title"><span data-lang="zh">最新文章</span><span data-lang="en">Latest writing</span></h2>
       </div>
       <div class="post-list" data-render="home-posts">
         <article class="post-card reveal">

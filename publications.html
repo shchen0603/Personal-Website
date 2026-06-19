@@ -24,6 +24,7 @@
     <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"a8f57387064d4f27b1ba086354d6ac5f"}'></script>
     <!-- End Cloudflare Web Analytics -->
     <script>(function(){var t=localStorage.getItem("theme");if(t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme:dark)").matches)){document.documentElement.setAttribute("data-theme","dark")}})();</script>
+      <script>(function(){var l=localStorage.getItem("lang");if(l!=="en"&&l!=="zh-Hant"){l=(navigator.language||navigator.userLanguage||"").toLowerCase().indexOf("zh")===0?"zh-Hant":"en";}document.documentElement.setAttribute("lang",l);})();</script>
   </head>
   <body data-page="publications">
     <a class="skip-link" href="#main">跳到主要內容</a>
@@ -33,31 +34,31 @@
     <main id="main">
       <section class="page-hero compact">
         <p class="eyebrow">Publications</p>
-        <h1 class="reveal">已發表著作</h1>
+        <h1 class="reveal"><span data-lang="zh">已發表著作</span><span data-lang="en">Publications</span></h1>
         <p class="reveal reveal-delay-1">
-          這裡整理完整的已發表著作清單，依 CV 類別分組，並附上 DOI 連結以便查閱原始出版資訊。
+          <span data-lang="zh">這裡整理完整的已發表著作清單，依 CV 類別分組，並附上 DOI 連結以便查閱原始出版資訊。</span><span data-lang="en">A complete list of published work, grouped by CV category, with DOI links to the original publications.</span>
         </p>
       </section>
 
       <section class="section publication-section publication-page" aria-labelledby="full-publications-title">
         <div class="section-heading reveal">
           <p class="eyebrow">Complete List</p>
-          <h2 id="full-publications-title">All Publications</h2>
+          <h2 id="full-publications-title"><span data-lang="zh">所有著作</span><span data-lang="en">All Publications</span></h2>
         </div>
 
-        <div class="publication-search reveal" aria-label="搜尋著作">
+        <div class="publication-search reveal" aria-label="搜尋著作 / Search publications">
           <span class="publication-search-icon" aria-hidden="true">🔍</span>
-          <input type="search" data-publication-search placeholder="Search by title, author, or journal..." id="publication-search-input">
+          <input type="search" data-publication-search data-ph-zh="搜尋標題、作者或期刊…" data-ph-en="Search by title, author, or journal..." placeholder="搜尋標題、作者或期刊…" id="publication-search-input">
         </div>
 
         <div class="publication-filter" data-render="publication-filters" aria-label="依研究設計與主題篩選著作">
-          <button class="tag-button is-active" type="button" data-publication-filter="all" aria-pressed="true">All</button>
+          <button class="tag-button is-active" type="button" data-publication-filter="all" aria-pressed="true"><span data-lang="zh">全部</span><span data-lang="en">All</span></button>
         </div>
 
         <div class="publication-groups" data-render="publications" data-publication-list>
-          <p class="publication-loading" data-publication-loading>正在載入著作清單…</p>
+          <p class="publication-loading" data-publication-loading><span data-lang="zh">正在載入著作清單…</span><span data-lang="en">Loading publications…</span></p>
         </div>
-        <p class="publication-empty" data-publication-empty hidden>目前沒有符合搜尋或篩選條件的著作。</p>
+        <p class="publication-empty" data-publication-empty hidden><span data-lang="zh">目前沒有符合搜尋或篩選條件的著作。</span><span data-lang="en">No publications match your search or filters.</span></p>
       </section>
     </main>
 

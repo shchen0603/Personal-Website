@@ -212,6 +212,40 @@ a {
   background: var(--wash);
 }
 
+.lang-toggle {
+  display: grid;
+  place-items: center;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  transition: background var(--transition-base), border-color var(--transition-base);
+}
+
+.lang-toggle:hover {
+  background: var(--wash);
+}
+
+.header-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ===== Bilingual visibility ===== */
+html[lang="en"] [data-lang="zh"],
+html:not([lang="en"]) [data-lang="en"] {
+  display: none !important;
+}
+
 .nav-toggle {
   display: none;
   width: 44px;

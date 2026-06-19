@@ -1,61 +1,67 @@
 // ===== Site Chrome (shared header + footer) =====
 const SITE_CONFIG = window.SITE_CONFIG || {};
 const SITE_NAV_ITEMS = SITE_CONFIG.navItems || [
-  { href: "index.html", label: "Home", page: "home" },
-  { href: "publications.html", label: "Publications", page: "publications" },
-  { href: "blog.html", label: "Blog", page: "blog" },
-  { href: "honors.html", label: "Honors", page: "honors" },
-  { href: "activities.html", label: "Activities", page: "activities" }
+  { href: "index.html", label: "Home", zh: "首頁", page: "home" },
+  { href: "publications.html", label: "Publications", zh: "著作", page: "publications" },
+  { href: "blog.html", label: "Blog", zh: "網誌", page: "blog" },
+  { href: "honors.html", label: "Honors", zh: "榮譽", page: "honors" },
+  { href: "activities.html", label: "Activities", zh: "活動", page: "activities" },
+  { href: "contact.html", label: "Contact", zh: "聯絡", page: "contact" }
 ];
 
 const SITE_FOOTER_LINKS = SITE_CONFIG.footerLinks || [
-  { href: "research.html", label: "Research" },
-  { href: "publications.html", label: "Publications" },
-  { href: "honors.html", label: "Honors" },
-  { href: "activities.html", label: "Activities" },
-  { href: "blog.html", label: "Blog" },
-  { href: "contact.html", label: "Contact" },
+  { href: "research.html", label: "Research", zh: "研究" },
+  { href: "publications.html", label: "Publications", zh: "著作" },
+  { href: "honors.html", label: "Honors", zh: "榮譽" },
+  { href: "activities.html", label: "Activities", zh: "活動" },
+  { href: "blog.html", label: "Blog", zh: "網誌" },
+  { href: "contact.html", label: "Contact", zh: "聯絡" },
   { href: "https://orcid.org/0009-0006-4557-9097", label: "ORCID", external: true },
   { href: "https://scholar.google.com/citations?user=0CdlnrgAAAAJ&hl=zh-TW", label: "Google Scholar", external: true },
   { href: "https://github.com/shchen0603/Personal-Website", label: "GitHub", external: true }
 ];
 
+// Bilingual inline helper: emits both languages, CSS shows the active one.
+const bi = (zh, en) => `<span data-lang="zh">${zh}</span><span data-lang="en">${en}</span>`;
+
 const renderSiteChrome = () => {
   const header = document.querySelector("header.site-header[data-header]");
   const footer = document.querySelector("footer.site-footer[data-footer]");
   const currentPage = document.body?.dataset?.page || "";
-  const base = document.body?.dataset?.basePath || "";
+  const base = document.body?.dataset?.basePath || header?.dataset?.siteHeaderBase || "";
   const resolve = (href) => (/^https?:\/\//.test(href) || href.startsWith("mailto:") ? href : `${base}${href}`);
 
   if (header) {
-    const tagline = header.dataset.tagline || "Cardiovascular & Nutritional Epidemiology";
+    const taglineEn = header.dataset.tagline || "Cardiovascular & Nutritional Epidemiology";
+    const taglineZh = header.dataset.taglineZh || "心血管與營養流行病學";
     const navHtml = SITE_NAV_ITEMS.map((item) => {
       const isCurrent = item.page === currentPage;
       const aria = isCurrent ? ' aria-current="page"' : "";
 
-      return `<a href="${resolve(item.href)}"${aria}>${item.label}</a>`;
+      return `<a href="${resolve(item.href)}"${aria}>${bi(item.zh || item.label, item.label)}</a>`;
     }).join("\n        ");
-    const contactCurrent = currentPage === "contact" ? ' aria-current="page"' : "";
 
     header.innerHTML = `
-      <a class="brand" href="${resolve("index.html")}" aria-label="回到首頁">
+      <a class="brand" href="${resolve("index.html")}" aria-label="回到首頁 / Home">
         <span class="brand-mark" aria-hidden="true">SC</span>
         <span class="brand-text">
           <strong>陳思翰 · Szu-Han Chen</strong>
-          <span>${tagline}</span>
+          <span>${bi(taglineZh, taglineEn)}</span>
         </span>
       </a>
       <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">
         <span class="nav-toggle-line"></span>
         <span class="nav-toggle-line"></span>
         <span class="nav-toggle-line"></span>
-        <span class="sr-only">開合選單</span>
+        <span class="sr-only">${bi("開合選單", "Toggle menu")}</span>
       </button>
       <nav class="site-nav" id="site-nav" data-nav>
         ${navHtml}
-        <a href="${resolve("contact.html")}"${contactCurrent}>Contact</a>
       </nav>
-      <button class="theme-toggle" type="button" data-theme-toggle aria-label="切換深色模式" title="切換深色模式">☀</button>
+      <div class="header-controls">
+        <button class="lang-toggle" type="button" data-lang-toggle aria-label="切換語言 / Switch language" title="切換語言 / Switch language">${bi("EN", "中")}</button>
+        <button class="theme-toggle" type="button" data-theme-toggle aria-label="切換深色模式 / Toggle dark mode" title="切換深色模式 / Toggle dark mode">☀</button>
+      </div>
     `;
   }
 
@@ -65,13 +71,16 @@ const renderSiteChrome = () => {
         return `<a href="${link.href}" rel="noreferrer">${link.label}</a>`;
       }
 
-      return `<a href="${resolve(link.href)}">${link.label}</a>`;
+      return `<a href="${resolve(link.href)}">${bi(link.zh || link.label, link.label)}</a>`;
     }).join("\n        ");
 
     footer.innerHTML = `
       <div class="footer-brand">
         <strong>陳思翰 Szu-Han Chen</strong>
-        <p>MD candidate at National Yang Ming Chiao Tung University and research collaborator at Harvard T.H. Chan School of Public Health. Cardiovascular and nutritional epidemiology researcher working at the intersection of heart failure, hypertension, and cardiometabolic risk.</p>
+        <p>${bi(
+          "國立陽明交通大學醫學系學生，哈佛大學陳曾熙公共衛生學院研究合作者；研究聚焦心臟衰竭、高血壓與心血管代謝風險的交會。",
+          "MD candidate at National Yang Ming Chiao Tung University and research collaborator at Harvard T.H. Chan School of Public Health. Cardiovascular and nutritional epidemiology researcher working at the intersection of heart failure, hypertension, and cardiometabolic risk."
+        )}</p>
         <p>© <span data-year></span> All rights reserved.</p>
       </div>
       <nav class="footer-links" aria-label="Footer navigation">
@@ -898,7 +907,7 @@ const renderPublicationGroup = (group) => `
   <section class="publication-group" data-publication-group data-publication-group-slug="${escapeHTML(group.slug)}">
     <div class="publication-group-heading">
       <h3>${escapeHTML(group.label)}</h3>
-      ${group.slug === "published-conference-abstracts" ? '<p class="publication-group-note">Conference abstracts presented at scientific meetings (not peer-reviewed full papers).</p>' : ""}
+      ${group.slug === "published-conference-abstracts" ? `<p class="publication-group-note">${bi("於學術會議發表的摘要（非同儕審查全文）。", "Conference abstracts presented at scientific meetings (not peer-reviewed full papers).")}</p>` : ""}
     </div>
     <div class="publication-list">
       ${group.items.map((publication) => renderPublicationItem(publication, { filterable: true })).join("")}
@@ -1105,7 +1114,7 @@ const renderActivityCard = (activity) => {
         <p class="activity-meta">${escapeHTML(activity.meta || "")}</p>
         <h3><a href="${href}">${escapeHTML(activity.title || "")}</a></h3>
         <p>${renderTextWithBreaks(activity.summary || "")}</p>
-        <a class="activity-read-more" href="${href}">Read full notes</a>
+        <a class="activity-read-more" href="${href}">${bi("閱讀完整紀錄", "Read full notes")}</a>
       </div>
     </article>
   `;
@@ -1153,10 +1162,10 @@ const renderBlogSeriesButtons = (series = [], options = {}) =>
 const renderBlogArticleTaxonomy = (tags = [], series = null) => {
   const rows = [
     tags.length
-      ? `<div class="article-taxonomy-row"><span class="article-taxonomy-label">標籤：</span><div class="article-taxonomy-items">${renderBlogTagButtons(tags, { interactive: false })}</div></div>`
+      ? `<div class="article-taxonomy-row"><span class="article-taxonomy-label">${bi("標籤：", "Tags:")}</span><div class="article-taxonomy-items">${renderBlogTagButtons(tags, { interactive: false })}</div></div>`
       : "",
     series
-      ? `<div class="article-taxonomy-row"><span class="article-taxonomy-label">系列：</span><div class="article-taxonomy-items">${renderBlogSeriesButtons([series], { interactive: false })}</div></div>`
+      ? `<div class="article-taxonomy-row"><span class="article-taxonomy-label">${bi("系列：", "Series:")}</span><div class="article-taxonomy-items">${renderBlogSeriesButtons([series], { interactive: false })}</div></div>`
       : ""
   ].filter(Boolean).join("");
 
@@ -1212,7 +1221,7 @@ const upgradeLegacyArticleTaxonomy = () => {
 
       row.className = "article-taxonomy-row";
       labelElement.className = "article-taxonomy-label";
-      labelElement.textContent = label;
+      labelElement.innerHTML = label;
       itemList.className = "article-taxonomy-items";
       rowItems.forEach((item) => itemList.append(item));
       row.append(labelElement, itemList);
@@ -1221,8 +1230,8 @@ const upgradeLegacyArticleTaxonomy = () => {
 
     taxonomy.className = "article-taxonomy";
     taxonomy.setAttribute("aria-label", legacyTaxonomy.getAttribute("aria-label") || "文章系列與標籤");
-    addRow("標籤：", tagItems);
-    addRow("系列：", seriesItems);
+    addRow(bi("標籤：", "Tags:"), tagItems);
+    addRow(bi("系列：", "Series:"), seriesItems);
     legacyTaxonomy.dataset.articleTaxonomyUpgraded = "true";
     legacyTaxonomy.remove();
     getArticleFooter(article).append(taxonomy);
@@ -1247,21 +1256,21 @@ const renderBlogFilters = (posts, content) => {
   }
 
   return `
-    <div class="blog-filter" aria-label="篩選文章">
+    <div class="blog-filter" aria-label="篩選文章 / Filter posts">
       ${tags.length ? `
         <div class="blog-filter-group">
-          <p>標籤</p>
+          <p>${bi("標籤", "Tags")}</p>
           <div>
-            <button class="tag-button is-active" type="button" data-blog-tag-filter="all" aria-pressed="true">全部</button>
+            <button class="tag-button is-active" type="button" data-blog-tag-filter="all" aria-pressed="true">${bi("全部", "All")}</button>
             ${renderBlogTagButtons(tags)}
           </div>
         </div>
       ` : ""}
       ${series.length ? `
         <div class="blog-filter-group">
-          <p>系列</p>
+          <p>${bi("系列", "Series")}</p>
           <div>
-            <button class="tag-button is-active" type="button" data-blog-series-filter="all" aria-pressed="true">全部</button>
+            <button class="tag-button is-active" type="button" data-blog-series-filter="all" aria-pressed="true">${bi("全部", "All")}</button>
             ${renderBlogSeriesButtons(series)}
           </div>
         </div>
@@ -1301,7 +1310,7 @@ const renderHomePostCard = (post) => `
   </article>
 `;
 
-const renderBlogNote = () => `<p class="blog-note">More research notes coming soon.</p>`;
+const renderBlogNote = () => `<p class="blog-note">${bi("更多研究筆記陸續整理中。", "More research notes coming soon.")}</p>`;
 
 const SITE_ORIGIN = SITE_CONFIG.siteOrigin || "https://shchen0603.github.io/Personal-Website";
 
@@ -1367,10 +1376,10 @@ const renderBlogPost = (content) => {
   if (!post) {
     container.innerHTML = `
       <header class="article-header">
-        <a class="back-link" href="blog.html">Back to Blog</a>
+        <a class="back-link" href="blog.html">${bi("回到網誌", "Back to Blog")}</a>
         <p class="post-category">Blog</p>
-        <h1>找不到這篇文章</h1>
-        <p class="article-dek">這篇文章可能尚未發布，或網址中的 id 不正確。</p>
+        <h1>${bi("找不到這篇文章", "Post not found")}</h1>
+        <p class="article-dek">${bi("這篇文章可能尚未發布，或網址中的 id 不正確。", "This post may not be published yet, or the id in the URL is incorrect.")}</p>
       </header>
     `;
     return;
@@ -1438,7 +1447,7 @@ const renderBlogPost = (content) => {
 
   container.innerHTML = `
     <header class="article-header">
-      <a class="back-link" href="blog.html">Back to Blog</a>
+      <a class="back-link" href="blog.html">${bi("回到網誌", "Back to Blog")}</a>
       <p class="post-category">${escapeHTML(post.dateLabel || post.date || "")}</p>
       <h1>${escapeHTML(post.title || "")}</h1>
       <p class="article-dek">${renderTextWithBreaks(post.excerpt || "")}</p>
@@ -1465,10 +1474,10 @@ const renderActivityPost = (content) => {
   if (!activity) {
     container.innerHTML = `
       <header class="article-header">
-        <a class="back-link" href="activities.html">Back to Activities</a>
+        <a class="back-link" href="activities.html">${bi("回到活動", "Back to Activities")}</a>
         <p class="post-category">Activities</p>
-        <h1>找不到這篇活動紀錄</h1>
-        <p class="article-dek">這篇活動紀錄可能尚未發布，或網址中的 id 不正確。</p>
+        <h1>${bi("找不到這篇活動紀錄", "Activity not found")}</h1>
+        <p class="article-dek">${bi("這篇活動紀錄可能尚未發布，或網址中的 id 不正確。", "This activity may not be published yet, or the id in the URL is incorrect.")}</p>
       </header>
     `;
     return;
@@ -1513,7 +1522,7 @@ const renderActivityPost = (content) => {
 
   container.innerHTML = `
     <header class="article-header">
-      <a class="back-link" href="activities.html">Back to Activities</a>
+      <a class="back-link" href="activities.html">${bi("回到活動", "Back to Activities")}</a>
       <p class="post-category">${escapeHTML(dateLabel ? `${dateLabel} · ${compactMeta}` : compactMeta)}</p>
       <h1>${escapeHTML(activity.title || "")}</h1>
       <p class="article-dek">${renderTextWithBreaks(activity.summary || "")}</p>
@@ -1655,7 +1664,7 @@ const renderContent = (content) => {
       <div class="publication-filter-group">
         <p>${escapeHTML(group.label)}</p>
         <div>
-          <button class="tag-button is-active" type="button" data-publication-filter-group="${escapeHTML(group.key)}" data-publication-filter="all" aria-pressed="true">All</button>
+          <button class="tag-button is-active" type="button" data-publication-filter-group="${escapeHTML(group.key)}" data-publication-filter="all" aria-pressed="true">${bi("全部", "All")}</button>
           ${group.tags.map((tag) => `<button class="tag-button" type="button" data-publication-filter-group="${escapeHTML(group.key)}" data-publication-filter="${escapeHTML(tag.slug)}" aria-pressed="false">${escapeHTML(tag.label)}</button>`).join("")}
         </div>
       </div>
@@ -1676,8 +1685,8 @@ const renderContent = (content) => {
       <article class="publication-item publication-cta">
         <p class="publication-year">All</p>
         <div>
-          <h3><a href="publications.html">View all publications</a></h3>
-          <p>完整清單包含目前 ORCID public record 中的已發表著作，並依年份排序與主題標籤整理。</p>
+          <h3><a href="publications.html">${bi("查看完整著作清單", "View all publications")}</a></h3>
+          <p>${bi("完整清單收錄目前 ORCID public record 中的已發表著作，依年份排序並以主題標籤整理。", "The full list includes peer-reviewed work in my ORCID public record, ordered by year and organized by topic tags.")}</p>
           <div class="publication-links" aria-label="著作連結">
             <a href="publications.html">Publications</a>
             <a href="https://orcid.org/0009-0006-4557-9097" rel="noreferrer">ORCID</a>
@@ -1725,7 +1734,7 @@ const renderContent = (content) => {
     const note = publishedPosts.length < 2 ? renderBlogNote() : "";
 
     container.innerHTML = rows
-      ? `${renderBlogFilters(publishedPosts, content)}<div class="blog-post-list" data-blog-post-list>${rows}</div><p class="blog-empty" data-blog-empty hidden>目前沒有符合篩選條件的文章。</p>${note}`
+      ? `${renderBlogFilters(publishedPosts, content)}<div class="blog-post-list" data-blog-post-list>${rows}</div><p class="blog-empty" data-blog-empty hidden>${bi("目前沒有符合篩選條件的文章。", "No posts match the selected filters.")}</p>${note}`
       : renderBlogNote();
   });
 
@@ -1872,9 +1881,9 @@ const setupPublicationFilters = () => {
 
     if (publicationEmpty) {
       publicationEmpty.hidden = visibleCount > 0;
-      publicationEmpty.textContent = publicationState.studyDesign !== "all" || publicationState.topics !== "all" || publicationState.query
-        ? "目前沒有符合搜尋或篩選條件的著作。"
-        : "目前沒有可顯示的著作。";
+      publicationEmpty.innerHTML = publicationState.studyDesign !== "all" || publicationState.topics !== "all" || publicationState.query
+        ? bi("目前沒有符合搜尋或篩選條件的著作。", "No publications match your search or filters.")
+        : bi("目前沒有可顯示的著作。", "No publications to display yet.");
     }
   };
 
@@ -1947,6 +1956,44 @@ const setupThemeToggle = () => {
   });
 };
 setupThemeToggle();
+
+// ===== Language Toggle (中 / EN) =====
+const getCurrentLang = () =>
+  document.documentElement.getAttribute("lang") === "en" ? "en" : "zh-Hant";
+
+const applyLangDependentAttributes = (lang) => {
+  // Elements that can't use child spans (inputs, etc.) carry data-ph-zh / data-ph-en.
+  document.querySelectorAll("[data-ph-zh][data-ph-en]").forEach((element) => {
+    element.setAttribute("placeholder", lang === "en" ? element.dataset.phEn : element.dataset.phZh);
+  });
+};
+
+const setupLangToggle = () => {
+  applyLangDependentAttributes(getCurrentLang());
+
+  document.querySelectorAll("[data-lang-toggle]").forEach((btn) => {
+    if (btn.dataset.langBound === "true") {
+      return;
+    }
+
+    btn.dataset.langBound = "true";
+    btn.addEventListener("click", () => {
+      const next = getCurrentLang() === "en" ? "zh-Hant" : "en";
+
+      document.documentElement.setAttribute("lang", next);
+
+      try {
+        localStorage.setItem("lang", next);
+      } catch (error) {
+        /* ignore storage errors */
+      }
+
+      applyLangDependentAttributes(next);
+      document.dispatchEvent(new CustomEvent("langchange", { detail: { lang: next } }));
+    });
+  });
+};
+setupLangToggle();
 
 // ===== Scroll Reveal Animations =====
 let scrollRevealObserver = null;

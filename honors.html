@@ -24,6 +24,7 @@
     <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"a8f57387064d4f27b1ba086354d6ac5f"}'></script>
     <!-- End Cloudflare Web Analytics -->
     <script>(function(){var t=localStorage.getItem("theme");if(t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme:dark)").matches)){document.documentElement.setAttribute("data-theme","dark")}})();</script>
+      <script>(function(){var l=localStorage.getItem("lang");if(l!=="en"&&l!=="zh-Hant"){l=(navigator.language||navigator.userLanguage||"").toLowerCase().indexOf("zh")===0?"zh-Hant":"en";}document.documentElement.setAttribute("lang",l);})();</script>
   </head>
   <body data-page="honors">
     <a class="skip-link" href="#main">跳到主要內容</a>
@@ -33,16 +34,16 @@
     <main id="main">
       <section class="page-hero compact">
         <p class="eyebrow">Honors</p>
-        <h1>Honors & Academic Activities</h1>
+        <h1><span data-lang="zh">榮譽與學術活動</span><span data-lang="en">Honors &amp; Academic Activities</span></h1>
         <p>
-          這裡整理學術獎項、受邀演講、會議報告、媒體報導與專業服務。內容取自 CV 中適合公開呈現、能補足研究網站脈絡的項目。
+          <span data-lang="zh">這裡整理學術獎項、受邀演講、會議報告、媒體報導與專業服務，取自 CV 中適合公開呈現、能補足研究網站脈絡的項目。</span><span data-lang="en">A record of academic awards, invited talks, conference presentations, media coverage, and professional service—drawn from my CV where suitable for public display and helpful as research context.</span>
         </p>
       </section>
 
       <section class="section honors-section" aria-labelledby="awards-title">
         <div class="section-heading">
           <p class="eyebrow">Awards</p>
-          <h2 id="awards-title">Honors & Awards</h2>
+          <h2 id="awards-title"><span data-lang="zh">榮譽與獎項</span><span data-lang="en">Honors &amp; Awards</span></h2>
         </div>
         <div class="honor-list" data-render="honor-awards">
           <!-- HONORS: add new awards here in reverse chronological order. -->
@@ -115,7 +116,7 @@
       <section class="section honors-section" aria-labelledby="talks-title">
         <div class="section-heading">
           <p class="eyebrow">Speaking</p>
-          <h2 id="talks-title">Invited Speeches & Lectures</h2>
+          <h2 id="talks-title"><span data-lang="zh">受邀演講與授課</span><span data-lang="en">Invited Speeches &amp; Lectures</span></h2>
         </div>
         <div class="honor-list" data-render="honor-talks">
           <article class="honor-item">
@@ -145,7 +146,7 @@
       <section class="section honors-section" aria-labelledby="presentations-title">
         <div class="section-heading">
           <p class="eyebrow">Conferences</p>
-          <h2 id="presentations-title">Conference Oral Presentations</h2>
+          <h2 id="presentations-title"><span data-lang="zh">會議口頭報告</span><span data-lang="en">Conference Oral Presentations</span></h2>
         </div>
         <div class="honor-list" data-render="honor-presentations">
           <article class="honor-item">
@@ -168,7 +169,7 @@
       <section class="section honors-section" aria-labelledby="media-title">
         <div class="section-heading">
           <p class="eyebrow">Recognition</p>
-          <h2 id="media-title">Media Coverage</h2>
+          <h2 id="media-title"><span data-lang="zh">媒體報導</span><span data-lang="en">Media Coverage</span></h2>
         </div>
         <ul class="media-coverage-list" data-render="media-coverage">
           <li class="media-coverage-item">
@@ -188,7 +189,7 @@
       <section class="section honors-section" aria-labelledby="service-title">
         <div class="section-heading">
           <p class="eyebrow">Service</p>
-          <h2 id="service-title">Academic Service</h2>
+          <h2 id="service-title"><span data-lang="zh">學術服務</span><span data-lang="en">Academic Service</span></h2>
         </div>
         <div class="service-list-grid" data-render="honor-services">
           <section class="service-list-block">

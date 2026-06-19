@@ -1,19 +1,20 @@
 window.SITE_CONFIG = {
   siteOrigin: "https://shchen0603.github.io/Personal-Website",
   navItems: [
-    { href: "index.html", label: "Home", page: "home" },
-    { href: "publications.html", label: "Publications", page: "publications" },
-    { href: "blog.html", label: "Blog", page: "blog" },
-    { href: "honors.html", label: "Honors", page: "honors" },
-    { href: "activities.html", label: "Activities", page: "activities" }
+    { href: "index.html", label: "Home", zh: "首頁", page: "home" },
+    { href: "publications.html", label: "Publications", zh: "著作", page: "publications" },
+    { href: "blog.html", label: "Blog", zh: "網誌", page: "blog" },
+    { href: "honors.html", label: "Honors", zh: "榮譽", page: "honors" },
+    { href: "activities.html", label: "Activities", zh: "活動", page: "activities" },
+    { href: "contact.html", label: "Contact", zh: "聯絡", page: "contact" }
   ],
   footerLinks: [
-    { href: "research.html", label: "Research" },
-    { href: "publications.html", label: "Publications" },
-    { href: "honors.html", label: "Honors" },
-    { href: "activities.html", label: "Activities" },
-    { href: "blog.html", label: "Blog" },
-    { href: "contact.html", label: "Contact" },
+    { href: "research.html", label: "Research", zh: "研究" },
+    { href: "publications.html", label: "Publications", zh: "著作" },
+    { href: "honors.html", label: "Honors", zh: "榮譽" },
+    { href: "activities.html", label: "Activities", zh: "活動" },
+    { href: "blog.html", label: "Blog", zh: "網誌" },
+    { href: "contact.html", label: "Contact", zh: "聯絡" },
     { href: "https://orcid.org/0009-0006-4557-9097", label: "ORCID", external: true },
     { href: "https://scholar.google.com/citations?user=0CdlnrgAAAAJ&hl=zh-TW", label: "Google Scholar", external: true },
     { href: "https://github.com/shchen0603/Personal-Website", label: "GitHub", external: true }

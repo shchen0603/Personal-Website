@@ -24,6 +24,7 @@
     <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"a8f57387064d4f27b1ba086354d6ac5f"}'></script>
     <!-- End Cloudflare Web Analytics -->
     <script>(function(){var t=localStorage.getItem("theme");if(t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme:dark)").matches)){document.documentElement.setAttribute("data-theme","dark")}})();</script>
+      <script>(function(){var l=localStorage.getItem("lang");if(l!=="en"&&l!=="zh-Hant"){l=(navigator.language||navigator.userLanguage||"").toLowerCase().indexOf("zh")===0?"zh-Hant":"en";}document.documentElement.setAttribute("lang",l);})();</script>
   </head>
   <body data-page="activities">
     <a class="skip-link" href="#main">跳到主要內容</a>
@@ -33,30 +34,30 @@
     <main id="main">
       <section class="page-hero compact">
         <p class="eyebrow">Activities</p>
-        <h1>活動紀錄與現場筆記</h1>
+        <h1><span data-lang="zh">活動紀錄與現場筆記</span><span data-lang="en">Activities &amp; field notes</span></h1>
         <p>
-          CV 能夠記錄活動名稱、年份與角色；這裡則保留研討會、受邀演講、工作坊與研究交流中的現場照片，以及幾句更個人的觀察與心得。
+          <span data-lang="zh">CV 能夠記錄活動名稱、年份與角色；這裡則保留研討會、受邀演講、工作坊與研究交流中的現場照片，以及幾句更個人的觀察與心得。</span><span data-lang="en">A CV records the name, year, and role for each activity; this page keeps the photos from conferences, invited talks, workshops, and research exchanges—along with a few more personal observations.</span>
         </p>
       </section>
 
       <section class="section activity-section" aria-labelledby="featured-activities-title">
         <div class="section-heading">
           <p class="eyebrow">Gallery</p>
-          <h2 id="featured-activities-title">Recent Activities</h2>
+          <h2 id="featured-activities-title"><span data-lang="zh">近期活動</span><span data-lang="en">Recent Activities</span></h2>
         </div>
 
         <div class="activity-gallery" data-render="activity-gallery">
-          <p class="activity-loading">正在載入活動紀錄…</p>
+          <p class="activity-loading"><span data-lang="zh">正在載入活動紀錄…</span><span data-lang="en">Loading activities…</span></p>
         </div>
       </section>
 
       <section class="section activity-section activity-log-section" aria-labelledby="activity-log-title">
         <div class="section-heading">
           <p class="eyebrow">Log</p>
-          <h2 id="activity-log-title">Activity Log</h2>
+          <h2 id="activity-log-title"><span data-lang="zh">活動列表</span><span data-lang="en">Activity Log</span></h2>
         </div>
         <div class="activity-log" data-render="activity-log">
-          <p class="activity-loading">正在載入活動紀錄…</p>
+          <p class="activity-loading"><span data-lang="zh">正在載入活動紀錄…</span><span data-lang="en">Loading activities…</span></p>
         </div>
       </section>
     </main>

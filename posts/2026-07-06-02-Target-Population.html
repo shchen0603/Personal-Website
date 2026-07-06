@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>流行病學方法教學02｜研究對象從哪裡來？Target Population、Source Population 與 Study Population | 陳思翰 Szu-Han Chen</title>
+    <meta name="description" content="你想知道的可能是「某降血壓藥物對整體人類的效果」（Target Population），但手上能取得的臨床試驗或世代資料，可能剛好以白人族群為主（Source Population）。如果亞洲人對這個藥物的反應跟白人不盡相同，你就沒辦法直接把西方資料庫的結論，套用到你真正關心的族群上。">
+    <link rel="canonical" href="https://shchen0603.github.io/Personal-Website/posts/2026-07-06-02-Target-Population.html">
+    <meta property="og:title" content="流行病學方法教學02｜研究對象從哪裡來？Target Population、Source Population 與 Study Population | 陳思翰 Szu-Han Chen">
+    <meta property="og:description" content="你想知道的可能是「某降血壓藥物對整體人類的效果」（Target Population），但手上能取得的臨床試驗或世代資料，可能剛好以白人族群為主（Source Population）。如果亞洲人對這個藥物的反應跟白人不盡相同，你就沒辦法直接把西方資料庫的結論，套用到你真正關心的族群上。">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://shchen0603.github.io/Personal-Website/posts/2026-07-06-02-Target-Population.html">
+    <meta property="og:image" content="https://shchen0603.github.io/Personal-Website/assets/cardiovascular-epidemiology-hero-og.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+    <link rel="stylesheet" href="../styles.css?v=20260612-nested-lists">
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"流行病學方法教學02｜研究對象從哪裡來？Target Population、Source Population 與 Study Population","description":"你想知道的可能是「某降血壓藥物對整體人類的效果」（Target Population），但手上能取得的臨床試驗或世代資料，可能剛好以白人族群為主（Source Population）。如果亞洲人對這個藥物的反應跟白人不盡相同，你就沒辦法直接把西方資料庫的結論，套用到你真正關心的族群上。","datePublished":"2026-07-06","image":"https://shchen0603.github.io/Personal-Website/assets/cardiovascular-epidemiology-hero-og.jpg","url":"https://shchen0603.github.io/Personal-Website/posts/2026-07-06-02-Target-Population.html","mainEntityOfPage":"https://shchen0603.github.io/Personal-Website/posts/2026-07-06-02-Target-Population.html","author":{"@type":"Person","name":"Szu-Han Chen","url":"https://shchen0603.github.io/Personal-Website/"},"publisher":{"@type":"Person","name":"Szu-Han Chen","url":"https://shchen0603.github.io/Personal-Website/"},"keywords":"流行病學方法教學, 研究方法","articleSection":"流行病學方法教學"}</script>
+    <!-- Cloudflare Web Analytics -->
+    <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"a8f57387064d4f27b1ba086354d6ac5f"}'></script>
+    <!-- End Cloudflare Web Analytics -->
+    <script>(function(){var t=localStorage.getItem("theme");if(t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme:dark)").matches)){document.documentElement.setAttribute("data-theme","dark")}})();</script>
+    <script>(function(){var l=localStorage.getItem("lang");if(l!=="en"&&l!=="zh-Hant"){l=(navigator.language||navigator.userLanguage||"").toLowerCase().indexOf("zh")===0?"zh-Hant":"en";}document.documentElement.setAttribute("lang",l);})();</script>
+  </head>
+  <body data-page="blog" data-base-path="../">
+    <a class="skip-link" href="#main">跳到主要內容</a>
+
+    <header class="site-header" data-header></header>
+
+    <main id="main">
+      <article class="article">
+        <header class="article-header">
+          <a class="back-link" href="../blog.html">Back to Blog</a>
+          <p class="post-category">2026.07.06</p>
+          <h1>流行病學方法教學02｜研究對象從哪裡來？Target Population、Source Population 與 Study Population</h1>
+          <p class="article-dek">你想知道的可能是「某降血壓藥物對整體人類的效果」（Target Population），但手上能取得的臨床試驗或世代資料，可能剛好以白人族群為主（Source Population）。如果亞洲人對這個藥物的反應跟白人不盡相同，你就沒辦法直接把西方資料庫的結論，套用到你真正關心的族群上。</p>
+        </header>
+        <div class="article-body">
+          
+          <h2>一、為什麼需要區分這三種population</h2><p>你想知道的可能是「某降血壓藥物對整體人類的效果」（Target Population），但手上能取得的臨床試驗或世代資料，可能剛好以白人族群為主（Source Population）。如果亞洲人對這個藥物的反應跟白人不盡相同，你就沒辦法直接把西方資料庫的結論，套用到你真正關心的族群上。</p><p>這些情境在研究執行上是非常常見的，為什麼我們應該明確定義出<strong>不同種類的Population</strong>，正是為了要讓我們的立論被正確地理解。</p><blockquote><p>從「想推論的對象」，到「你實際分析的對象」，每一層篩選都可能悄悄改變這群人的特性與樣貌。</p></blockquote><h2>二、正式定義三種人群</h2><ul><li>Target Population<ul><li>你最終<strong>希望能把結論推論回去的那群人</strong></li><li>例如：所有的動脈粥狀硬化患者</li></ul></li><li>Source Population<ul><li>實際上<strong>有機會被納入研究的母群體</strong></li><li>例如：某醫療體系內的動脈粥狀硬化患者</li></ul></li><li>Study Population<ul><li>最終<strong>真正被分析的那群人</strong></li><li>例如：某醫療體系中2008-2022年間同意資料給予研究使用、有冠狀動脈攝影影像資料的成年動脈粥狀硬化患者</li></ul></li></ul><p>用集合角度來說就是：<strong>Target ⊇ Source ⊇ Study</strong>，每一層都是前一層的子集合，彼此之間的差異來自篩選。</p><h2>三、舉例示範：控制不良高血壓者的飲食型態與心血管風險的研究</h2><p>舉我們最近發表在 <em>The Journal of Nutrition</em> 的這一篇文章，<a href="https://doi.org/10.1016/j.tjnut.2026.101659" rel="noreferrer">Dietary Patterns and Risk of Cardiovascular Disease and All-Cause Mortality in Adults with Untreated or Uncontrolled Hypertension</a>，為例。本文試圖理解在血壓控制未達標準的患者中，其飲食型態與長期心血管和死亡風險的相關性。</p><p>套用上一段的定義，我們應可看出本研究的三種population分別是：</p><ul><li>Target Population：所有Adults with uncontrolled or untreated hypertension</li><li>Source Population：UK Biobank資料庫的參與者（這是一群與一般成人有著結構上不同的「健康參與者（healthy volunteers）」）</li><li>Study Population：提供可分析之飲食問卷資料、血壓未達標準、且基線無既有心血管疾病的UK Biobank參與者</li></ul><p>針對前述提到的結構性差異，我們進一步說明。第一，<strong>UK Biobank的參與者超過九成都是白人</strong>，而最終的分析族群也有這個趨勢，因此，若要將該研究結果推論到亞洲人等其他族裔身上，可能存在一定的外推性限制，儘管有可能亞洲人會表現出相似的結果。第二，<strong>UK Biobank的參與者可能比一般族群更加有健康意識或是公共服務精神，此稱健康志願者效應（healthy volunteer effect）</strong>，也就是這一群人的健康意識與一般族群有著結構上的不同，而這個健康意識的不同可能影響著結果或是改變效應。</p><h2>四、常見誤解</h2><p>許多人會認為，只要增加樣本數，就可以解決這個<strong>代表性不足</strong>的問題。實際上這是一個迷思，以UK Biobank為例，它已是公開醫學研究資料庫中人數最多的資料庫之一，達到50萬人。但是，前述研究仍存在推論限縮於健康白人的問題。因此，<strong>僅憑增加樣本數，雖能解決檢力（power）的問題，但難以改變研究樣本的代表性</strong>。是否能夠外推到不同族裔，可能還需要從收案條件改變、多資料庫整合分析等方法著手。</p><h2>五、如何在研究文獻中判讀</h2><p>若要在一篇文獻中迅速判讀他的三種population設定為何，可以用以下的方法抓出。</p><ul><li>Study Population：經常對應Methods的<strong>Participants</strong>並配合<strong>Eligibility Criteria</strong></li><li>Source Population通常要自己從Methods的<strong>Study/Cohort Source資料來源</strong>描述去推敲（例如「某年某健保資料庫」）</li><li>Target Population：很少會被明講，通常要去Discussion/Limitations找作者有沒有討論<strong>Generalizability或External Validity</strong>，或是回歸整篇研究的<strong>Rationale和Objectives</strong>去思考。</li></ul><h2>六、結語</h2><p>流行病學的精髓在於<strong>某一篇研究的方法學是否正確地回答了某個問題</strong>，而透過了解三種Population的定義，我們開始能夠建立<strong>這一篇研究回答的問題是在什麼人群上</strong>的思維。</p>
+        </div>
+        <footer class="article-footer"><div class="article-taxonomy" aria-label="文章系列與標籤"><div class="article-taxonomy-row"><span class="article-taxonomy-label">標籤：</span><div class="article-taxonomy-items"><span class="tag-button tag-static">研究方法</span></div></div><div class="article-taxonomy-row"><span class="article-taxonomy-label">系列：</span><div class="article-taxonomy-items"><span class="tag-button tag-static">流行病學方法教學</span></div></div></div></footer>
+      </article>
+    </main>
+
+    <footer class="site-footer" data-footer></footer>
+
+    <button class="back-to-top" data-back-to-top aria-label="回到頂部" title="回到頂部">↑</button>
+
+    <script src="../site-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+    <script src="../script.js?v=20260612-nested-lists"></script>
+  </body>
+</html>

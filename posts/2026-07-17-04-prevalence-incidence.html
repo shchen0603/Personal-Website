@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>流行病學方法教學 04 | 盛行率與發生率：Prevalence、Incidence 與 Person-Time 的差別 | 陳思翰 Szu-Han Chen</title>
+    <meta name="description" content="盛行率、累積發生率、發生率密度，正是描述這個分布最基本的三把尺——它們回答的問題不同，能不能互相比較也不同，一旦混用，很容易把一個單純的數字定義問題，誤讀成疾病風險真的在改變。">
+    <link rel="canonical" href="https://shchen0603.github.io/Personal-Website/posts/2026-07-17-04-prevalence-incidence.html">
+    <meta property="og:title" content="流行病學方法教學 04 | 盛行率與發生率：Prevalence、Incidence 與 Person-Time 的差別 | 陳思翰 Szu-Han Chen">
+    <meta property="og:description" content="盛行率、累積發生率、發生率密度，正是描述這個分布最基本的三把尺——它們回答的問題不同，能不能互相比較也不同，一旦混用，很容易把一個單純的數字定義問題，誤讀成疾病風險真的在改變。">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://shchen0603.github.io/Personal-Website/posts/2026-07-17-04-prevalence-incidence.html">
+    <meta property="og:image" content="https://shchen0603.github.io/Personal-Website/assets/cardiovascular-epidemiology-hero-og.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+    <link rel="stylesheet" href="../styles.css?v=20260612-nested-lists">
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"流行病學方法教學 04 | 盛行率與發生率：Prevalence、Incidence 與 Person-Time 的差別","description":"盛行率、累積發生率、發生率密度，正是描述這個分布最基本的三把尺——它們回答的問題不同，能不能互相比較也不同，一旦混用，很容易把一個單純的數字定義問題，誤讀成疾病風險真的在改變。","datePublished":"2026-07-17","image":"https://shchen0603.github.io/Personal-Website/assets/cardiovascular-epidemiology-hero-og.jpg","url":"https://shchen0603.github.io/Personal-Website/posts/2026-07-17-04-prevalence-incidence.html","mainEntityOfPage":"https://shchen0603.github.io/Personal-Website/posts/2026-07-17-04-prevalence-incidence.html","author":{"@type":"Person","name":"Szu-Han Chen","url":"https://shchen0603.github.io/Personal-Website/"},"publisher":{"@type":"Person","name":"Szu-Han Chen","url":"https://shchen0603.github.io/Personal-Website/"},"keywords":"流行病學方法教學, 研究筆記","articleSection":"流行病學方法教學"}</script>
+    <!-- Cloudflare Web Analytics -->
+    <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"a8f57387064d4f27b1ba086354d6ac5f"}'></script>
+    <!-- End Cloudflare Web Analytics -->
+    <script>(function(){var t=localStorage.getItem("theme");if(t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme:dark)").matches)){document.documentElement.setAttribute("data-theme","dark")}})();</script>
+    <script>(function(){var l=localStorage.getItem("lang");if(l!=="en"&&l!=="zh-Hant"){l=(navigator.language||navigator.userLanguage||"").toLowerCase().indexOf("zh")===0?"zh-Hant":"en";}document.documentElement.setAttribute("lang",l);})();</script>
+  </head>
+  <body data-page="blog" data-base-path="../">
+    <a class="skip-link" href="#main">跳到主要內容</a>
+
+    <header class="site-header" data-header></header>
+
+    <main id="main">
+      <article class="article">
+        <header class="article-header">
+          <a class="back-link" href="../blog.html">Back to Blog</a>
+          <p class="post-category">2026.07.17</p>
+          <h1>流行病學方法教學 04 | 盛行率與發生率：Prevalence、Incidence 與 Person-Time 的差別</h1>
+          <p class="article-dek">盛行率、累積發生率、發生率密度，正是描述這個分布最基本的三把尺——它們回答的問題不同，能不能互相比較也不同，一旦混用，很容易把一個單純的數字定義問題，誤讀成疾病風險真的在改變。</p>
+        </header>
+        <div class="article-body">
+          
+          <h2>一、為什麼需要區分Prevalence與Incidence</h2><p>在上一篇文章（教學03）中，我們建立了如何定義追蹤時間的概念，但是累積了這些追蹤後，我們用來衍生出什麼樣的統計量來詮釋結果，將會是這一篇討論的重點。</p><p>「這個病現在多少人有」以及「這個病在一段時間內有多少人得到」是兩個截然不同的問題，而我們在檢視或是回答的時候也要用不同的角度了解它。</p><h2>二、正式定義</h2><ul><li>盛行率（Prevalence）<ul><li>在某個時間點上，攜帶某特徵或患有某疾病的人數，除以研究母體總人數。</li><li>這就像是一個快照（snapshot）一樣，是看這個當下、這個瞬間的狀態，從此靜止。</li><li>單位為人/人，即無單位。</li><li>例如：「2019年，全球15-24歲男性的吸菸盛行率為20.1%」（<a href="https://doi.org/10.1016/S2468-2667%2821%2900102-X" rel="noreferrer">Lancet Public Health. 2021</a>）</li></ul></li><li>累積發病率（Cumulative incidence）<ul><li>在給定一段時間結束後，新發病人數除以最初可能發病的總追蹤人數</li><li>單位為人/人，但是要敘明時間設定。</li><li>例如：「Stage III melanoma 患者，給予Pembrolizumab組，<strong>5年</strong>疾病不復發率估計為55.4%」（<a href="https://doi.org/10.1056/EVIDoa2200214" rel="noreferrer">NEJM Evid, 2022</a>）</li></ul></li><li>發病率（Incidence rate）<ul><li>新發病人數除以總追蹤人時，</li><li>追蹤人時可以是人年、人日，接回教學03所述，就是從追蹤開始到追蹤結束後，每一個人貢獻之追蹤時間總和。</li><li>單位是 人/人時，常見換成每10000人年等形式，依結果（outcome）特性可自訂。</li><li>例如：「手術組的死亡率為37.6 deaths per 10,000 person-year」（<a href="https://doi.org/10.1056/NEJMoa066603" rel="noreferrer">NEJM, 2007</a>）</li></ul></li></ul><h2>三、技術性細節與限制</h2><h3>原則一：分母只能放「有風險族群（population at risk）」——不是「高風險族群」</h3><p>這個原則不是Incidence獨有的，Prevalence一樣適用。</p><p>計算Incidence或Prevalence時，分母都必須是<strong>有發生（或帶有）這個結果可能的人</strong>，也就是「有風險族群（population at risk）」。這裡的「有風險」指的是「有沒有可能發生」，跟「風險高不高」是兩回事——不要跟high risk搞混。如果分母裡混進了<strong>根本不可能出現這個結果的人</strong>，不管算的是Incidence還是Prevalence，都會被系統性低估，因為這些人只會增加分母、永遠不會貢獻分子。</p><p>用卵巢癌盛行率當例子：分母首先要排除男性，這是生理上不可能得卵巢癌的一群人；但更容易被忽略的是，<strong>做過卵巢切除術的女性也必須從分母中排除</strong>——她們雖然是女性，卻已經沒有卵巢，同樣不可能得卵巢癌。如果分母裡還算進了這些人，算出來的盛行率就會比真實值低。</p><p>同樣的邏輯放到Incidence上也成立：計算子宮頸癌的Incidence時，分母要<strong>排除已經做過子宮全切除術的女性</strong>；還要<strong>排除已經得過這個病的人（盛行病例）</strong>。</p><blockquote><p>不管算的是Prevalence還是Incidence，分母永遠要先問「這群人有沒有可能出現在分子裡」——答案是否定的人，就不該留在分母裡。</p></blockquote><h3>原則二：Cumulative Incidence一定要標注時間尺度</h3><p>Prevalence本身就隱含著時間點／時間段；Incidence Rate因為分母是Person-Time，時間單位已經內建在測量方式裡。但Cumulative Incidence只是一個單純的比例（0到1之間），<strong>沒有標注時間窗，這個數字就沒有意義</strong>。</p><p>原因是：同一群人被追蹤得越久，Cumulative Incidence只會越來越高，理論上追蹤到無限長，只要這個病最終人人都會得，Cumulative Incidence會趨近100%。所以「Cumulative Incidence是30%」這句話本身沒有意義，一定要講清楚是「多久之內的30%」——像我們範例文獻寫的是「5-year recurrence-free rate」，時間尺度講得很清楚；如果拿掉「5年」這個限定詞，這個數字就沒辦法跟其他研究比較，甚至沒辦法被正確理解。</p><h3>原則三：Point Prevalence 與 Period Prevalence 的差別</h3><p>Prevalence也不是只有一種算法。<strong>Point Prevalence</strong>指的是在某一個瞬間（例如某次調查當天）帶病的人數比例；<strong>Period Prevalence</strong>則是在某一段期間內（例如過去12個月），只要曾經處於該狀態就算進去的人數比例——期初已經帶病的人、加上這段期間內新發生的人，都算在分子裡。</p><p>這個差別在狀態會反覆變動的疾病上特別重要，例如憂鬱症：「12-month prevalence of major depressive episode」是Period Prevalence，會比單一時間點抽測的Point Prevalence來得高，因為它把整段期間內出現過、後來又緩解的人也算進去了。讀到Prevalence數字時，先確認作者用的是哪一種，兩者不能直接拿來比較。</p><h3>原則四：Cumulative Incidence與Incidence Rate的數學關係</h3><p>這兩個數字不是各自獨立的，在事件發生率不高、追蹤時間夠短的情況下，兩者有一個近似關係：</p><p><strong>Cumulative Incidence ≈ Incidence Rate × 追蹤時間</strong></p><p>更精確的寫法（假設Incidence Rate在觀察期間內維持不變）是：</p><p><strong>Cumulative Incidence = 1 − exp(−Incidence Rate × 追蹤時間)</strong></p><p>這個近似關係在Incidence Rate很低、或追蹤時間很短的時候會很準；但當Incidence Rate偏高、或追蹤時間拉長，這個線性近似就會失準——因為Cumulative Incidence有上限（最高100%），但Incidence Rate × 時間這個乘積並沒有上限，兩者會越差越多。這個關係式背後其實就是存活分析裡的指數模型，我們會在Part I第08篇（Kaplan-Meier與Cox Model）看到更完整的處理方式。</p><h2>四、真實文獻示範</h2><p>為了同時看到這三種不同的統計量，本次挑選的文獻示例是2021年發表於<em>NEJM</em>的文章：<a href="https://doi.org/10.1056/NEJMoa2100165" rel="noreferrer">Long-Term Complications in Youth-Onset Type 2 Diabetes</a>，我們可以在Results處讀到這幾種統計量的實際應用。</p><p><strong>1. Prevalence與Cumulative Incidence</strong></p><blockquote><p>&quot;The prevalence of hypertension at baseline was 19.2%, and the cumulative incidence at 15 years was 67.5%.&quot;</p></blockquote><p>在招募的當下做一個快照，全部受試者中有19.2%已經有高血壓，這是<strong>盛行率（Prevalence）</strong>。而從開始追蹤算起15年內，累積有67.5%的人發生了高血壓，這是<strong>累積發生率（Cumulative Incidence）</strong>。</p><p>因為分母是population at risk，可以推測這67.5%指的是基線未有高血壓的人之中，之後有這麼多人發生。</p><p>這個67.5%是怎麼算出來的，原文的Statistical Analysis段講得很清楚：</p><blockquote><p>&quot;Kaplan–Meier estimates were used to estimate all cumulative incidences.&quot;</p></blockquote><p>也就是說，這裡的Cumulative Incidence不是單純的「事件數／總人數」，而是用Kaplan-Meier方法估計出來的——這正好呼應我們前面討論過的：真實世界的追蹤資料因為有censoring（不是每個人都追蹤滿15年、有人中途退出），Cumulative Incidence往往需要靠存活分析方法來處理，不是簡單除法就能算出來。</p><p><strong>2. Incidence Rate</strong></p><blockquote><p>&quot;The rate of all adjudicated heart, vascular, and cerebrovascular events was 3.73 per 1000 person-years.&quot;</p></blockquote><p>心腦血管事件的<strong>發生率（Incidence Rate）</strong>為3.73例每1000人年，分母用的是Person-Time，對應我們在教學03篇建立的追蹤時間概念。</p><p><strong>3. 當Cumulative Incidence算不出來的時候</strong></p><p>這篇論文還有一個地方，剛好呼應03篇談過的時間顆粒度問題：</p><blockquote><p>&quot;Retinal disease was assessed twice, which prevented determination of cumulative incidence.&quot;</p></blockquote><p>視網膜病變的檢查只在兩個時間點做過（2010-2011年一次、2017-2018年一次），追蹤頻率太低，研究者連Cumulative Incidence都沒辦法計算，只能退而求其次，分別報告兩個時間點各自的Prevalence（13.7% vs. 51.0%）。這是一個很好的真實案例，示範了測量頻率不夠密集時，研究者可能連最基本的Incidence都算不出來，只能用重複測量的Prevalence替代。這正是教學03篇中「原則三」提醒過的問題，在這裡真實地發生了。</p><h2>五、常見誤解</h2><p><strong>1. 把Cumulative Incidence跟Incidence Rate混著比較</strong></p><p>這兩個詞在中文裡常常都被簡化翻譯成「發生率」，這正是最容易搞混的根源——英文的incidence rate跟cumulative incidence字面上都帶著「incidence」，中文翻譯又進一步把兩者的差異抹平了。但兩者的單位完全不同，不能直接放在一起比大小：Incidence Rate的分母是Person-Time（單位是人年、人日等），本質上是一個「密度」；Cumulative Incidence則是單純的比例（0到1之間，沒有單位），但必須額外標注觀察的時間窗（例如「5年累積發生率」），數字本身才有意義。</p><p><strong>2. 誤以為盛行率上升，就代表風險（發生率）在提高</strong></p><p>這個直覺很自然，但不一定成立。盛行率除了受發生率影響之外，也跟病程長短、疾病致死性、篩檢普及程度都有關。在發生率不變的情況下：病程越長的疾病，盛行率會越高；致死性越強的疾病，因為帶病存活的時間被死亡提前截斷，盛行率反而會偏低；一地若擴大篩檢、更容易揪出病例，盛行率也會隨之上升，即使實際發生率沒有改變。看到盛行率上升時，不能直接跳到「這個病的風險變高了」這個結論。</p><h2>六、如何在文章中判讀出來</h2><ul><li><strong>看單位</strong>：出現「per 1,000 person-years」這類寫法，就是Incidence Rate；單純的百分比，通常是Prevalence或Cumulative Incidence</li><li><strong>檢查分母</strong>：計算Incidence時，population at risk有沒有排除已經得病的盛行病例？計算Prevalence時，分母有沒有排除不可能得到這個疾病的人（例如前面提過的男性之於卵巢癌）？</li><li><strong>分清楚報告的究竟是哪一個</strong>：確認論文報告的是Cumulative Incidence（固定追蹤期間內的風險）還是Incidence Rate（以Person-Time為分母的密度），避免把兩者混在一起比較</li></ul><h2>七、結語</h2><p>流行病學顧名思義，是一門研究「疾病如何在人群中分布」的科學，而盛行率、累積發生率、發生率密度，正是描述這個分布最基本的三把尺——它們回答的問題不同，能不能互相比較也不同，一旦混用，很容易把一個單純的數字定義問題，誤讀成疾病風險真的在改變。下一篇，我們會繼續往下探討風險語言中，Risk、Rate、Odds這三個更常被混用的詞彙該怎麼分辨。</p>
+        </div>
+        <footer class="article-footer"><div class="article-taxonomy" aria-label="文章系列與標籤"><div class="article-taxonomy-row"><span class="article-taxonomy-label">標籤：</span><div class="article-taxonomy-items"><span class="tag-button tag-static">研究筆記</span></div></div><div class="article-taxonomy-row"><span class="article-taxonomy-label">系列：</span><div class="article-taxonomy-items"><span class="tag-button tag-static">流行病學方法教學</span></div></div></div></footer>
+      </article>
+    </main>
+
+    <footer class="site-footer" data-footer></footer>
+
+    <button class="back-to-top" data-back-to-top aria-label="回到頂部" title="回到頂部">↑</button>
+
+    <script src="../site-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+    <script src="../script.js?v=20260612-nested-lists"></script>
+  </body>
+</html>

@@ -70,7 +70,19 @@ git commit -m "Update site content"
 git push
 ```
 
+這個 repository 已設定 push 前自動執行網站檢查。若產生頁面、sitemap 或內容資料不同步，push 會被中止並顯示修正指令，不會把不完整版本送去部署。
+
 GitHub Pages 更新後，Google 才會看到新版 `sitemap.xml`。
+
+## 部署機制
+
+網站只使用 GitHub Pages 的 branch deployment（`main`）部署。GitHub Actions 的 `Validate static site` workflow 只做唯讀檢查，不會產生檔案或再次部署，避免兩套部署同時競爭 Pages environment。
+
+新的 clone 若也要啟用 push 前檢查，請在 repository 內執行一次：
+
+```bash
+git config core.hooksPath .githooks
+```
 
 ## 用 Admin 修改時要注意
 

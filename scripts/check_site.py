@@ -54,7 +54,11 @@ def as_list(value):
 
 
 def escape(value="") -> str:
-    return html.escape(str(value), quote=True)
+    # Keep byte-for-byte parity with admin.js' escapeHtmlContent().  Python's
+    # html.escape() uses &#x27; for apostrophes while the browser generator uses
+    # &#039;; treating those equivalent entities as different made every page
+    # look stale after publishing from the admin UI.
+    return html.escape(str(value), quote=True).replace("&#x27;", "&#039;")
 
 
 def render_text_with_breaks(value="") -> str:
@@ -144,15 +148,19 @@ def render_markdown_image(src="", alt="", caption="") -> str:
     if not is_safe_markdown_image_src(clean_src):
         return ""
     caption_html = f"<figcaption>{render_inline_markdown(caption)}</figcaption>" if caption else ""
-    return (
-        '<figure class="article-inline-image">'
-        f'<img src="{escape(nested_asset(clean_src))}" alt="{escape(alt)}" loading="lazy" decoding="async">'
-        f"{caption_html}</figure>"
-    )
+    return f"""
+      <figure class="article-inline-image">
+        <img src="{escape(nested_asset(clean_src))}" alt="{escape(alt)}" loading="lazy" decoding="async">
+        {caption_html}
+      </figure>
+    """
 
 
 def render_markdown_block(value="") -> str:
-    lines = str(value or "").replace("\r\n", "\n").replace("\r", "\n").split("\n")
+    normalized = str(value or "").replace("\r\n", "\n").replace("\r", "\n").strip()
+    if not normalized:
+        return ""
+    lines = normalized.split("\n")
     output: list[str] = []
     paragraph: list[str] = []
     list_stack: list[dict[str, object]] = []
@@ -268,10 +276,10 @@ def render_markdown_block(value="") -> str:
             output.append(render_markdown_table(header_cells, table_alignments, body_rows))
             continue
 
-        heading = re.match(r"^(#{2,4})\s+(.+)$", line)
+        heading = re.match(r"^(#{1,6})\s+(.+)$", line)
         if heading:
             flush_all()
-            level = len(heading.group(1))
+            level = min(max(len(heading.group(1)), 2), 6)
             text = re.sub(r"\s+#+\s*$", "", heading.group(2)).strip()
             output.append(f"<h{level}>{render_inline_markdown(text)}</h{level}>")
             line_index += 1
@@ -352,13 +360,13 @@ def local_asset_path(value: str) -> str:
 
 def local_link_path(value: str, source_relative_path: str) -> str:
     link = str(value or "").strip()
-    if not link or link.startswith("#") or is_mailto(link) or re.match(r"^javascript:", link, re.I):
+    if not link or link.startswith("#"):
         return ""
     is_root_relative = False
     if link.startswith(f"{SITE_ORIGIN}/"):
         link = link[len(SITE_ORIGIN) + 1 :]
         is_root_relative = True
-    elif is_remote_url(link):
+    elif re.match(r"^[a-z][a-z0-9+.-]*:", link, re.I):
         return ""
     link = link.split("#", 1)[0].split("?", 1)[0]
     if not link:
@@ -554,6 +562,7 @@ def build_blog_post_html(post: dict) -> str:
     <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{{"token":"a8f57387064d4f27b1ba086354d6ac5f"}}'></script>
     <!-- End Cloudflare Web Analytics -->
     <script>(function(){{var t=localStorage.getItem("theme");if(t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme:dark)").matches)){{document.documentElement.setAttribute("data-theme","dark")}}}})();</script>
+    <script>(function(){{var l=localStorage.getItem("lang");if(l!=="en"&&l!=="zh-Hant"){{l=(navigator.language||navigator.userLanguage||"").toLowerCase().indexOf("zh")===0?"zh-Hant":"en";}}document.documentElement.setAttribute("lang",l);}})();</script>
   </head>
   <body data-page="blog" data-base-path="../">
     <a class="skip-link" href="#main">跳到主要內容</a>
@@ -658,6 +667,7 @@ def build_activity_html(activity: dict) -> str:
     <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{{"token":"a8f57387064d4f27b1ba086354d6ac5f"}}'></script>
     <!-- End Cloudflare Web Analytics -->
     <script>(function(){{var t=localStorage.getItem("theme");if(t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme:dark)").matches)){{document.documentElement.setAttribute("data-theme","dark")}}}})();</script>
+    <script>(function(){{var l=localStorage.getItem("lang");if(l!=="en"&&l!=="zh-Hant"){{l=(navigator.language||navigator.userLanguage||"").toLowerCase().indexOf("zh")===0?"zh-Hant":"en";}}document.documentElement.setAttribute("lang",l);}})();</script>
   </head>
   <body data-page="activities" data-base-path="../">
     <a class="skip-link" href="#main">跳到主要內容</a>
@@ -909,8 +919,8 @@ def check_generated_files(content: dict) -> None:
             add_error(f"Unexpected noindex tag in {relative_path}")
         for match in HTML_LINK_PATTERN.finditer(html):
             target_path = local_link_path(match.group(1), relative_path)
-            if target_path.startswith("posts/") and target_path.endswith(".html") and not (ROOT / target_path).exists():
-                add_error(f"{relative_path} links to missing post page: {match.group(1)}")
+            if target_path and not (ROOT / target_path).exists():
+                add_error(f"{relative_path} links to missing local file: {match.group(1)}")
 
 
 def check_raw_assets() -> None:

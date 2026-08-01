@@ -2,9 +2,9 @@
   "homeHighlights": [
     {
       "meta": "2026 · Research",
-      "title": "HFpEF Network Meta-analysis · DOM Cover Feature",
-      "description": "First-author systematic review and network meta-analysis showing GLP-1RA and SGLT2i reduce HF morbidity in HFpEF; selected as Outside Front Cover of Diabetes, Obesity and Metabolism 28(4).",
-      "href": "https://doi.org/10.1111/dom.70503"
+      "title": "Clinical Modifiers of Salt Sensitivity · Hypertension",
+      "description": "First-author metaregression and risk translation study showing that age and baseline blood pressure strongly modify salt sensitivity and the expected cardiovascular benefit of sodium reduction.",
+      "href": "https://doi.org/10.1161/HYPERTENSIONAHA.126.27410"
     },
     {
       "meta": "2026 · Award",
@@ -56,6 +56,69 @@
     }
   ],
   "publications": [
+    {
+      "year": "2026",
+      "category": "Journal Publications",
+      "title": "Central Adiposity, Systemic Inflammation, and Incident Heart Failure: A Causal Mediation Analysis From the Jackson Heart Study",
+      "authors": "Szu-Han Chen, Yu-Hsuan Lee, Shao-Yuan Chuang, Marat Fudim, Chun-Wei Lee, Chi-Jung Huang, Hao-Min Cheng.",
+      "venue": "Journal of the American Heart Association. Published online July 31, 2026.",
+      "summary": "In 1,998 Jackson Heart Study participants, central adiposity and systemic inflammation—but not BMI—were associated with incident heart failure; hs-CRP mediated 26.5% of the waist circumference association and 32.4% of the waist-to-height ratio association.",
+      "doi": "https://doi.org/10.1161/JAHA.126.049997",
+      "tags": [
+        {
+          "slug": "cohort-study",
+          "label": "Cohort Study",
+          "group": "Study Design"
+        },
+        {
+          "slug": "heart-failure",
+          "label": "Heart Failure",
+          "group": "Topics"
+        },
+        {
+          "slug": "metabolic-health",
+          "label": "Metabolic Health",
+          "group": "Topics"
+        },
+        {
+          "slug": "obesity",
+          "label": "Obesity",
+          "group": "Topics"
+        }
+      ],
+      "firstAuthor": true,
+      "correspondingAuthor": false,
+      "featured": false
+    },
+    {
+      "year": "2026",
+      "category": "Journal Publications",
+      "title": "Clinical Modifiers of Salt Sensitivity: A Metaregression and Risk Translation Study",
+      "authors": "Szu-Han Chen, Chih-Yu Yeh, Yu-Pan Chiang-Lin, Chi-Jung Huang, Shao-Yuan Chuang, Chih-Cheng Wu, Wen-Harn Pan, Yuan Ma, Liming Liang, Hao-Min Cheng.",
+      "venue": "Hypertension. Published online July 23, 2026.",
+      "summary": "Across 160 studies with 16,443 participants, age and baseline systolic blood pressure were the strongest modifiers of salt sensitivity, producing a 15-fold gradient in the estimated number needed to restrict sodium intake to prevent one cardiovascular event.",
+      "doi": "https://doi.org/10.1161/HYPERTENSIONAHA.126.27410",
+      "tags": [
+        {
+          "slug": "meta-analysis",
+          "label": "Meta-analysis",
+          "group": "Study Design"
+        },
+        {
+          "slug": "hypertension",
+          "label": "Hypertension",
+          "group": "Topics"
+        },
+        {
+          "slug": "nutrition",
+          "label": "Nutrition",
+          "group": "Topics"
+        }
+      ],
+      "firstAuthor": true,
+      "correspondingAuthor": false,
+      "featured": true
+    },
     {
       "year": "2026",
       "category": "Journal Publications",
@@ -203,7 +266,7 @@
           "label": "Network Meta-analysis"
         }
       ],
-      "featured": true
+      "featured": false
     },
     {
       "year": "2026",

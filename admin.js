@@ -243,7 +243,7 @@ if (adminApp) {
 
   const formatDateForDisplay = (date) => String(date || "").replaceAll("-", ".");
   const honorCategoryUsesDate = (category) =>
-    category === "talks" || category === "presentations";
+    category === "talks" || category === "presentations" || category === "posters";
   const PUBLICATION_CATEGORY_OPTIONS = SITE_CONFIG.publicationCategoryOptions || [
     { slug: "journal-publications", label: "Journal Publications" },
     { slug: "published-conference-abstracts", label: "Published Conference Abstracts" },
@@ -391,6 +391,7 @@ if (adminApp) {
   const sortHonorCollections = (honors = {}) => {
     sortHonorItems(honors.talks ||= [], "talks");
     sortHonorItems(honors.presentations ||= [], "presentations");
+    sortHonorItems(honors.posters ||= [], "posters");
     sortHonorItems(honors.mediaCoverage ||= [], "mediaCoverage");
   };
 
@@ -2509,6 +2510,7 @@ if (adminApp) {
     <option value="awards" ${selected === "awards" ? "selected" : ""}>Awards</option>
     <option value="talks" ${selected === "talks" ? "selected" : ""}>Invited Talks</option>
     <option value="presentations" ${selected === "presentations" ? "selected" : ""}>Conference Presentations</option>
+    <option value="posters" ${selected === "posters" ? "selected" : ""}>Moderated Posters</option>
     <option value="mediaCoverage" ${selected === "mediaCoverage" ? "selected" : ""}>Media Coverage</option>
   `;
 
@@ -2567,7 +2569,7 @@ if (adminApp) {
       return;
     }
 
-    const dateLabel = category === "talks" || category === "presentations"
+    const dateLabel = honorCategoryUsesDate(category)
       ? "日期（建議填）"
       : "日期（選填）";
 
@@ -2582,7 +2584,7 @@ if (adminApp) {
       </div>
       ${field("title", "標題", "")}
       ${textarea("description", "說明", "", 5)}
-      <p class="admin-help">Awards 可以只填年份；Invited Talks 和 Conference Presentations 建議填日期，前台會依日期由近到遠排序。</p>
+      <p class="admin-help">Awards 可以只填年份；Invited Talks、Conference Presentations 和 Moderated Posters 建議填日期，前台會依日期由近到遠排序。</p>
     `;
   };
 

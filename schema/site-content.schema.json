@@ -23,7 +23,7 @@
     },
     "honors": {
       "type": "object",
-      "required": ["awards", "talks", "presentations", "mediaCoverage", "services"],
+      "required": ["awards", "talks", "presentations", "posters", "mediaCoverage", "services"],
       "properties": {
         "awards": {
           "type": "array",
@@ -34,6 +34,10 @@
           "items": { "$ref": "#/$defs/honorItem" }
         },
         "presentations": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/honorItem" }
+        },
+        "posters": {
           "type": "array",
           "items": { "$ref": "#/$defs/honorItem" }
         },

@@ -491,6 +491,18 @@
     "awards": [
       {
         "year": "2026",
+        "title": "First Place, Oral Research Presentation Award",
+        "description": "24th Asian Congress on Occupational Health (ACOH 2026), Kuching, Malaysia.",
+        "scope": "international"
+      },
+      {
+        "year": "2026",
+        "title": "Undergraduate Research Project Scholarship",
+        "description": "Ministry of Science and Technology, Taiwan.",
+        "scope": "domestic"
+      },
+      {
+        "year": "2026",
         "title": "Outstanding Award",
         "description": "International Symposium of the College of Medicine, National Yang Ming Chiao Tung University.",
         "scope": "domestic"
@@ -504,12 +516,12 @@
       {
         "year": "2026",
         "title": "Third Place, Oral Research Presentation Award",
-        "description": "Taiwan Society of Aldosteronism Scientific Meeting",
+        "description": "2026 Spring Meeting and General Assembly, Taiwan Society of Aldosteronism.",
         "scope": "domestic"
       },
       {
         "year": "2026",
-        "title": "Abstract Review Ranking 1st",
+        "title": "Abstract Review Ranking First Place and Oral Presentation Award",
         "description": "Pulse of Asia International Conference.",
         "scope": "international"
       },
@@ -522,13 +534,13 @@
       {
         "year": "2024-2026",
         "title": "Scholarship for Outstanding Medical Talent",
-        "description": "Taipei Veterans General Hospital & National Yang Ming Chiao Tung University. Awarded four times.",
+        "description": "Taipei Veterans General Hospital & National Yang Ming Chiao Tung University. Multiple-time recipient.",
         "scope": "domestic"
       },
       {
         "year": "2025",
         "title": "Second Place, Oral Research Presentation Award",
-        "description": "Taiwan Society of Hypertension Annual Scientific Meeting.",
+        "description": "Taiwan Hypertension Society Annual Scientific Meeting.",
         "scope": "domestic"
       },
       {
@@ -590,8 +602,8 @@
         "year": "2026",
         "title": "Metabolic Health Disparities among Vietnamese Migrant and Domestic Metal Workers in Taiwan: a 3-year Retrospective Cohort Study",
         "description": "24th Asian Congress on Occupational Health 2026, Kuching, Malaysia",
-        "date": "2026-08-06",
-        "dateLabel": "2026.08.06"
+        "date": "2026-08-08",
+        "dateLabel": "2026.08.08"
       },
       {
         "year": "2026",
@@ -603,16 +615,39 @@
       {
         "year": "2026",
         "title": "Eplerenone versus Spironolactone for Cardiorenal Protection in Primary Aldosteronism: A Target Trial Emulation",
-        "description": "Taiwan Society of Aldosteronism Spring Scientific Conference, Taipei, Taiwan.",
+        "description": "2026 Spring Meeting and General Assembly, Taiwan Society of Aldosteronism, Taipei, Taiwan.",
         "date": "2026-05-09",
         "dateLabel": "2026.05.09"
       },
       {
         "year": "2025",
         "title": "Modifiers, Threshold, and Prevalence of Salt Sensitivity: A systematic review and meta-regression",
-        "description": "Taiwan Society of Hypertension Annual Scientific Meeting, Taipei, Taiwan.",
+        "description": "Taiwan Hypertension Society Annual Scientific Meeting, Taipei, Taiwan.",
         "date": "2025-12-07",
         "dateLabel": "2025.12.07"
+      }
+    ],
+    "posters": [
+      {
+        "year": "2026",
+        "title": "Myocardial strain imaging unmasks subclinical heart failure risk across the cardiovascular–kidney–metabolic syndrome continuum",
+        "description": "European Society of Cardiology Congress, Munich, Germany. Accepted moderated poster presentation.",
+        "date": "2026-08-28",
+        "dateLabel": "2026.08.28 · Upcoming"
+      },
+      {
+        "year": "2026",
+        "title": "Systemic Inflammation Mediates the Association Between Central Obesity and Incident Heart Failure",
+        "description": "American Heart Association EPI|Lifestyle Scientific Sessions, Boston, MA, USA.",
+        "date": "2026-03-19",
+        "dateLabel": "2026.03.19"
+      },
+      {
+        "year": "2026",
+        "title": "Metabolomics-Based Reclassification of Ultra-Processed Foods and Risk of Cardiometabolic Outcomes",
+        "description": "American Heart Association EPI|Lifestyle Scientific Sessions, Boston, MA, USA.",
+        "date": "2026-03-18",
+        "dateLabel": "2026.03.18"
       }
     ],
     "mediaCoverage": [
@@ -667,6 +702,14 @@
           "BMC Public Health",
           {
             "label": "Cardiac Failure Review",
+            "highlight": true
+          },
+          {
+            "label": "Cardiovascular Diabetology",
+            "highlight": true
+          },
+          {
+            "label": "Diabetes, Obesity & Metabolism",
             "highlight": true
           },
           {
@@ -868,8 +911,10 @@
     },
     {
       "id": "2025-introduction-to-evidence-based-medicine",
+      "date": "2025-11-09",
+      "dateLabel": "2025.11.09",
       "year": "2025",
-      "meta": "2025 · Workshop · Federation of Medical Students in Taiwan",
+      "meta": "2025.11.09 · Workshop · Federation of Medical Students in Taiwan",
       "title": "Introduction to Evidence-based Medicine",
       "summary": "教 EBM 時最有趣的地方，是把「如何相信一篇論文」拆成可以被練習的步驟，也把不確定性變成能被討論的材料。",
       "body": [
@@ -885,8 +930,10 @@
     },
     {
       "id": "2025-my-research-journey-as-a-medical-student",
+      "date": "2025-11-25",
+      "dateLabel": "2025.11.25",
       "year": "2025",
-      "meta": "2025 · Guest Lecture · NYCU",
+      "meta": "2025.11.25 · Guest Lecture · NYCU",
       "title": "My Research Journey as a Medical Student",
       "summary": "對醫學生談研究經驗時，我會特別想保留那些還不成熟但很真實的部分：怎麼開始、怎麼卡住、以及怎麼慢慢找到題目。",
       "body": [
@@ -902,9 +949,11 @@
     },
     {
       "id": "2025-taiwan-society-of-hypertension-annual-scientific-meeting",
+      "date": "2025-12-07",
+      "dateLabel": "2025.12.07",
       "year": "2025",
-      "meta": "2025 · Oral Presentation · Taipei",
-      "title": "Taiwan Society of Hypertension Annual Scientific Meeting",
+      "meta": "2025.12.07 · Oral Presentation · Taipei",
+      "title": "Taiwan Hypertension Society Annual Scientific Meeting",
       "summary": "從 salt sensitivity 的 systematic review 與 meta-regression 出發，整理個體差異如何影響鈉攝取與血壓反應的證據。",
       "body": [
         "從 salt sensitivity 的 systematic review 與 meta-regression 出發，整理個體差異如何影響鈉攝取與血壓反應的證據。"

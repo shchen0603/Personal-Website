@@ -623,7 +623,7 @@ const getBlogSeries = (post, content) =>
   post?.series ? normalizeBlogSeries(post.series, content) : null;
 
 const honorCategoryUsesDate = (category) =>
-  category === "talks" || category === "presentations";
+  category === "talks" || category === "presentations" || category === "posters";
 
 const PUBLICATION_CATEGORY_OPTIONS = SITE_CONFIG.publicationCategoryOptions || [
   { slug: "journal-publications", label: "Journal Publications" },
@@ -955,6 +955,7 @@ const HONORS_LOAD_MORE_RENDER_TARGETS = [
   "honor-awards",
   "honor-talks",
   "honor-presentations",
+  "honor-posters",
   "media-coverage",
   "honor-services"
 ];
@@ -1500,9 +1501,12 @@ const renderActivityPost = (content) => {
 
   const dateLabel = getActivityDateLabel(activity);
   const meta = activity.meta || dateLabel || "Activity";
-  const compactMeta = dateLabel && activity.year && meta.startsWith(`${activity.year} · `)
-    ? meta.slice(`${activity.year} · `.length)
-    : meta;
+  const metaDatePrefix = dateLabel && meta.startsWith(`${dateLabel} · `)
+    ? `${dateLabel} · `
+    : dateLabel && activity.year && meta.startsWith(`${activity.year} · `)
+      ? `${activity.year} · `
+      : "";
+  const compactMeta = metaDatePrefix ? meta.slice(metaDatePrefix.length) : meta;
   const body = getActivityBody(activity)
     .map((paragraph) => /^[#>]/.test(String(paragraph).trim()) ? renderMarkdownBlock(paragraph) : `<p>${renderTextWithBreaks(paragraph)}</p>`)
     .join("");
@@ -1608,6 +1612,7 @@ const renderContent = (content) => {
   const awardHonors = normalizeList(honors.awards);
   const talkHonors = getSortedHonors(honors.talks, "talks");
   const presentationHonors = getSortedHonors(honors.presentations, "presentations");
+  const posterHonors = getSortedHonors(honors.posters, "posters");
   const mediaCoverage = getSortedHonors(honors.mediaCoverage, "mediaCoverage");
   const homeHighlights = normalizeList(content.homeHighlights);
 
@@ -1619,7 +1624,7 @@ const renderContent = (content) => {
   const stats = {
     publications: publications.length,
     awards: awardHonors.length,
-    appearances: talkHonors.length + presentationHonors.length,
+    appearances: talkHonors.length + presentationHonors.length + posterHonors.length,
     activities: activities.length
   };
 
@@ -1708,6 +1713,10 @@ const renderContent = (content) => {
 
   document.querySelectorAll("[data-render='honor-presentations']").forEach((container) => {
     container.innerHTML = presentationHonors.map(renderHonorItem).join("");
+  });
+
+  document.querySelectorAll("[data-render='honor-posters']").forEach((container) => {
+    container.innerHTML = posterHonors.map(renderHonorItem).join("");
   });
 
   document.querySelectorAll("[data-render='media-coverage']").forEach((container) => {

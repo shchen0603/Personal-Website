@@ -606,7 +606,9 @@ def build_activity_html(activity: dict) -> str:
     date_label = activity_date_label(activity)
     meta = activity.get("meta") or date_label or "Activity"
     compact_meta = meta
-    if date_label and activity.get("year") and meta.startswith(f'{activity["year"]} · '):
+    if date_label and meta.startswith(f"{date_label} · "):
+        compact_meta = meta[len(f"{date_label} · "):]
+    elif date_label and activity.get("year") and meta.startswith(f'{activity["year"]} · '):
         compact_meta = meta[len(f'{activity["year"]} · '):]
     body = "".join(
         render_markdown_block(part) if re.match(r"^[#>]", str(part).strip()) else f"<p>{render_text_with_breaks(part)}</p>"
@@ -812,10 +814,10 @@ def check_content(content: dict) -> None:
         add_warning("More than one publication is marked featured. The research page uses the first one.")
 
     honors = content.get("honors") or {}
-    for key in ["awards", "talks", "presentations", "mediaCoverage", "services"]:
+    for key in ["awards", "talks", "presentations", "posters", "mediaCoverage", "services"]:
         if not isinstance(honors.get(key), list):
             add_error(f"honors.{key} should be an array.")
-    for key in ["awards", "talks", "presentations", "mediaCoverage"]:
+    for key in ["awards", "talks", "presentations", "posters", "mediaCoverage"]:
         for index, item in enumerate(as_list(honors.get(key))):
             check_required_string(item.get("title"), f"honors.{key}[{index}].title")
             check_year(item.get("year"), f"honors.{key}[{index}].year")

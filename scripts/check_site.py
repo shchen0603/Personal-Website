@@ -25,6 +25,20 @@ BASE_PAGES = [
 ]
 BLOG_INDEX_FALLBACK_START = "<!-- BLOG INDEX STATIC FALLBACK START -->"
 BLOG_INDEX_FALLBACK_END = "<!-- BLOG INDEX STATIC FALLBACK END -->"
+PUBLICATIONS_STATIC_START = "<!-- PUBLICATIONS STATIC FALLBACK START -->"
+PUBLICATIONS_STATIC_END = "<!-- PUBLICATIONS STATIC FALLBACK END -->"
+PUBLICATIONS_JSON_LD_START = "<!-- PUBLICATIONS JSON-LD START -->"
+PUBLICATIONS_JSON_LD_END = "<!-- PUBLICATIONS JSON-LD END -->"
+HONORS_AWARDS_STATIC_START = "<!-- HONORS AWARDS STATIC FALLBACK START -->"
+HONORS_AWARDS_STATIC_END = "<!-- HONORS AWARDS STATIC FALLBACK END -->"
+HONORS_JSON_LD_START = "<!-- HONORS JSON-LD START -->"
+HONORS_JSON_LD_END = "<!-- HONORS JSON-LD END -->"
+PUBLICATION_CATEGORY_OPTIONS = [
+    {"slug": "journal-publications", "label": "Journal Publications"},
+    {"slug": "published-conference-abstracts", "label": "Published Conference Abstracts"},
+    {"slug": "journal-cover-features", "label": "Journal Cover Features"},
+]
+PUBLICATION_SELF_NAME_PATTERN = re.compile(r"\b(Szu[- ]?Han\s+Chen)\b", re.I)
 INTENTIONAL_NOINDEX_PAGES = {
     "activity.html",
     "admin.html",
@@ -702,6 +716,283 @@ def build_activity_html(activity: dict) -> str:
 """
 
 
+def slugify(value="") -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", str(value or "item").strip().lower()).strip("-")
+    return (slug[:72] or "item")
+
+
+def publication_category(publication: dict) -> dict:
+    aliases = {"peer-reviewed-journal-publications": "journal-publications"}
+    selected_slug = aliases.get(slugify(publication.get("category") or ""), slugify(publication.get("category") or ""))
+    selected = next((option for option in PUBLICATION_CATEGORY_OPTIONS if option["slug"] == selected_slug), None)
+    if selected:
+        return selected
+
+    tag_slugs = {
+        tag.get("slug") for tag in as_list(publication.get("tags"))
+        if isinstance(tag, dict) and tag.get("slug")
+    }
+    if "cover-feature" in tag_slugs:
+        return PUBLICATION_CATEGORY_OPTIONS[-1]
+    if re.match(r"^abstract\b", str(publication.get("title") or ""), re.I):
+        return PUBLICATION_CATEGORY_OPTIONS[1]
+    return PUBLICATION_CATEGORY_OPTIONS[0]
+
+
+def publication_groups(publications: list[dict]) -> list[dict]:
+    groups = [dict(option, items=[]) for option in PUBLICATION_CATEGORY_OPTIONS]
+    by_slug = {group["slug"]: group for group in groups}
+    for publication in publications:
+        by_slug[publication_category(publication)["slug"]]["items"].append(publication)
+    return [group for group in groups if group["items"]]
+
+
+def publication_author_html(authors="") -> str:
+    return PUBLICATION_SELF_NAME_PATTERN.sub(r"<strong>\1</strong>", escape(authors), count=1)
+
+
+def publication_doi_text(value="") -> str:
+    doi = re.sub(r"^https?://(dx\.)?doi\.org/", "", str(value or "").strip(), flags=re.I)
+    return re.sub(r"^doi:\s*", "", doi, flags=re.I)
+
+
+def build_publication_item_html(publication: dict) -> str:
+    link = publication.get("doi") or publication.get("href") or "#"
+    tags = [tag for tag in as_list(publication.get("tags")) if isinstance(tag, dict)]
+    tag_slugs = " ".join(slugify(tag.get("slug") or tag.get("label") or "") for tag in tags)
+    badges = []
+    if publication.get("firstAuthor"):
+        badges.append('<span class="author-role-badge author-role-first" title="First author">First author</span>')
+    if publication.get("correspondingAuthor"):
+        badges.append('<span class="author-role-badge author-role-corresponding" title="Corresponding author">Corresponding author</span>')
+    badge_html = (
+        f'<div class="author-role-badges" aria-label="作者身份">{"".join(badges)}</div>'
+        if badges else ""
+    )
+    author_html = (
+        f'<p class="publication-authors">{publication_author_html(publication.get("authors"))}</p>'
+        if publication.get("authors") else ""
+    )
+    venue_html = (
+        f'<p class="publication-venue">{escape(publication.get("venue"))}</p>'
+        if publication.get("venue") else ""
+    )
+    doi_text = publication_doi_text(publication.get("doi"))
+    doi_html = f'<p class="publication-doi">DOI: {escape(doi_text)}</p>' if doi_text else ""
+    summary_html = (
+        f'<p class="publication-summary">{escape(publication.get("summary"))}</p>'
+        if publication.get("summary") else ""
+    )
+    tag_html = (
+        '<div class="publication-tags" aria-label="著作標籤">'
+        + "".join(
+            f'<span class="tag-button tag-static">{escape(tag.get("label") or tag.get("slug") or "")}</span>'
+            for tag in tags
+        )
+        + "</div>"
+        if tags else ""
+    )
+    lines = [
+        f'          <article class="publication-item" data-publication-item data-tags="{escape(tag_slugs)}">',
+        f'            <p class="publication-year">{escape(publication.get("year"))}</p>',
+        "            <div>",
+        f'              <h3><a href="{escape(link)}" rel="noreferrer">{escape(publication.get("title"))}</a></h3>',
+    ]
+    lines.extend(f"              {part}" for part in [badge_html, author_html, venue_html, doi_html, summary_html, tag_html] if part)
+    lines.extend(["            </div>", "          </article>"])
+    return "\n".join(lines)
+
+
+def build_publications_static_html(content: dict) -> str:
+    groups = []
+    for group in publication_groups(as_list(content.get("publications"))):
+        note = (
+            '          <p class="publication-group-note"><span data-lang="zh">於學術會議發表的摘要（非同儕審查全文）。</span><span data-lang="en">Conference abstracts presented at scientific meetings (not peer-reviewed full papers).</span></p>\n'
+            if group["slug"] == "published-conference-abstracts" else ""
+        )
+        items = "\n".join(build_publication_item_html(publication) for publication in group["items"])
+        groups.append(
+            f'        <section class="publication-group" data-publication-group data-publication-group-slug="{escape(group["slug"])}">\n'
+            '          <div class="publication-group-heading">\n'
+            f'            <h3>{escape(group["label"])}</h3>\n'
+            f"{note}"
+            "          </div>\n"
+            '          <div class="publication-list">\n'
+            f"{items}\n"
+            "          </div>\n"
+            "        </section>"
+        )
+    return (
+        f"        {PUBLICATIONS_STATIC_START}\n"
+        + "\n".join(groups)
+        + f"\n        {PUBLICATIONS_STATIC_END}"
+    )
+
+
+def publication_json_ld_data(content: dict) -> dict:
+    publications = as_list(content.get("publications"))
+    return {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": "Publications of Szu-Han Chen",
+        "itemListOrder": "https://schema.org/ItemListOrderDescending",
+        "numberOfItems": len(publications),
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": index,
+                "item": {
+                    "@type": "ScholarlyArticle",
+                    "headline": publication.get("title") or "",
+                    "datePublished": publication.get("year") or "",
+                    "url": publication.get("doi") or publication.get("href") or site_url("publications.html"),
+                    "isPartOf": publication.get("venue") or "",
+                    "author": [
+                        {"@type": "Person", "name": name.strip().rstrip(".")}
+                        for name in str(publication.get("authors") or "").split(",")
+                        if name.strip()
+                    ],
+                },
+            }
+            for index, publication in enumerate(publications, start=1)
+        ],
+    }
+
+
+def build_publications_json_ld_html(content: dict) -> str:
+    json_ld = json.dumps(publication_json_ld_data(content), ensure_ascii=False, separators=(",", ":"))
+    return (
+        f"    {PUBLICATIONS_JSON_LD_START}\n"
+        f'    <script type="application/ld+json" data-jsonld-id="publications">{json_ld}</script>\n'
+        f"    {PUBLICATIONS_JSON_LD_END}"
+    )
+
+
+def honor_date_label(item: dict) -> str:
+    if item.get("dateLabel"):
+        return str(item["dateLabel"])
+    if item.get("date"):
+        return str(item["date"]).replace("-", ".")
+    return str(item.get("year") or "")
+
+
+def build_honor_item_html(item: dict) -> str:
+    return (
+        '          <article class="honor-item">\n'
+        f'            <p class="honor-year">{escape(honor_date_label(item))}</p>\n'
+        "            <div>\n"
+        f'              <h3>{escape(item.get("title"))}</h3>\n'
+        f'              <p>{escape(item.get("description"))}</p>\n'
+        "            </div>\n"
+        "          </article>"
+    )
+
+
+def build_honors_awards_static_html(content: dict) -> str:
+    awards = as_list((content.get("honors") or {}).get("awards"))
+    groups = []
+    for scope, label in [("international", "International Awards"), ("domestic", "Domestic Awards")]:
+        items = [award for award in awards if (award.get("scope") or "domestic").lower() == scope]
+        if not items:
+            continue
+        item_html = "\n".join(build_honor_item_html(item) for item in items)
+        groups.append(
+            f'        <section class="honor-award-group" data-award-scope="{scope}">\n'
+            f"          <h3>{label}</h3>\n"
+            '          <div class="honor-list">\n'
+            f"{item_html}\n"
+            "          </div>\n"
+            "        </section>"
+        )
+    return (
+        f"        {HONORS_AWARDS_STATIC_START}\n"
+        + "\n".join(groups)
+        + f"\n        {HONORS_AWARDS_STATIC_END}"
+    )
+
+
+def honors_json_ld_data(content: dict) -> dict:
+    awards = as_list((content.get("honors") or {}).get("awards"))
+    return {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": "Honors and Awards of Szu-Han Chen",
+        "itemListOrder": "https://schema.org/ItemListOrderDescending",
+        "numberOfItems": len(awards),
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": index,
+                "item": {
+                    "@type": "Thing",
+                    "name": award.get("title") or "",
+                    "description": " ".join(
+                        part for part in [honor_date_label(award), award.get("description") or ""] if part
+                    ),
+                    "url": f'{site_url("honors.html")}#awards-title',
+                },
+            }
+            for index, award in enumerate(awards, start=1)
+        ],
+    }
+
+
+def build_honors_json_ld_html(content: dict) -> str:
+    json_ld = json.dumps(honors_json_ld_data(content), ensure_ascii=False, separators=(",", ":"))
+    return (
+        f"    {HONORS_JSON_LD_START}\n"
+        f'    <script type="application/ld+json" data-jsonld-id="honors">{json_ld}</script>\n'
+        f"    {HONORS_JSON_LD_END}"
+    )
+
+
+def replace_generated_block(template: str, start_marker: str, end_marker: str, replacement: str, path: str) -> str:
+    start = template.find(start_marker)
+    end = template.find(end_marker)
+    if start == -1 or end == -1 or end < start:
+        raise ValueError(f"{path} is missing generated-content markers: {start_marker}")
+    end += len(end_marker)
+    line_start = template.rfind("\n", 0, start) + 1
+    line_end = template.find("\n", end)
+    if not template[line_start:start].strip():
+        start = line_start
+    if line_end != -1:
+        end = line_end
+    return f"{template[:start]}{replacement}{template[end:]}"
+
+
+def static_counts(content: dict) -> dict[str, int]:
+    honors = content.get("honors") or {}
+    return {
+        "publications": len(as_list(content.get("publications"))),
+        "awards": len(as_list(honors.get("awards"))),
+        "appearances": sum(len(as_list(honors.get(key))) for key in ["talks", "presentations", "posters"]),
+        "activities": len(as_list(content.get("activities"))),
+    }
+
+
+def replace_home_stats_html(template: str, content: dict) -> str:
+    updated = template
+    for key, count in static_counts(content).items():
+        pattern = re.compile(
+            rf'(<span class="stat-number" data-stat="{re.escape(key)}" data-count=")[^"]+(">)[^<]*(</span>)'
+        )
+        updated, replacements = pattern.subn(rf"\g<1>{count}\g<2>{count}\g<3>", updated, count=1)
+        if replacements != 1:
+            raise ValueError(f'index.html is missing the static "{key}" count.')
+    return updated
+
+
+def replace_collection_count_html(template: str, key: str, count: int, path: str) -> str:
+    pattern = re.compile(
+        rf'(<strong data-collection-count="{re.escape(key)}">)[^<]*(</strong>)'
+    )
+    updated, replacements = pattern.subn(rf"\g<1>{count}\g<2>", template)
+    if replacements < 1:
+        raise ValueError(f'{path} is missing the static "{key}" collection count.')
+    return updated
+
+
 def build_sitemap_xml(content: dict) -> str:
     today = dt.date.today().isoformat()
     urls = list(BASE_PAGES)
@@ -776,6 +1067,52 @@ def replace_blog_index_fallback_html(template: str, content: dict) -> str:
 def generate_static_files(content: dict) -> None:
     write_text("sitemap.xml", build_sitemap_xml(content))
     write_text("blog.html", replace_blog_index_fallback_html(read_text("blog.html"), content))
+    publications_html = read_text("publications.html")
+    publications_html = replace_generated_block(
+        publications_html,
+        PUBLICATIONS_STATIC_START,
+        PUBLICATIONS_STATIC_END,
+        build_publications_static_html(content),
+        "publications.html",
+    )
+    publications_html = replace_generated_block(
+        publications_html,
+        PUBLICATIONS_JSON_LD_START,
+        PUBLICATIONS_JSON_LD_END,
+        build_publications_json_ld_html(content),
+        "publications.html",
+    )
+    publications_html = replace_collection_count_html(
+        publications_html,
+        "publications",
+        static_counts(content)["publications"],
+        "publications.html",
+    )
+    write_text("publications.html", publications_html)
+
+    honors_html = read_text("honors.html")
+    honors_html = replace_generated_block(
+        honors_html,
+        HONORS_AWARDS_STATIC_START,
+        HONORS_AWARDS_STATIC_END,
+        build_honors_awards_static_html(content),
+        "honors.html",
+    )
+    honors_html = replace_generated_block(
+        honors_html,
+        HONORS_JSON_LD_START,
+        HONORS_JSON_LD_END,
+        build_honors_json_ld_html(content),
+        "honors.html",
+    )
+    honors_html = replace_collection_count_html(
+        honors_html,
+        "awards",
+        static_counts(content)["awards"],
+        "honors.html",
+    )
+    write_text("honors.html", honors_html)
+    write_text("index.html", replace_home_stats_html(read_text("index.html"), content))
     for post in as_list(content.get("blogPosts")):
         if post.get("status") != "draft" and post.get("id"):
             write_text(blog_path(post), build_blog_post_html(post))
@@ -871,12 +1208,42 @@ def check_generated_files(content: dict) -> None:
     sitemap = sitemap_path.read_text(encoding="utf-8") if sitemap_path.exists() else ""
     blog_index_path = ROOT / "blog.html"
     blog_index_html = blog_index_path.read_text(encoding="utf-8") if blog_index_path.exists() else ""
+    publications_html = read_text("publications.html")
+    honors_html = read_text("honors.html")
+    index_html = read_text("index.html")
+    robots = read_text("robots.txt")
     if not sitemap:
         add_error("sitemap.xml is missing.")
     if not blog_index_html:
         add_error("blog.html is missing.")
     elif build_blog_index_fallback_html(content) not in blog_index_html:
         add_error("blog.html static fallback is stale. Run python3 scripts/check_site.py --fix.")
+    if build_publications_static_html(content) not in publications_html:
+        add_error("publications.html static publication list is stale. Run python3 scripts/check_site.py --fix.")
+    if build_publications_json_ld_html(content) not in publications_html:
+        add_error("publications.html JSON-LD is stale. Run python3 scripts/check_site.py --fix.")
+    if replace_collection_count_html(
+        publications_html,
+        "publications",
+        static_counts(content)["publications"],
+        "publications.html",
+    ) != publications_html:
+        add_error("publications.html visible publication count is stale. Run python3 scripts/check_site.py --fix.")
+    if build_honors_awards_static_html(content) not in honors_html:
+        add_error("honors.html static awards list is stale. Run python3 scripts/check_site.py --fix.")
+    if build_honors_json_ld_html(content) not in honors_html:
+        add_error("honors.html JSON-LD is stale. Run python3 scripts/check_site.py --fix.")
+    if replace_collection_count_html(
+        honors_html,
+        "awards",
+        static_counts(content)["awards"],
+        "honors.html",
+    ) != honors_html:
+        add_error("honors.html visible awards count is stale. Run python3 scripts/check_site.py --fix.")
+    if replace_home_stats_html(index_html, content) != index_html:
+        add_error("index.html static statistics are stale. Run python3 scripts/check_site.py --fix.")
+    if not re.search(r"User-agent:\s*OAI-SearchBot\s+Allow:\s*/", robots, re.I):
+        add_error("robots.txt should explicitly allow OAI-SearchBot.")
     for page in BASE_PAGES:
         url = site_url(page)
         if sitemap and url.replace("&", "&amp;") not in sitemap:
@@ -953,13 +1320,13 @@ def print_results() -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Check website content and generated static pages.")
-    parser.add_argument("--fix", action="store_true", help="Regenerate sitemap, static blog pages, and static activity pages.")
+    parser.add_argument("--fix", action="store_true", help="Regenerate sitemap, crawler-visible collection pages, and static post pages.")
     args = parser.parse_args()
 
     content = json.loads(read_text("data/site-content.json"))
     if args.fix:
         generate_static_files(content)
-        print("Generated sitemap.xml, static blog pages, and static activity pages.")
+        print("Generated sitemap.xml, crawler-visible collection pages, and static post pages.")
 
     check_content(content)
     check_generated_files(content)

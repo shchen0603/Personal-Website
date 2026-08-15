@@ -1653,8 +1653,28 @@ const renderContent = (content) => {
     });
   }
 
-  document.querySelectorAll("[data-stat]").forEach((element) => {
-    const key = element.dataset.stat;
+  if (document.querySelector("[data-render='honor-awards']") && awardHonors.length) {
+    injectJsonLd("honors", {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "Honors and Awards of Szu-Han Chen",
+      "itemListOrder": "https://schema.org/ItemListOrderDescending",
+      "numberOfItems": awardHonors.length,
+      "itemListElement": awardHonors.map((award, index) => ({
+        "@type": "ListItem",
+        "position": index + 1,
+        "item": {
+          "@type": "Thing",
+          "name": award.title || "",
+          "description": [getHonorDateLabel(award), award.description || ""].filter(Boolean).join(" "),
+          "url": `${SITE_ORIGIN}/honors.html#awards-title`
+        }
+      }))
+    });
+  }
+
+  document.querySelectorAll("[data-stat], [data-collection-count]").forEach((element) => {
+    const key = element.dataset.stat || element.dataset.collectionCount;
     const value = Number(stats[key]);
 
     if (!Number.isNaN(value)) {

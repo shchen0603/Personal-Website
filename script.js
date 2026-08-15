@@ -10,9 +10,11 @@ const SITE_NAV_ITEMS = SITE_CONFIG.navItems || [
 ];
 
 const SITE_FOOTER_LINKS = SITE_CONFIG.footerLinks || [
+  { href: "about.html", label: "About", zh: "關於" },
   { href: "research.html", label: "Research", zh: "研究" },
   { href: "publications.html", label: "Publications", zh: "著作" },
   { href: "honors.html", label: "Honors", zh: "榮譽" },
+  { href: "speaking-media.html", label: "Speaking & Media", zh: "演講與媒體" },
   { href: "activities.html", label: "Activities", zh: "活動" },
   { href: "blog.html", label: "Blog", zh: "網誌" },
   { href: "contact.html", label: "Contact", zh: "聯絡" },
@@ -1627,6 +1629,8 @@ const renderContent = (content) => {
     appearances: talkHonors.length + presentationHonors.length + posterHonors.length,
     activities: activities.length
   };
+  const publicationCategoryCounts = getPublicationGroups(publications)
+    .reduce((counts, group) => ({ ...counts, [group.slug]: group.items.length }), {});
 
   if (document.querySelector("[data-publication-list]") && publications.length) {
     injectJsonLd("publications", {
@@ -1638,17 +1642,45 @@ const renderContent = (content) => {
       "itemListElement": publications.map((publication, index) => ({
         "@type": "ListItem",
         "position": index + 1,
-        "item": {
-          "@type": "ScholarlyArticle",
-          "headline": publication.title || "",
-          "datePublished": publication.year || "",
-          "url": publication.doi || publication.href || `${SITE_ORIGIN}/publications.html`,
-          "isPartOf": publication.venue || "",
-          "author": (publication.authors || "")
-            .split(/,\s*/)
-            .filter(Boolean)
-            .map((name) => ({ "@type": "Person", "name": name.replace(/\.$/, "") }))
-        }
+        "item": (() => {
+          const category = getPublicationCategory(publication);
+          const type = category.slug === "journal-cover-features" ? "CreativeWork" : "ScholarlyArticle";
+          const title = publication.title || "";
+          const url = publication.doi || publication.href || `${SITE_ORIGIN}/publications.html`;
+          const item = {
+            "@type": type,
+            "@id": url,
+            "name": title,
+            "datePublished": publication.year || "",
+            "url": url,
+            "isPartOf": publication.venue || "",
+            "genre": category.label,
+            "author": (publication.authors || "")
+              .split(/,\s*/)
+              .filter(Boolean)
+              .map((rawName) => {
+                const name = rawName.replace(/\.$/, "").trim();
+
+                return /^Szu[- ]Han Chen$/i.test(name)
+                  ? { "@type": "Person", "@id": `${SITE_ORIGIN}/#person`, "name": name }
+                  : { "@type": "Person", "name": name };
+              }),
+            "about": { "@id": `${SITE_ORIGIN}/#person` },
+            "mainEntityOfPage": `${SITE_ORIGIN}/publications.html`
+          };
+
+          if (type === "ScholarlyArticle") {
+            item.headline = title;
+          }
+          if (publication.doi) {
+            item.identifier = publication.doi;
+          }
+          if (normalizeList(publication.tags).length) {
+            item.keywords = normalizeList(publication.tags).map((tag) => tag.label || tag.slug).filter(Boolean);
+          }
+
+          return item;
+        })()
       }))
     });
   }
@@ -1667,7 +1699,8 @@ const renderContent = (content) => {
           "@type": "Thing",
           "name": award.title || "",
           "description": [getHonorDateLabel(award), award.description || ""].filter(Boolean).join(" "),
-          "url": `${SITE_ORIGIN}/honors.html#awards-title`
+          "url": `${SITE_ORIGIN}/honors.html#awards-title`,
+          "about": { "@id": `${SITE_ORIGIN}/#person` }
         }
       }))
     });
@@ -1679,6 +1712,14 @@ const renderContent = (content) => {
 
     if (!Number.isNaN(value)) {
       element.dataset.count = String(value);
+      element.textContent = String(value);
+    }
+  });
+
+  document.querySelectorAll("[data-about-count]").forEach((element) => {
+    const value = Number(publicationCategoryCounts[element.dataset.aboutCount]);
+
+    if (!Number.isNaN(value)) {
       element.textContent = String(value);
     }
   });
@@ -1723,6 +1764,22 @@ const renderContent = (content) => {
     container.innerHTML = items.join("");
   });
 
+  document.querySelectorAll("[data-render='about-publications']").forEach((container) => {
+    container.innerHTML = publications
+      .filter((publication) => getPublicationCategory(publication).slug === "journal-publications" && publication.firstAuthor)
+      .slice(0, 3)
+      .map((publication) => renderPublicationItem(publication, { interactiveTags: false }))
+      .join("");
+  });
+
+  document.querySelectorAll("[data-render='about-recognition']").forEach((container) => {
+    container.innerHTML = awardHonors
+      .filter((award) => getAwardScope(award) === "international")
+      .slice(0, 3)
+      .map(renderHonorItem)
+      .join("");
+  });
+
   document.querySelectorAll("[data-render='honor-awards']").forEach((container) => {
     container.innerHTML = getAwardGroups(awardHonors).map(renderAwardGroup).join("");
   });
@@ -1740,6 +1797,22 @@ const renderContent = (content) => {
   });
 
   document.querySelectorAll("[data-render='media-coverage']").forEach((container) => {
+    container.innerHTML = mediaCoverage.map(renderMediaCoverageItem).join("");
+  });
+
+  document.querySelectorAll("[data-render='speaking-talks']").forEach((container) => {
+    container.innerHTML = talkHonors.map(renderHonorItem).join("");
+  });
+
+  document.querySelectorAll("[data-render='speaking-presentations']").forEach((container) => {
+    container.innerHTML = presentationHonors.map(renderHonorItem).join("");
+  });
+
+  document.querySelectorAll("[data-render='speaking-posters']").forEach((container) => {
+    container.innerHTML = posterHonors.map(renderHonorItem).join("");
+  });
+
+  document.querySelectorAll("[data-render='speaking-media']").forEach((container) => {
     container.innerHTML = mediaCoverage.map(renderMediaCoverageItem).join("");
   });
 

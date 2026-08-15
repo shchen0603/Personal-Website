@@ -16,15 +16,19 @@ ROOT = Path(__file__).resolve().parents[1]
 SITE_ORIGIN = "https://shchen0603.github.io/Personal-Website"
 BASE_PAGES = [
     "",
+    "about.html",
     "research.html",
     "publications.html",
     "honors.html",
+    "speaking-media.html",
     "activities.html",
     "blog.html",
     "contact.html",
 ]
 BLOG_INDEX_FALLBACK_START = "<!-- BLOG INDEX STATIC FALLBACK START -->"
 BLOG_INDEX_FALLBACK_END = "<!-- BLOG INDEX STATIC FALLBACK END -->"
+HOME_JSON_LD_START = "<!-- HOME JSON-LD START -->"
+HOME_JSON_LD_END = "<!-- HOME JSON-LD END -->"
 PUBLICATIONS_STATIC_START = "<!-- PUBLICATIONS STATIC FALLBACK START -->"
 PUBLICATIONS_STATIC_END = "<!-- PUBLICATIONS STATIC FALLBACK END -->"
 PUBLICATIONS_JSON_LD_START = "<!-- PUBLICATIONS JSON-LD START -->"
@@ -33,6 +37,22 @@ HONORS_AWARDS_STATIC_START = "<!-- HONORS AWARDS STATIC FALLBACK START -->"
 HONORS_AWARDS_STATIC_END = "<!-- HONORS AWARDS STATIC FALLBACK END -->"
 HONORS_JSON_LD_START = "<!-- HONORS JSON-LD START -->"
 HONORS_JSON_LD_END = "<!-- HONORS JSON-LD END -->"
+ABOUT_PUBLICATIONS_STATIC_START = "<!-- ABOUT PUBLICATIONS STATIC START -->"
+ABOUT_PUBLICATIONS_STATIC_END = "<!-- ABOUT PUBLICATIONS STATIC END -->"
+ABOUT_RECOGNITION_STATIC_START = "<!-- ABOUT RECOGNITION STATIC START -->"
+ABOUT_RECOGNITION_STATIC_END = "<!-- ABOUT RECOGNITION STATIC END -->"
+ABOUT_JSON_LD_START = "<!-- ABOUT JSON-LD START -->"
+ABOUT_JSON_LD_END = "<!-- ABOUT JSON-LD END -->"
+SPEAKING_TALKS_STATIC_START = "<!-- SPEAKING TALKS STATIC START -->"
+SPEAKING_TALKS_STATIC_END = "<!-- SPEAKING TALKS STATIC END -->"
+SPEAKING_PRESENTATIONS_STATIC_START = "<!-- SPEAKING PRESENTATIONS STATIC START -->"
+SPEAKING_PRESENTATIONS_STATIC_END = "<!-- SPEAKING PRESENTATIONS STATIC END -->"
+SPEAKING_POSTERS_STATIC_START = "<!-- SPEAKING POSTERS STATIC START -->"
+SPEAKING_POSTERS_STATIC_END = "<!-- SPEAKING POSTERS STATIC END -->"
+SPEAKING_MEDIA_STATIC_START = "<!-- SPEAKING MEDIA STATIC START -->"
+SPEAKING_MEDIA_STATIC_END = "<!-- SPEAKING MEDIA STATIC END -->"
+SPEAKING_MEDIA_JSON_LD_START = "<!-- SPEAKING MEDIA JSON-LD START -->"
+SPEAKING_MEDIA_JSON_LD_END = "<!-- SPEAKING MEDIA JSON-LD END -->"
 PUBLICATION_CATEGORY_OPTIONS = [
     {"slug": "journal-publications", "label": "Journal Publications"},
     {"slug": "published-conference-abstracts", "label": "Published Conference Abstracts"},
@@ -831,6 +851,48 @@ def build_publications_static_html(content: dict) -> str:
 
 def publication_json_ld_data(content: dict) -> dict:
     publications = as_list(content.get("publications"))
+
+    def item_data(publication: dict) -> dict:
+        category = publication_category(publication)
+        publication_type = "CreativeWork" if category["slug"] == "journal-cover-features" else "ScholarlyArticle"
+        title = publication.get("title") or ""
+        url = publication.get("doi") or publication.get("href") or site_url("publications.html")
+        item = {
+            "@type": publication_type,
+            "@id": url,
+            "name": title,
+            "datePublished": publication.get("year") or "",
+            "url": url,
+            "isPartOf": publication.get("venue") or "",
+            "genre": category["label"],
+            "author": [
+                {
+                    "@type": "Person",
+                    **(
+                        {"@id": f"{SITE_ORIGIN}/#person"}
+                        if PUBLICATION_SELF_NAME_PATTERN.fullmatch(name.strip().rstrip("."))
+                        else {}
+                    ),
+                    "name": name.strip().rstrip("."),
+                }
+                for name in str(publication.get("authors") or "").split(",")
+                if name.strip()
+            ],
+            "about": {"@id": f"{SITE_ORIGIN}/#person"},
+            "mainEntityOfPage": site_url("publications.html"),
+        }
+        if publication_type == "ScholarlyArticle":
+            item["headline"] = title
+        if publication.get("doi"):
+            item["identifier"] = publication.get("doi")
+        if publication.get("tags"):
+            item["keywords"] = [
+                tag.get("label") or tag.get("slug")
+                for tag in as_list(publication.get("tags"))
+                if isinstance(tag, dict) and (tag.get("label") or tag.get("slug"))
+            ]
+        return item
+
     return {
         "@context": "https://schema.org",
         "@type": "ItemList",
@@ -841,18 +903,7 @@ def publication_json_ld_data(content: dict) -> dict:
             {
                 "@type": "ListItem",
                 "position": index,
-                "item": {
-                    "@type": "ScholarlyArticle",
-                    "headline": publication.get("title") or "",
-                    "datePublished": publication.get("year") or "",
-                    "url": publication.get("doi") or publication.get("href") or site_url("publications.html"),
-                    "isPartOf": publication.get("venue") or "",
-                    "author": [
-                        {"@type": "Person", "name": name.strip().rstrip(".")}
-                        for name in str(publication.get("authors") or "").split(",")
-                        if name.strip()
-                    ],
-                },
+                "item": item_data(publication),
             }
             for index, publication in enumerate(publications, start=1)
         ],
@@ -930,6 +981,7 @@ def honors_json_ld_data(content: dict) -> dict:
                         part for part in [honor_date_label(award), award.get("description") or ""] if part
                     ),
                     "url": f'{site_url("honors.html")}#awards-title',
+                    "about": {"@id": f"{SITE_ORIGIN}/#person"},
                 },
             }
             for index, award in enumerate(awards, start=1)
@@ -943,6 +995,315 @@ def build_honors_json_ld_html(content: dict) -> str:
         f"    {HONORS_JSON_LD_START}\n"
         f'    <script type="application/ld+json" data-jsonld-id="honors">{json_ld}</script>\n'
         f"    {HONORS_JSON_LD_END}"
+    )
+
+
+def selected_about_publications(content: dict) -> list[dict]:
+    return [
+        publication for publication in as_list(content.get("publications"))
+        if publication_category(publication)["slug"] == "journal-publications"
+        and publication.get("firstAuthor")
+    ][:3]
+
+
+def selected_about_recognition(content: dict) -> list[dict]:
+    awards = as_list((content.get("honors") or {}).get("awards"))
+    return [award for award in awards if str(award.get("scope") or "").lower() == "international"][:3]
+
+
+def build_static_item_block(start_marker: str, end_marker: str, items: list[dict], builder) -> str:
+    item_html = "\n".join(builder(item) for item in items)
+    return f"        {start_marker}\n{item_html}\n        {end_marker}"
+
+
+def build_about_publications_static_html(content: dict) -> str:
+    return build_static_item_block(
+        ABOUT_PUBLICATIONS_STATIC_START,
+        ABOUT_PUBLICATIONS_STATIC_END,
+        selected_about_publications(content),
+        build_publication_item_html,
+    )
+
+
+def build_about_recognition_static_html(content: dict) -> str:
+    return build_static_item_block(
+        ABOUT_RECOGNITION_STATIC_START,
+        ABOUT_RECOGNITION_STATIC_END,
+        selected_about_recognition(content),
+        build_honor_item_html,
+    )
+
+
+def publication_category_counts(content: dict) -> dict[str, int]:
+    counts = {option["slug"]: 0 for option in PUBLICATION_CATEGORY_OPTIONS}
+    for publication in as_list(content.get("publications")):
+        counts[publication_category(publication)["slug"]] += 1
+    return counts
+
+
+def replace_about_counts_html(template: str, content: dict) -> str:
+    updated = template
+    for key, count in publication_category_counts(content).items():
+        pattern = re.compile(
+            rf'(<strong data-about-count="{re.escape(key)}">)[^<]*(</strong>)'
+        )
+        updated, replacements = pattern.subn(rf"\g<1>{count}\g<2>", updated)
+        if replacements < 1:
+            raise ValueError(f'about.html is missing the static "{key}" publication count.')
+    return updated
+
+
+def person_json_ld_data(content: dict) -> dict:
+    awards = as_list((content.get("honors") or {}).get("awards"))
+    return {
+        "@type": "Person",
+        "@id": f"{SITE_ORIGIN}/#person",
+        "name": "Szu-Han Chen",
+        "alternateName": "陳思翰",
+        "url": f"{SITE_ORIGIN}/",
+        "mainEntityOfPage": site_url("about.html"),
+        "image": site_url("assets/cardiovascular-epidemiology-hero-og.jpg"),
+        "jobTitle": "Medical Student Researcher (MD Candidate)",
+        "description": (
+            "Medical student and MD candidate at National Yang Ming Chiao Tung University, "
+            "research collaborator at Harvard T.H. Chan School of Public Health, and researcher "
+            "in cardiovascular and nutritional epidemiology."
+        ),
+        "affiliation": [
+            {
+                "@type": "CollegeOrUniversity",
+                "name": "National Yang Ming Chiao Tung University, School of Medicine",
+                "url": "https://med.nycu.edu.tw/",
+            },
+            {
+                "@type": "CollegeOrUniversity",
+                "name": "Harvard T.H. Chan School of Public Health",
+                "url": "https://www.hsph.harvard.edu/",
+            },
+        ],
+        "knowsAbout": [
+            "Cardiovascular Epidemiology",
+            "Nutritional Epidemiology",
+            "Cardiometabolic Health",
+            "Heart Failure",
+            "Hypertension",
+            "Sodium and Vascular Risk",
+            "Nutrition",
+            "Metabolomics",
+            "Preventive Cardiology",
+        ],
+        "award": [
+            " — ".join(part for part in [award.get("title") or "", award.get("description") or ""] if part)
+            for award in awards
+        ],
+        "subjectOf": [
+            site_url("about.html"),
+            site_url("research.html"),
+            site_url("publications.html"),
+            site_url("honors.html"),
+            site_url("speaking-media.html"),
+        ],
+        "sameAs": [
+            "https://orcid.org/0009-0006-4557-9097",
+            "https://scholar.google.com/citations?user=0CdlnrgAAAAJ&hl=zh-TW",
+            "https://www.researchgate.net/profile/Szu-Han-Chen-7",
+            "https://www.linkedin.com/in/szu-han-chen-med/",
+            "https://github.com/shchen0603",
+        ],
+    }
+
+
+def home_json_ld_data(content: dict) -> dict:
+    return {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "WebSite",
+                "@id": f"{SITE_ORIGIN}/#website",
+                "url": f"{SITE_ORIGIN}/",
+                "name": "Szu-Han Chen · 陳思翰",
+                "description": (
+                    "Academic website of Szu-Han Chen, a medical student researcher in "
+                    "cardiovascular and nutritional epidemiology."
+                ),
+                "inLanguage": ["zh-Hant", "en"],
+                "about": {"@id": f"{SITE_ORIGIN}/#person"},
+            },
+            person_json_ld_data(content),
+        ],
+    }
+
+
+def build_home_json_ld_html(content: dict) -> str:
+    json_ld = json.dumps(home_json_ld_data(content), ensure_ascii=False, separators=(",", ":"))
+    return (
+        f"  {HOME_JSON_LD_START}\n"
+        f'  <script type="application/ld+json" data-jsonld-id="home">{json_ld}</script>\n'
+        f"  {HOME_JSON_LD_END}"
+    )
+
+
+def about_json_ld_data(content: dict) -> dict:
+    return {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "ProfilePage",
+                "@id": f'{site_url("about.html")}#profile-page',
+                "url": site_url("about.html"),
+                "name": "About Szu-Han Chen (陳思翰)",
+                "description": (
+                    "Academic biography, affiliations, research focus, selected publications, "
+                    "and recognition of Szu-Han Chen."
+                ),
+                "inLanguage": ["zh-Hant", "en"],
+                "isPartOf": {"@id": f"{SITE_ORIGIN}/#website"},
+                "mainEntity": {"@id": f"{SITE_ORIGIN}/#person"},
+            },
+            person_json_ld_data(content),
+        ],
+    }
+
+
+def build_about_json_ld_html(content: dict) -> str:
+    json_ld = json.dumps(about_json_ld_data(content), ensure_ascii=False, separators=(",", ":"))
+    return (
+        f"    {ABOUT_JSON_LD_START}\n"
+        f'    <script type="application/ld+json" data-jsonld-id="about">{json_ld}</script>\n'
+        f"    {ABOUT_JSON_LD_END}"
+    )
+
+
+def build_media_coverage_item_html(item: dict) -> str:
+    links = []
+    for link in as_list(item.get("links")):
+        if not isinstance(link, dict):
+            continue
+        label = link.get("label") or "Coverage"
+        href = str(link.get("href") or "").strip()
+        if href:
+            links.append(f'<a href="{escape(href)}" rel="noreferrer">{escape(label)}</a>')
+        else:
+            links.append(f'<span class="media-pending" title="連結待補">{escape(label)} <em>(link pending)</em></span>')
+    links_html = (
+        f'              <div class="publication-links">{"".join(links)}</div>\n'
+        if links else ""
+    )
+    return (
+        '          <li class="media-coverage-item">\n'
+        "            <div>\n"
+        f'              <h3>{escape(item.get("title"))}</h3>\n'
+        f'              <p>{escape(item.get("description"))}</p>\n'
+        f"{links_html}"
+        "            </div>\n"
+        "          </li>"
+    )
+
+
+def speaking_items(content: dict, key: str) -> list[dict]:
+    return as_list((content.get("honors") or {}).get(key))
+
+
+def build_speaking_static_html(content: dict, key: str, start_marker: str, end_marker: str) -> str:
+    return build_static_item_block(
+        start_marker,
+        end_marker,
+        speaking_items(content, key),
+        build_honor_item_html,
+    )
+
+
+def build_speaking_media_static_html(content: dict) -> str:
+    return build_static_item_block(
+        SPEAKING_MEDIA_STATIC_START,
+        SPEAKING_MEDIA_STATIC_END,
+        speaking_items(content, "mediaCoverage"),
+        build_media_coverage_item_html,
+    )
+
+
+def event_item_list_schema(name: str, items: list[dict], section_id: str) -> dict:
+    return {
+        "@type": "ItemList",
+        "name": name,
+        "numberOfItems": len(items),
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": index,
+                "item": {
+                    "@type": "Event",
+                    "name": item.get("title") or "",
+                    "description": item.get("description") or "",
+                    "startDate": item.get("date") or item.get("year") or "",
+                    "eventStatus": "https://schema.org/EventScheduled",
+                    "performer": {"@id": f"{SITE_ORIGIN}/#person"},
+                    "url": f'{site_url("speaking-media.html")}#{section_id}',
+                },
+            }
+            for index, item in enumerate(items, start=1)
+        ],
+    }
+
+
+def media_item_list_schema(items: list[dict]) -> dict:
+    return {
+        "@type": "ItemList",
+        "name": "Research-related media coverage of Szu-Han Chen",
+        "numberOfItems": len(items),
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": index,
+                "item": {
+                    "@type": "CreativeWork",
+                    "name": item.get("title") or "",
+                    "description": item.get("description") or "",
+                    "url": next(
+                        (
+                            link.get("href") for link in as_list(item.get("links"))
+                            if isinstance(link, dict) and link.get("href")
+                        ),
+                        f'{site_url("speaking-media.html")}#speaking-media-title',
+                    ),
+                    "about": {"@id": f"{SITE_ORIGIN}/#person"},
+                },
+            }
+            for index, item in enumerate(items, start=1)
+        ],
+    }
+
+
+def speaking_media_json_ld_data(content: dict) -> dict:
+    talks = speaking_items(content, "talks")
+    presentations = speaking_items(content, "presentations")
+    posters = speaking_items(content, "posters")
+    media = speaking_items(content, "mediaCoverage")
+    return {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "@id": f'{site_url("speaking-media.html")}#collection-page',
+        "url": site_url("speaking-media.html"),
+        "name": "Speaking & Media | Szu-Han Chen (陳思翰)",
+        "description": "Invited talks, conference presentations, and research-related media coverage of Szu-Han Chen.",
+        "inLanguage": ["zh-Hant", "en"],
+        "isPartOf": {"@id": f"{SITE_ORIGIN}/#website"},
+        "about": {"@id": f"{SITE_ORIGIN}/#person"},
+        "mainEntity": [
+            event_item_list_schema("Invited talks and lectures", talks, "invited-talks-title"),
+            event_item_list_schema("Conference oral presentations", presentations, "speaking-presentations-title"),
+            event_item_list_schema("Moderated poster presentations", posters, "speaking-posters-title"),
+            media_item_list_schema(media),
+        ],
+    }
+
+
+def build_speaking_media_json_ld_html(content: dict) -> str:
+    json_ld = json.dumps(speaking_media_json_ld_data(content), ensure_ascii=False, separators=(",", ":"))
+    return (
+        f"    {SPEAKING_MEDIA_JSON_LD_START}\n"
+        f'    <script type="application/ld+json" data-jsonld-id="speaking-media">{json_ld}</script>\n'
+        f"    {SPEAKING_MEDIA_JSON_LD_END}"
     )
 
 
@@ -1112,7 +1473,70 @@ def generate_static_files(content: dict) -> None:
         "honors.html",
     )
     write_text("honors.html", honors_html)
-    write_text("index.html", replace_home_stats_html(read_text("index.html"), content))
+
+    about_html = read_text("about.html")
+    about_html = replace_generated_block(
+        about_html,
+        ABOUT_PUBLICATIONS_STATIC_START,
+        ABOUT_PUBLICATIONS_STATIC_END,
+        build_about_publications_static_html(content),
+        "about.html",
+    )
+    about_html = replace_generated_block(
+        about_html,
+        ABOUT_RECOGNITION_STATIC_START,
+        ABOUT_RECOGNITION_STATIC_END,
+        build_about_recognition_static_html(content),
+        "about.html",
+    )
+    about_html = replace_generated_block(
+        about_html,
+        ABOUT_JSON_LD_START,
+        ABOUT_JSON_LD_END,
+        build_about_json_ld_html(content),
+        "about.html",
+    )
+    about_html = replace_about_counts_html(about_html, content)
+    write_text("about.html", about_html)
+
+    speaking_html = read_text("speaking-media.html")
+    for key, start_marker, end_marker in [
+        ("talks", SPEAKING_TALKS_STATIC_START, SPEAKING_TALKS_STATIC_END),
+        ("presentations", SPEAKING_PRESENTATIONS_STATIC_START, SPEAKING_PRESENTATIONS_STATIC_END),
+        ("posters", SPEAKING_POSTERS_STATIC_START, SPEAKING_POSTERS_STATIC_END),
+    ]:
+        speaking_html = replace_generated_block(
+            speaking_html,
+            start_marker,
+            end_marker,
+            build_speaking_static_html(content, key, start_marker, end_marker),
+            "speaking-media.html",
+        )
+    speaking_html = replace_generated_block(
+        speaking_html,
+        SPEAKING_MEDIA_STATIC_START,
+        SPEAKING_MEDIA_STATIC_END,
+        build_speaking_media_static_html(content),
+        "speaking-media.html",
+    )
+    speaking_html = replace_generated_block(
+        speaking_html,
+        SPEAKING_MEDIA_JSON_LD_START,
+        SPEAKING_MEDIA_JSON_LD_END,
+        build_speaking_media_json_ld_html(content),
+        "speaking-media.html",
+    )
+    write_text("speaking-media.html", speaking_html)
+
+    index_html = replace_home_stats_html(read_text("index.html"), content)
+    index_html = replace_generated_block(
+        index_html,
+        HOME_JSON_LD_START,
+        HOME_JSON_LD_END,
+        build_home_json_ld_html(content),
+        "index.html",
+    )
+    write_text("index.html", index_html)
     for post in as_list(content.get("blogPosts")):
         if post.get("status") != "draft" and post.get("id"):
             write_text(blog_path(post), build_blog_post_html(post))
@@ -1210,6 +1634,8 @@ def check_generated_files(content: dict) -> None:
     blog_index_html = blog_index_path.read_text(encoding="utf-8") if blog_index_path.exists() else ""
     publications_html = read_text("publications.html")
     honors_html = read_text("honors.html")
+    about_html = read_text("about.html")
+    speaking_html = read_text("speaking-media.html")
     index_html = read_text("index.html")
     robots = read_text("robots.txt")
     if not sitemap:
@@ -1240,8 +1666,29 @@ def check_generated_files(content: dict) -> None:
         "honors.html",
     ) != honors_html:
         add_error("honors.html visible awards count is stale. Run python3 scripts/check_site.py --fix.")
+    if build_about_publications_static_html(content) not in about_html:
+        add_error("about.html selected publications are stale. Run python3 scripts/check_site.py --fix.")
+    if build_about_recognition_static_html(content) not in about_html:
+        add_error("about.html selected recognition is stale. Run python3 scripts/check_site.py --fix.")
+    if build_about_json_ld_html(content) not in about_html:
+        add_error("about.html JSON-LD is stale. Run python3 scripts/check_site.py --fix.")
+    if replace_about_counts_html(about_html, content) != about_html:
+        add_error("about.html publication category counts are stale. Run python3 scripts/check_site.py --fix.")
+    for key, start_marker, end_marker in [
+        ("talks", SPEAKING_TALKS_STATIC_START, SPEAKING_TALKS_STATIC_END),
+        ("presentations", SPEAKING_PRESENTATIONS_STATIC_START, SPEAKING_PRESENTATIONS_STATIC_END),
+        ("posters", SPEAKING_POSTERS_STATIC_START, SPEAKING_POSTERS_STATIC_END),
+    ]:
+        if build_speaking_static_html(content, key, start_marker, end_marker) not in speaking_html:
+            add_error(f"speaking-media.html {key} list is stale. Run python3 scripts/check_site.py --fix.")
+    if build_speaking_media_static_html(content) not in speaking_html:
+        add_error("speaking-media.html media list is stale. Run python3 scripts/check_site.py --fix.")
+    if build_speaking_media_json_ld_html(content) not in speaking_html:
+        add_error("speaking-media.html JSON-LD is stale. Run python3 scripts/check_site.py --fix.")
     if replace_home_stats_html(index_html, content) != index_html:
         add_error("index.html static statistics are stale. Run python3 scripts/check_site.py --fix.")
+    if build_home_json_ld_html(content) not in index_html:
+        add_error("index.html Person/WebSite JSON-LD is stale. Run python3 scripts/check_site.py --fix.")
     if not re.search(r"User-agent:\s*OAI-SearchBot\s+Allow:\s*/", robots, re.I):
         add_error("robots.txt should explicitly allow OAI-SearchBot.")
     for page in BASE_PAGES:

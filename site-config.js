@@ -9,9 +9,11 @@ window.SITE_CONFIG = {
     { href: "contact.html", label: "Contact", zh: "聯絡", page: "contact" }
   ],
   footerLinks: [
+    { href: "about.html", label: "About", zh: "關於" },
     { href: "research.html", label: "Research", zh: "研究" },
     { href: "publications.html", label: "Publications", zh: "著作" },
     { href: "honors.html", label: "Honors", zh: "榮譽" },
+    { href: "speaking-media.html", label: "Speaking & Media", zh: "演講與媒體" },
     { href: "activities.html", label: "Activities", zh: "活動" },
     { href: "blog.html", label: "Blog", zh: "網誌" },
     { href: "contact.html", label: "Contact", zh: "聯絡" },

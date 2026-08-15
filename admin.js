@@ -455,9 +455,11 @@ if (adminApp) {
     const today = new Date().toISOString().slice(0, 10);
     const urls = [
       "",
+      "about.html",
       "research.html",
       "publications.html",
       "honors.html",
+      "speaking-media.html",
       "activities.html",
       "blog.html",
       "contact.html"

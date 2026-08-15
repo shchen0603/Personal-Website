@@ -49,7 +49,7 @@ python3 scripts/check_site.py
 
 看到 `Site check passed` 再 commit / push。
 
-`--fix` 會重新產生 sitemap、Blog 靜態頁、Activity 靜態頁和 blog fallback，避免 Google 或訪客看到舊內容。
+`--fix` 會重新產生 sitemap、Blog 與 Activity 靜態頁，以及 Publications、Honors、About、Speaking &amp; Media 的 crawler-visible 區塊與結構化資料，避免搜尋引擎或訪客看到舊內容。
 
 ### 4. 本機預覽
 
@@ -96,8 +96,9 @@ git config core.hooksPath .githooks
 - `activities/<id>.html`
 - `sitemap.xml`
 - `blog.html` 的靜態 fallback 區塊
+- `publications.html`、`honors.html`、`about.html`、`speaking-media.html` 中有產生器標記的區塊
 
-這些檔案會由 admin 或 `scripts/check_site.py --fix` 重新產生。手動改了之後，下次重產可能會被覆蓋。
+Blog、Activity、sitemap 與 blog fallback 可由 admin 或 `scripts/check_site.py --fix` 重新產生；collection 頁面的產生器區塊則以 `scripts/check_site.py --fix` 為準。手動改了之後，下次重產可能會被覆蓋。
 
 ### Blog 的 `id` 不要隨便改
 

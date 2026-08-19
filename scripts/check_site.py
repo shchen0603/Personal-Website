@@ -29,6 +29,8 @@ BLOG_INDEX_FALLBACK_START = "<!-- BLOG INDEX STATIC FALLBACK START -->"
 BLOG_INDEX_FALLBACK_END = "<!-- BLOG INDEX STATIC FALLBACK END -->"
 HOME_JSON_LD_START = "<!-- HOME JSON-LD START -->"
 HOME_JSON_LD_END = "<!-- HOME JSON-LD END -->"
+HOME_HIGHLIGHTS_STATIC_START = "<!-- HOME HIGHLIGHTS STATIC START -->"
+HOME_HIGHLIGHTS_STATIC_END = "<!-- HOME HIGHLIGHTS STATIC END -->"
 PUBLICATIONS_STATIC_START = "<!-- PUBLICATIONS STATIC FALLBACK START -->"
 PUBLICATIONS_STATIC_END = "<!-- PUBLICATIONS STATIC FALLBACK END -->"
 PUBLICATIONS_JSON_LD_START = "<!-- PUBLICATIONS JSON-LD START -->"
@@ -563,8 +565,8 @@ def build_blog_post_html(post: dict) -> str:
         "image": og_image,
         "url": canonical,
         "mainEntityOfPage": canonical,
-        "author": {"@type": "Person", "name": "Szu-Han Chen", "url": f"{SITE_ORIGIN}/"},
-        "publisher": {"@type": "Person", "name": "Szu-Han Chen", "url": f"{SITE_ORIGIN}/"},
+        "author": {"@type": "Person", "@id": f"{SITE_ORIGIN}/#person", "name": "Szu-Han Chen", "url": f"{SITE_ORIGIN}/"},
+        "publisher": {"@type": "Person", "@id": f"{SITE_ORIGIN}/#person", "name": "Szu-Han Chen", "url": f"{SITE_ORIGIN}/"},
         "keywords": ", ".join(taxonomy_labels),
     }
     if series_label:
@@ -676,7 +678,7 @@ def build_activity_html(activity: dict) -> str:
         "image": og_image,
         "url": canonical,
         "mainEntityOfPage": canonical,
-        "author": {"@type": "Person", "name": "Szu-Han Chen", "url": f"{SITE_ORIGIN}/"},
+        "author": {"@type": "Person", "@id": f"{SITE_ORIGIN}/#person", "name": "Szu-Han Chen", "url": f"{SITE_ORIGIN}/"},
     }, ensure_ascii=False, separators=(",", ":"))
 
     return f"""<!doctype html>
@@ -927,6 +929,20 @@ def honor_date_label(item: dict) -> str:
     return str(item.get("year") or "")
 
 
+def build_item_links_html(item: dict, indent: str = "              ") -> str:
+    links = [
+        link for link in as_list(item.get("links"))
+        if isinstance(link, dict) and str(link.get("href") or "").strip()
+    ]
+    if not links:
+        return ""
+    link_html = "".join(
+        f'<a href="{escape(link.get("href"))}" rel="noreferrer">{escape(link.get("label") or "Source")}</a>'
+        for link in links
+    )
+    return f'{indent}<div class="publication-links">{link_html}</div>\n'
+
+
 def build_honor_item_html(item: dict) -> str:
     return (
         '          <article class="honor-item">\n'
@@ -934,8 +950,39 @@ def build_honor_item_html(item: dict) -> str:
         "            <div>\n"
         f'              <h3>{escape(item.get("title"))}</h3>\n'
         f'              <p>{escape(item.get("description"))}</p>\n'
+        f"{build_item_links_html(item)}"
         "            </div>\n"
         "          </article>"
+    )
+
+
+def build_home_highlight_item_html(item: dict, index: int) -> str:
+    delay_class = " reveal-delay-1" if index == 1 else " reveal-delay-2" if index == 2 else " reveal-delay-3" if index >= 3 else ""
+    title = escape(item.get("title"))
+    href = str(item.get("href") or "").strip()
+    heading = (
+        f'<h3><a href="{escape(href)}" rel="noreferrer">{title}</a></h3>'
+        if href else f"<h3>{title}</h3>"
+    )
+    return (
+        f'        <article class="highlight-card reveal{delay_class}">\n'
+        f'          <p class="timeline-meta">{escape(item.get("meta"))}</p>\n'
+        f"          {heading}\n"
+        f'          <p>{escape(item.get("description"))}</p>\n'
+        f"{build_item_links_html(item, indent='          ')}"
+        "        </article>"
+    )
+
+
+def build_home_highlights_static_html(content: dict) -> str:
+    items = "\n".join(
+        build_home_highlight_item_html(item, index)
+        for index, item in enumerate(as_list(content.get("homeHighlights")))
+    )
+    return (
+        f"      {HOME_HIGHLIGHTS_STATIC_START}\n"
+        f"{items}\n"
+        f"      {HOME_HIGHLIGHTS_STATIC_END}"
     )
 
 
@@ -1097,11 +1144,44 @@ def person_json_ld_data(content: dict) -> dict:
             for award in awards
         ],
         "subjectOf": [
-            site_url("about.html"),
-            site_url("research.html"),
-            site_url("publications.html"),
-            site_url("honors.html"),
-            site_url("speaking-media.html"),
+            {
+                "@type": "NewsArticle",
+                "@id": "https://med.nycu.edu.tw/med/ch/app/news/view?module=headnews&id=36202&serno=f7e81bda-0e49-499d-b5f8-3ea961b90ec1",
+                "name": "狂賀! 醫師組五年級陳思翰同學榮獲2026亞洲職業衛生大會(ACOH 2026)口頭報告競賽冠軍!",
+                "url": "https://med.nycu.edu.tw/med/ch/app/news/view?module=headnews&id=36202&serno=f7e81bda-0e49-499d-b5f8-3ea961b90ec1",
+                "datePublished": "2026-08-10",
+                "inLanguage": "zh-Hant",
+                "publisher": {
+                    "@type": "CollegeOrUniversity",
+                    "name": "National Yang Ming Chiao Tung University School of Medicine",
+                    "url": "https://med.nycu.edu.tw/",
+                },
+            },
+            {
+                "@type": "NewsArticle",
+                "@id": "https://med.nycu.edu.tw/med/ch/app/news/view?module=headnews&id=36202&serno=6d0b3c22-9a21-4d44-9394-94d0df7cc38a",
+                "name": "狂賀! 醫師組五年級陳思翰同學榮獲美國心臟協會 EPI | Lifestyle 2026 國際學者獎!",
+                "url": "https://med.nycu.edu.tw/med/ch/app/news/view?module=headnews&id=36202&serno=6d0b3c22-9a21-4d44-9394-94d0df7cc38a",
+                "datePublished": "2026-08-19",
+                "inLanguage": "zh-Hant",
+                "publisher": {
+                    "@type": "CollegeOrUniversity",
+                    "name": "National Yang Ming Chiao Tung University School of Medicine",
+                    "url": "https://med.nycu.edu.tw/",
+                },
+            },
+            {
+                "@type": "NewsArticle",
+                "@id": "https://newsroom.heart.org/news/extra-belly-weight-not-bmi-was-a-stronger-predictor-of-heart-failure-risk-inflammation",
+                "name": "Extra belly weight, not BMI, was a stronger predictor of heart failure risk, inflammation",
+                "url": "https://newsroom.heart.org/news/extra-belly-weight-not-bmi-was-a-stronger-predictor-of-heart-failure-risk-inflammation",
+                "inLanguage": "en",
+                "publisher": {
+                    "@type": "Organization",
+                    "name": "American Heart Association",
+                    "url": "https://www.heart.org/",
+                },
+            },
         ],
         "sameAs": [
             "https://orcid.org/0009-0006-4557-9097",
@@ -1531,6 +1611,13 @@ def generate_static_files(content: dict) -> None:
     index_html = replace_home_stats_html(read_text("index.html"), content)
     index_html = replace_generated_block(
         index_html,
+        HOME_HIGHLIGHTS_STATIC_START,
+        HOME_HIGHLIGHTS_STATIC_END,
+        build_home_highlights_static_html(content),
+        "index.html",
+    )
+    index_html = replace_generated_block(
+        index_html,
         HOME_JSON_LD_START,
         HOME_JSON_LD_END,
         build_home_json_ld_html(content),
@@ -1552,6 +1639,9 @@ def check_content(content: dict) -> None:
         check_required_string(highlight.get("title"), f"homeHighlights[{index}].title")
         check_required_string(highlight.get("description"), f"homeHighlights[{index}].description")
         check_url(highlight.get("href"), f"homeHighlights[{index}].href")
+        for link_index, link in enumerate(as_list(highlight.get("links"))):
+            check_required_string(link.get("label"), f"homeHighlights[{index}].links[{link_index}].label")
+            check_url(link.get("href"), f"homeHighlights[{index}].links[{link_index}].href")
 
     for key in ["blogTagOptions", "blogSeriesOptions"]:
         if not isinstance(content.get(key), list):
@@ -1646,6 +1736,11 @@ def check_generated_files(content: dict) -> None:
         add_error("blog.html static fallback is stale. Run python3 scripts/check_site.py --fix.")
     if build_publications_static_html(content) not in publications_html:
         add_error("publications.html static publication list is stale. Run python3 scripts/check_site.py --fix.")
+    publication_count = len(as_list(content.get("publications")))
+    if len(re.findall(r'<article class="publication-item"[^>]*data-publication-item', publications_html)) != publication_count:
+        add_error("publications.html must contain every publication in its initial HTML response.")
+    if re.search(r"正在載入著作清單|Loading publications", publications_html, re.I):
+        add_error("publications.html still exposes a loading-only fallback to crawlers.")
     if build_publications_json_ld_html(content) not in publications_html:
         add_error("publications.html JSON-LD is stale. Run python3 scripts/check_site.py --fix.")
     if replace_collection_count_html(
@@ -1687,14 +1782,50 @@ def check_generated_files(content: dict) -> None:
         add_error("speaking-media.html JSON-LD is stale. Run python3 scripts/check_site.py --fix.")
     if replace_home_stats_html(index_html, content) != index_html:
         add_error("index.html static statistics are stale. Run python3 scripts/check_site.py --fix.")
+    if build_home_highlights_static_html(content) not in index_html:
+        add_error("index.html static highlights are stale. Run python3 scripts/check_site.py --fix.")
     if build_home_json_ld_html(content) not in index_html:
         add_error("index.html Person/WebSite JSON-LD is stale. Run python3 scripts/check_site.py --fix.")
+    for crawl_target in ["about.html", "speaking-media.html"]:
+        if not re.search(rf'<a\b[^>]*href=["\']{re.escape(crawl_target)}["\']', index_html, re.I):
+            add_error(f"index.html raw HTML should link directly to {crawl_target}.")
+    person_data = person_json_ld_data(content)
+    same_as = set(as_list(person_data.get("sameAs")))
+    subject_urls = {
+        subject.get("url")
+        for subject in as_list(person_data.get("subjectOf"))
+        if isinstance(subject, dict) and subject.get("url")
+    }
+    if same_as & subject_urls:
+        add_error("Third-party coverage must use Person.subjectOf, not Person.sameAs.")
+    required_subject_urls = {
+        "https://med.nycu.edu.tw/med/ch/app/news/view?module=headnews&id=36202&serno=6d0b3c22-9a21-4d44-9394-94d0df7cc38a": "AHA",
+        "https://med.nycu.edu.tw/med/ch/app/news/view?module=headnews&id=36202&serno=f7e81bda-0e49-499d-b5f8-3ea961b90ec1": "ACOH",
+    }
+    for subject_url, label in required_subject_urls.items():
+        if subject_url not in subject_urls:
+            add_error(f"Person.subjectOf is missing the official NYCU School of Medicine {label} coverage.")
     if not re.search(r"User-agent:\s*OAI-SearchBot\s+Allow:\s*/", robots, re.I):
         add_error("robots.txt should explicitly allow OAI-SearchBot.")
+    if not re.search(r"User-agent:\s*\*\s+Allow:\s*/", robots, re.I):
+        add_error("robots.txt should allow general crawlers, including Googlebot and Bingbot.")
     for page in BASE_PAGES:
         url = site_url(page)
         if sitemap and url.replace("&", "&amp;") not in sitemap:
             add_error(f"sitemap.xml is missing {url}")
+        relative_path = "index.html" if not page else page
+        page_html = read_text(relative_path)
+        if not re.search(r"<title>[^<]+</title>", page_html, re.I):
+            add_error(f"{relative_path} is missing a unique page title.")
+        if not re.search(r'<meta\s+name="description"\s+content="[^"]+"', page_html, re.I):
+            add_error(f"{relative_path} is missing a meta description.")
+        canonical_match = re.search(r'<link\s+rel="canonical"\s+href="([^"]+)"', page_html, re.I)
+        if not canonical_match or canonical_match.group(1) != url:
+            add_error(f"{relative_path} canonical must match its sitemap URL: {url}")
+        if not re.search(r"<h1\b", page_html, re.I):
+            add_error(f"{relative_path} is missing an H1.")
+        if re.search(r'<meta\s+name="robots"[^>]*noindex', page_html, re.I):
+            add_error(f"{relative_path} should be indexable but contains noindex.")
     for post in as_list(content.get("blogPosts")):
         if post.get("status") == "draft" or not post.get("id"):
             continue

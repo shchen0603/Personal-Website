@@ -1011,11 +1011,13 @@ if (adminApp) {
       "mainEntityOfPage": canonicalUrl,
       "author": {
         "@type": "Person",
+        "@id": `${SITE_ORIGIN}/#person`,
         "name": "Szu-Han Chen",
         "url": `${SITE_ORIGIN}/`
       },
       "publisher": {
         "@type": "Person",
+        "@id": `${SITE_ORIGIN}/#person`,
         "name": "Szu-Han Chen",
         "url": `${SITE_ORIGIN}/`
       },
@@ -1134,6 +1136,7 @@ if (adminApp) {
       "mainEntityOfPage": canonicalUrl,
       "author": {
         "@type": "Person",
+        "@id": `${SITE_ORIGIN}/#person`,
         "name": "Szu-Han Chen",
         "url": `${SITE_ORIGIN}/`
       }

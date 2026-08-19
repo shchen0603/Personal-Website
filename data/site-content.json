@@ -10,7 +10,13 @@
       "meta": "2026 · Award",
       "title": "Paul Dudley White International Scholar Award",
       "description": "American Heart Association EPI|Lifestyle Scientific Sessions.",
-      "href": ""
+      "href": "",
+      "links": [
+        {
+          "label": "NYCU School of Medicine coverage",
+          "href": "https://med.nycu.edu.tw/med/ch/app/news/view?module=headnews&id=36202&serno=6d0b3c22-9a21-4d44-9394-94d0df7cc38a"
+        }
+      ]
     },
     {
       "meta": "Media",
@@ -491,9 +497,15 @@
     "awards": [
       {
         "year": "2026",
-        "title": "First Place, Oral Research Presentation Award",
-        "description": "24th Asian Congress on Occupational Health (ACOH 2026), Kuching, Malaysia.",
-        "scope": "international"
+        "title": "First Place, Oral Presentation Competition",
+        "description": "Asian Congress on Occupational Health 2026 (ACOH 2026), Kuching, Malaysia. Presentation: \"Metabolic Health Disparities Among Vietnamese Migrant and Domestic Metal Workers in Taiwan: A 3-Year Retrospective Cohort Study.\"",
+        "scope": "international",
+        "links": [
+          {
+            "label": "NYCU School of Medicine coverage",
+            "href": "https://med.nycu.edu.tw/med/ch/app/news/view?module=headnews&id=36202&serno=f7e81bda-0e49-499d-b5f8-3ea961b90ec1"
+          }
+        ]
       },
       {
         "year": "2026",
@@ -529,7 +541,17 @@
         "year": "2026",
         "title": "Paul Dudley White International Scholar Award",
         "description": "American Heart Association EPI|Lifestyle Scientific Sessions.",
-        "scope": "international"
+        "scope": "international",
+        "links": [
+          {
+            "label": "Abstract",
+            "href": "https://doi.org/10.1161/cir.153.suppl_1.MPWE48"
+          },
+          {
+            "label": "NYCU School of Medicine coverage",
+            "href": "https://med.nycu.edu.tw/med/ch/app/news/view?module=headnews&id=36202&serno=6d0b3c22-9a21-4d44-9394-94d0df7cc38a"
+          }
+        ]
       },
       {
         "year": "2024-2026",
@@ -600,7 +622,7 @@
     "presentations": [
       {
         "year": "2026",
-        "title": "Metabolic Health Disparities among Vietnamese Migrant and Domestic Metal Workers in Taiwan: a 3-year Retrospective Cohort Study",
+        "title": "Metabolic Health Disparities Among Vietnamese Migrant and Domestic Metal Workers in Taiwan: A 3-Year Retrospective Cohort Study",
         "description": "24th Asian Congress on Occupational Health 2026, Kuching, Malaysia",
         "date": "2026-08-08",
         "dateLabel": "2026.08.08"
@@ -651,6 +673,26 @@
       }
     ],
     "mediaCoverage": [
+      {
+        "title": "NYCU School of Medicine: ACOH 2026 Oral Presentation Competition First Place",
+        "description": "Official NYCU School of Medicine coverage of Szu-Han Chen's first-place finish in the ACOH 2026 oral presentation competition for research on metabolic health disparities between Vietnamese migrant and domestic metal workers in Taiwan.",
+        "links": [
+          {
+            "label": "NYCU School of Medicine",
+            "href": "https://med.nycu.edu.tw/med/ch/app/news/view?module=headnews&id=36202&serno=f7e81bda-0e49-499d-b5f8-3ea961b90ec1"
+          }
+        ]
+      },
+      {
+        "title": "NYCU School of Medicine: Paul Dudley White International Scholar Award",
+        "description": "Official NYCU School of Medicine coverage of Szu-Han Chen's first-author AHA EPI|Lifestyle abstract, award recognition, and research experience with the Frank B. Hu team at Harvard T.H. Chan School of Public Health.",
+        "links": [
+          {
+            "label": "NYCU School of Medicine",
+            "href": "https://med.nycu.edu.tw/med/ch/app/news/view?module=headnews&id=36202&serno=6d0b3c22-9a21-4d44-9394-94d0df7cc38a"
+          }
+        ]
+      },
       {
         "title": "AHA media-tracking report: 217 stories and 558,935,079 impressions",
         "description": "Following the AHA Newsroom release on abdominal adiposity, inflammation, and heart failure risk, the final American Heart Association coverage report tracked 217 stories and 558,935,079 impressions across international media.",

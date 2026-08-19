@@ -917,12 +917,22 @@ const renderPublicationGroup = (group) => `
   </section>
 `;
 
+const renderItemLinks = (item) => {
+  const links = normalizeList(item?.links)
+    .filter((link) => link && link.href)
+    .map((link) => `<a href="${escapeHTML(link.href)}" rel="noreferrer">${escapeHTML(link.label || "Source")}</a>`)
+    .join("");
+
+  return links ? `<div class="publication-links">${links}</div>` : "";
+};
+
 const renderHonorItem = (item) => `
   <article class="honor-item">
     <p class="honor-year">${escapeHTML(getHonorDateLabel(item))}</p>
     <div>
       <h3>${escapeHTML(item.title || "")}</h3>
       <p>${escapeHTML(item.description || "")}</p>
+      ${renderItemLinks(item)}
     </div>
   </article>
 `;
@@ -1036,6 +1046,7 @@ const renderHomeHighlight = (highlight, index) => {
       <p class="timeline-meta">${escapeHTML(highlight.meta || "")}</p>
       ${heading}
       <p>${escapeHTML(highlight.description || "")}</p>
+      ${renderItemLinks(highlight)}
     </article>
   `;
 };
@@ -1424,11 +1435,13 @@ const renderBlogPost = (content) => {
     "mainEntityOfPage": canonicalUrl,
     "author": {
       "@type": "Person",
+      "@id": `${SITE_ORIGIN}/#person`,
       "name": "Szu-Han Chen",
       "url": `${SITE_ORIGIN}/`
     },
     "publisher": {
       "@type": "Person",
+      "@id": `${SITE_ORIGIN}/#person`,
       "name": "Szu-Han Chen",
       "url": `${SITE_ORIGIN}/`
     },

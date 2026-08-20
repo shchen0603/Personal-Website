@@ -65,6 +65,30 @@
     {
       "year": "2026",
       "category": "Journal Publications",
+      "title": "Central Blood Pressure, Calibration, and Discordance: Refining Hypertensive Cardiac Risk Assessment",
+      "authors": "Szu-Han Chen, Hao-Min Cheng.",
+      "venue": "Journal of the American Heart Association. Published online August 19, 2026.",
+      "summary": "Editorial commentary on findings from the International 24-Hour Aortic Blood Pressure Consortium, highlighting how central blood pressure calibration and central–brachial discordance can refine hypertensive cardiac risk assessment.",
+      "doi": "https://doi.org/10.1161/JAHA.126.052726",
+      "tags": [
+        {
+          "slug": "methods",
+          "label": "Methods",
+          "group": "Study Design"
+        },
+        {
+          "slug": "hypertension",
+          "label": "Hypertension",
+          "group": "Topics"
+        }
+      ],
+      "firstAuthor": true,
+      "correspondingAuthor": false,
+      "featured": false
+    },
+    {
+      "year": "2026",
+      "category": "Journal Publications",
       "title": "Central Adiposity, Systemic Inflammation, and Incident Heart Failure: A Causal Mediation Analysis From the Jackson Heart Study",
       "authors": "Szu-Han Chen, Yu-Hsuan Lee, Shao-Yuan Chuang, Marat Fudim, Chun-Wei Lee, Chi-Jung Huang, Hao-Min Cheng.",
       "venue": "Journal of the American Heart Association. Published online July 31, 2026.",

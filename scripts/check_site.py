@@ -1146,6 +1146,32 @@ def person_json_ld_data(content: dict) -> dict:
         "subjectOf": [
             {
                 "@type": "NewsArticle",
+                "@id": "https://som.nycu.edu.tw/%E9%99%BD%E4%BA%A4%E5%A4%A7%E9%86%AB%E5%AD%B8%E9%99%A22026%E5%9C%8B%E9%9A%9B%E5%AD%B8%E8%A1%93%E7%A0%94%E8%A8%8E%E6%9C%83%E5%9C%93%E6%BB%BF%E8%90%BD%E5%B9%95%E3%80%80%E5%85%B1%E7%AF%89%E9%86%AB/news/",
+                "name": "陽明交大醫學院2026國際學術研討會圓滿落幕　共築醫學研究新生態系",
+                "url": "https://som.nycu.edu.tw/%E9%99%BD%E4%BA%A4%E5%A4%A7%E9%86%AB%E5%AD%B8%E9%99%A22026%E5%9C%8B%E9%9A%9B%E5%AD%B8%E8%A1%93%E7%A0%94%E8%A8%8E%E6%9C%83%E5%9C%93%E6%BB%BF%E8%90%BD%E5%B9%95%E3%80%80%E5%85%B1%E7%AF%89%E9%86%AB/news/",
+                "datePublished": "2026-06-07",
+                "inLanguage": "zh-Hant",
+                "publisher": {
+                    "@type": "CollegeOrUniversity",
+                    "name": "National Yang Ming Chiao Tung University College of Medicine",
+                    "url": "https://som.nycu.edu.tw/",
+                },
+            },
+            {
+                "@type": "NewsArticle",
+                "@id": "https://ord.nycu.edu.tw/ord/ch/app/news/view?module=headnews&id=4518&serno=b848578f-c677-4dd7-bfc1-de2a419d06b7",
+                "name": "「114學年度生醫學術論文研討會」獲獎名單與活動照",
+                "url": "https://ord.nycu.edu.tw/ord/ch/app/news/view?module=headnews&id=4518&serno=b848578f-c677-4dd7-bfc1-de2a419d06b7",
+                "datePublished": "2026-06-05",
+                "inLanguage": "zh-Hant",
+                "publisher": {
+                    "@type": "CollegeOrUniversity",
+                    "name": "National Yang Ming Chiao Tung University Office of Research and Development",
+                    "url": "https://ord.nycu.edu.tw/ord/ch/index",
+                },
+            },
+            {
+                "@type": "NewsArticle",
                 "@id": "https://med.nycu.edu.tw/med/ch/app/news/view?module=headnews&id=36202&serno=f7e81bda-0e49-499d-b5f8-3ea961b90ec1",
                 "name": "狂賀! 醫師組五年級陳思翰同學榮獲2026亞洲職業衛生大會(ACOH 2026)口頭報告競賽冠軍!",
                 "url": "https://med.nycu.edu.tw/med/ch/app/news/view?module=headnews&id=36202&serno=f7e81bda-0e49-499d-b5f8-3ea961b90ec1",
@@ -1435,12 +1461,13 @@ def replace_collection_count_html(template: str, key: str, count: int, path: str
 
 
 def build_sitemap_xml(content: dict) -> str:
-    today = dt.date.today().isoformat()
     urls = list(BASE_PAGES)
     urls.extend(blog_path(post) for post in as_list(content.get("blogPosts")) if post.get("status") != "draft" and post.get("id"))
     urls.extend(activity_path(activity) for activity in as_list(content.get("activities")) if activity.get("id"))
+    # A build date is not a page modification date. Omit lastmod until the
+    # content model records significant updates for each individual URL.
     entries = "\n".join(
-        f"  <url>\n    <loc>{site_url(url).replace('&', '&amp;')}</loc>\n    <lastmod>{today}</lastmod>\n  </url>"
+        f"  <url>\n    <loc>{site_url(url).replace('&', '&amp;')}</loc>\n  </url>"
         for url in urls
     )
     return f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{entries}\n</urlset>\n'

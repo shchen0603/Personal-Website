@@ -450,6 +450,13 @@ if (adminApp) {
   const getStaticActivityPath = (activity) => `activities/${encodeURIComponent(activity.id)}.html`;
   const BLOG_INDEX_FALLBACK_START = "<!-- BLOG INDEX STATIC FALLBACK START -->";
   const BLOG_INDEX_FALLBACK_END = "<!-- BLOG INDEX STATIC FALLBACK END -->";
+  // Keep these in sync with scripts/check_site.py so admin output matches --fix byte for byte.
+  const BLOG_FEED_PATH = "feed.xml";
+  const BLOG_FEED_TITLE = "陳思翰 Szu-Han Chen｜醫學證據與健康新聞解讀 Blog";
+  const BLOG_FEED_DESCRIPTION = "心血管流行病學、臨床醫學、公共衛生與研究方法之間的筆記與觀察。";
+  const buildBlogFeedLinkTag = (href) =>
+    `<link rel="alternate" type="application/rss+xml" title="陳思翰 Szu-Han Chen Blog RSS" href="${href}">`;
+  const POST_ASSET_VERSION = "20261020-series-nav";
 
   const buildSitemapXml = (content) => {
     const today = new Date().toISOString().slice(0, 10);
@@ -504,6 +511,109 @@ if (adminApp) {
   const getPublishedBlogPosts = (content) =>
     adminNormalizeList(content?.blogPosts)
       .filter((post) => post && post.status !== "draft" && post.id);
+
+  const compareByDateThenId = (a, b) => {
+    const left = `${a.date || ""}\u0000${a.id || ""}`;
+    const right = `${b.date || ""}\u0000${b.id || ""}`;
+
+    return left < right ? -1 : left > right ? 1 : 0;
+  };
+
+  const formatRssDate = (value = "") => {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+
+    if (!match) {
+      return "";
+    }
+
+    const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+
+    if (Number.isNaN(date.getTime()) || date.getUTCDate() !== Number(match[3])) {
+      return "";
+    }
+
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    // Posts carry dates only; publish them at noon Taiwan time.
+    return `${days[date.getUTCDay()]}, ${match[3]} ${months[date.getUTCMonth()]} ${match[1]} 12:00:00 +0800`;
+  };
+
+  const buildFeedXml = (content) => {
+    const posts = getPublishedBlogPosts(content).slice().sort(compareByDateThenId).reverse();
+    const items = posts.map((post) => {
+      const url = `${SITE_ORIGIN}/${getStaticBlogPath(post)}`;
+      const categories = [
+        (post.series && post.series.label) || "",
+        ...adminNormalizeList(post.tags).map((tag) => (tag && (tag.label || tag.slug)) || "")
+      ].filter(Boolean);
+      const pubDate = formatRssDate(post.date || "");
+
+      return [
+        "    <item>",
+        `      <title>${escapeHtmlContent(post.title || "")}</title>`,
+        `      <link>${escapeHtmlContent(url)}</link>`,
+        `      <guid isPermaLink="true">${escapeHtmlContent(url)}</guid>`,
+        ...(pubDate ? [`      <pubDate>${pubDate}</pubDate>`] : []),
+        ...categories.map((label) => `      <category>${escapeHtmlContent(label)}</category>`),
+        `      <description>${escapeHtmlContent(post.excerpt || "")}</description>`,
+        "    </item>"
+      ].join("\n");
+    });
+    const lastBuild = posts.length ? formatRssDate(posts[0].date || "") : "";
+    const header = [
+      '<?xml version="1.0" encoding="UTF-8"?>',
+      '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">',
+      "  <channel>",
+      `    <title>${escapeHtmlContent(BLOG_FEED_TITLE)}</title>`,
+      `    <link>${escapeHtmlContent(`${SITE_ORIGIN}/blog.html`)}</link>`,
+      `    <description>${escapeHtmlContent(BLOG_FEED_DESCRIPTION)}</description>`,
+      "    <language>zh-TW</language>",
+      `    <atom:link href="${escapeHtmlContent(`${SITE_ORIGIN}/${BLOG_FEED_PATH}`)}" rel="self" type="application/rss+xml"/>`,
+      ...(lastBuild ? [`    <lastBuildDate>${lastBuild}</lastBuildDate>`] : [])
+    ];
+
+    return `${[...header, ...items, "  </channel>", "</rss>"].join("\n")}\n`;
+  };
+
+  const writeFeedFile = async () => {
+    if (!state.rootHandle || !state.content) {
+      return;
+    }
+
+    const fileHandle = await getFileHandle(BLOG_FEED_PATH, true);
+    const writable = await fileHandle.createWritable();
+
+    await writable.write(buildFeedXml(state.content));
+    await writable.close();
+  };
+
+  const buildSeriesNavHtml = (post, content) => {
+    const slug = (post.series && post.series.slug) || "";
+
+    if (!slug) {
+      return "";
+    }
+
+    const siblings = getPublishedBlogPosts(content)
+      .filter((item) => item.series && item.series.slug === slug)
+      .sort(compareByDateThenId);
+    const index = siblings.findIndex((item) => item.id === post.id);
+
+    if (siblings.length < 2 || index === -1) {
+      return "";
+    }
+
+    const links = [
+      [index > 0 ? siblings[index - 1] : null, "prev", "上一篇"],
+      [index < siblings.length - 1 ? siblings[index + 1] : null, "next", "下一篇"]
+    ].map(([neighbor, rel, label]) => neighbor
+      ? `<a class="series-nav-link series-nav-${rel}" rel="${rel}" href="../${escapeHtmlContent(getStaticBlogPath(neighbor))}"><span class="series-nav-label">${label}</span><span class="series-nav-title">${escapeHtmlContent(neighbor.title || "")}</span></a>`
+      : `<span class="series-nav-link series-nav-${rel} is-empty" aria-hidden="true"></span>`);
+    const seriesLabel = post.series.label || slug;
+
+    return `<nav class="series-nav" aria-label="系列文章導覽"><p class="series-nav-position">${escapeHtmlContent(seriesLabel)}・第 ${index + 1} 篇／共 ${siblings.length} 篇</p><div class="series-nav-links">${links.join("")}</div></nav>`;
+  };
 
   const buildBlogIndexFallbackHtml = (content) => {
     const posts = getPublishedBlogPosts(content);
@@ -962,18 +1072,20 @@ if (adminApp) {
       : [];
   };
 
-  const buildBlogPostHtml = (post) => {
+  const buildBlogPostHtml = (post, content = state.content) => {
     if (!post || !post.id) {
       return "";
     }
 
-    const renderStaticArticleTaxonomy = (tags, series) => {
+    const renderStaticArticleTaxonomy = (tags, series, seriesSlug) => {
       const rows = [
         tags.length
           ? `<div class="article-taxonomy-row"><span class="article-taxonomy-label">標籤：</span><div class="article-taxonomy-items">${tags.map((tag) => `<span class="tag-button tag-static">${escapeHtmlContent(tag)}</span>`).join("")}</div></div>`
           : "",
         series
-          ? `<div class="article-taxonomy-row"><span class="article-taxonomy-label">系列：</span><div class="article-taxonomy-items"><span class="tag-button tag-static">${escapeHtmlContent(series)}</span></div></div>`
+          ? `<div class="article-taxonomy-row"><span class="article-taxonomy-label">系列：</span><div class="article-taxonomy-items">${seriesSlug
+            ? `<a class="tag-button" href="../blog.html?series=${encodeURIComponent(seriesSlug)}">${escapeHtmlContent(series)}</a>`
+            : `<span class="tag-button tag-static">${escapeHtmlContent(series)}</span>`}</div></div>`
           : ""
       ].filter(Boolean).join("");
 
@@ -995,7 +1107,8 @@ if (adminApp) {
       ? post.series.label || post.series.slug
       : "";
     const taxonomyLabels = [series, ...tags].filter(Boolean);
-    const tagsHtml = renderStaticArticleTaxonomy(tags, series);
+    const tagsHtml = renderStaticArticleTaxonomy(tags, series, (post.series && post.series.slug) || "");
+    const footerHtml = tagsHtml + buildSeriesNavHtml(post, content);
     const heroImage = post.image
       ? `<figure class="article-cover-image"><img class="article-image" src="${escapeHtmlContent(getNestedAssetPath(post.image))}" alt="${escapeHtmlContent(post.imageAlt || title)}" loading="lazy" decoding="async"></figure>`
       : "";
@@ -1049,7 +1162,8 @@ if (adminApp) {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&amp;family=Noto+Sans+TC:wght@400;700&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-    <link rel="stylesheet" href="../styles.css?v=20260612-nested-lists">
+    <link rel="stylesheet" href="../styles.css?v=${POST_ASSET_VERSION}">
+    ${buildBlogFeedLinkTag(`../${BLOG_FEED_PATH}`)}
     <script type="application/ld+json">${jsonLd}</script>
     <!-- Cloudflare Web Analytics -->
     <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"a8f57387064d4f27b1ba086354d6ac5f"}'></script>
@@ -1063,7 +1177,7 @@ if (adminApp) {
     <header class="site-header" data-header></header>
 
     <main id="main">
-      <article class="article">
+      <article class="article" lang="zh-Hant">
         <header class="article-header">
           <a class="back-link" href="../blog.html">Back to Blog</a>
           <p class="post-category">${escapeHtmlContent(post.dateLabel || post.date || "")}</p>
@@ -1074,7 +1188,7 @@ if (adminApp) {
           ${heroImage}
           ${body}
         </div>
-        ${tagsHtml ? `<footer class="article-footer">${tagsHtml}</footer>` : ""}
+        ${footerHtml ? `<footer class="article-footer">${footerHtml}</footer>` : ""}
       </article>
     </main>
 
@@ -1085,7 +1199,7 @@ if (adminApp) {
     <script src="../site-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-    <script src="../script.js?v=20260612-nested-lists"></script>
+    <script src="../script.js?v=${POST_ASSET_VERSION}"></script>
   </body>
 </html>
 `;
@@ -3703,11 +3817,23 @@ if (adminApp) {
           content: utf8ToBase64(await buildBlogIndexHtml(nextContent))
         });
 
+        extraFiles.push({
+          path: BLOG_FEED_PATH,
+          content: utf8ToBase64(buildFeedXml(nextContent))
+        });
+
         if (type === "blogPosts") {
-          extraFiles.push({
-            path: getStaticBlogPath(item),
-            content: utf8ToBase64(buildBlogPostHtml(item))
-          });
+          // Series neighbours gain a new prev/next link, so republish the whole series.
+          const seriesSlug = (item.series && item.series.slug) || "";
+
+          getPublishedBlogPosts(nextContent)
+            .filter((post) => post.id === item.id || (seriesSlug && post.series && post.series.slug === seriesSlug))
+            .forEach((post) => {
+              extraFiles.push({
+                path: getStaticBlogPath(post),
+                content: utf8ToBase64(buildBlogPostHtml(post, nextContent))
+              });
+            });
         }
 
         if (type === "activities") {
@@ -3733,10 +3859,12 @@ if (adminApp) {
         await savePendingAssetUploads(nextContent);
         await writeContentFile();
         await writeSitemapFile();
+        await writeFeedFile();
         await writeBlogIndexFile();
 
         if (type === "blogPosts") {
-          await writeBlogPostFile(item);
+          // Rewrite every post: series neighbours gain a new prev/next link.
+          await writeAllBlogPostFiles();
         }
 
         if (type === "activities") {
@@ -3794,6 +3922,10 @@ if (adminApp) {
         {
           path: "blog.html",
           content: utf8ToBase64(blogIndexHtml)
+        },
+        {
+          path: BLOG_FEED_PATH,
+          content: utf8ToBase64(buildFeedXml(nextContent))
         }
       ];
       const pendingAssetFiles = await getPendingAssetExtraFiles(nextContent);
@@ -3805,7 +3937,7 @@ if (adminApp) {
         .forEach((post) => {
           extraFiles.push({
             path: getStaticBlogPath(post),
-            content: utf8ToBase64(buildBlogPostHtml(post))
+            content: utf8ToBase64(buildBlogPostHtml(post, nextContent))
           });
         });
 
@@ -3853,12 +3985,13 @@ if (adminApp) {
       await savePendingAssetUploads(state.content);
       await writeContentFile();
       await writeSitemapFile();
+      await writeFeedFile();
       await writeBlogIndexFile();
       await writeAllBlogPostFiles();
       await writeAllActivityFiles();
       setDirty(false);
       render();
-      setStatus("已儲存 data/site-content.json、sitemap.xml、blog 列表、blog 靜態檔與 activity 靜態檔。", "success");
+      setStatus("已儲存 data/site-content.json、sitemap.xml、feed.xml、blog 列表、blog 靜態檔與 activity 靜態檔。", "success");
     } catch (error) {
       console.error(error);
       setStatus("儲存失敗，請確認瀏覽器仍有資料夾寫入權限。", "error");

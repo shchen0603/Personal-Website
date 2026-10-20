@@ -27,6 +27,11 @@ BASE_PAGES = [
 ]
 BLOG_INDEX_FALLBACK_START = "<!-- BLOG INDEX STATIC FALLBACK START -->"
 BLOG_INDEX_FALLBACK_END = "<!-- BLOG INDEX STATIC FALLBACK END -->"
+BLOG_FEED_PATH = "feed.xml"
+BLOG_FEED_TITLE = "陳思翰 Szu-Han Chen｜醫學證據與健康新聞解讀 Blog"
+BLOG_FEED_DESCRIPTION = "心血管流行病學、臨床醫學、公共衛生與研究方法之間的筆記與觀察。"
+BLOG_FEED_LINK_TAG = '<link rel="alternate" type="application/rss+xml" title="陳思翰 Szu-Han Chen Blog RSS" href="{href}">'
+POST_ASSET_VERSION = "20261020-series-nav"
 HOME_JSON_LD_START = "<!-- HOME JSON-LD START -->"
 HOME_JSON_LD_END = "<!-- HOME JSON-LD END -->"
 HOME_HIGHLIGHTS_STATIC_START = "<!-- HOME HIGHLIGHTS STATIC START -->"
@@ -515,7 +520,7 @@ def activity_body(activity: dict) -> list[str]:
     return body or ([activity["summary"]] if activity.get("summary") else [])
 
 
-def article_taxonomy_html(tags: list[str], series_label: str) -> str:
+def article_taxonomy_html(tags: list[str], series_label: str, series_slug: str = "") -> str:
     rows = []
 
     if tags:
@@ -531,7 +536,12 @@ def article_taxonomy_html(tags: list[str], series_label: str) -> str:
         rows.append(
             '<div class="article-taxonomy-row">'
             '<span class="article-taxonomy-label">系列：</span>'
-            f'<div class="article-taxonomy-items"><span class="tag-button tag-static">{escape(series_label)}</span></div>'
+            '<div class="article-taxonomy-items">'
+            + (
+                f'<a class="tag-button" href="../blog.html?series={quote(series_slug)}">{escape(series_label)}</a>'
+                if series_slug else f'<span class="tag-button tag-static">{escape(series_label)}</span>'
+            )
+            + '</div>'
             '</div>'
         )
 
@@ -541,7 +551,54 @@ def article_taxonomy_html(tags: list[str], series_label: str) -> str:
     )
 
 
-def build_blog_post_html(post: dict) -> str:
+def post_series_slug(post: dict) -> str:
+    series = post.get("series") if isinstance(post.get("series"), dict) else {}
+    return series.get("slug") or ""
+
+
+def series_posts(post: dict, posts: list[dict]) -> list[dict]:
+    slug = post_series_slug(post)
+    if not slug:
+        return []
+    return sorted(
+        (item for item in posts if post_series_slug(item) == slug),
+        key=lambda item: (item.get("date") or "", item.get("id") or ""),
+    )
+
+
+def series_nav_html(post: dict, posts: list[dict]) -> str:
+    siblings = series_posts(post, posts)
+    ids = [item.get("id") for item in siblings]
+    if len(siblings) < 2 or post.get("id") not in ids:
+        return ""
+
+    index = ids.index(post.get("id"))
+    links = []
+    for neighbor, rel, label in [
+        (siblings[index - 1] if index > 0 else None, "prev", "上一篇"),
+        (siblings[index + 1] if index < len(siblings) - 1 else None, "next", "下一篇"),
+    ]:
+        if neighbor:
+            links.append(
+                f'<a class="series-nav-link series-nav-{rel}" rel="{rel}" href="../{escape(blog_path(neighbor))}">'
+                f'<span class="series-nav-label">{label}</span>'
+                f'<span class="series-nav-title">{escape(neighbor.get("title") or "")}</span>'
+                '</a>'
+            )
+        else:
+            links.append(f'<span class="series-nav-link series-nav-{rel} is-empty" aria-hidden="true"></span>')
+
+    series = post.get("series") or {}
+    series_label = series.get("label") or series.get("slug") or ""
+    return (
+        '<nav class="series-nav" aria-label="系列文章導覽">'
+        f'<p class="series-nav-position">{escape(series_label)}・第 {index + 1} 篇／共 {len(siblings)} 篇</p>'
+        f'<div class="series-nav-links">{"".join(links)}</div>'
+        '</nav>'
+    )
+
+
+def build_blog_post_html(post: dict, posts: list[dict] | None = None) -> str:
     title = post.get("title") or "Blog Post"
     excerpt = post.get("excerpt") or "Research notes and essays on cardiovascular epidemiology, medicine, and public health."
     canonical = site_url(blog_path(post))
@@ -550,7 +607,8 @@ def build_blog_post_html(post: dict) -> str:
     series = post.get("series") if isinstance(post.get("series"), dict) else {}
     series_label = series.get("label") or series.get("slug") or ""
     taxonomy_labels = [label for label in [series_label, *tags] if label]
-    tags_html = article_taxonomy_html(tags, series_label)
+    tags_html = article_taxonomy_html(tags, series_label, series.get("slug") or "")
+    footer_html = tags_html + series_nav_html(post, posts or [])
     hero_image = (
         f'<figure class="article-cover-image"><img class="article-image" src="{escape(nested_asset(post["image"]))}" alt="{escape(post.get("imageAlt") or title)}" loading="lazy" decoding="async"></figure>'
         if post.get("image") else ""
@@ -592,7 +650,8 @@ def build_blog_post_html(post: dict) -> str:
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&amp;family=Noto+Sans+TC:wght@400;700&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-    <link rel="stylesheet" href="../styles.css?v=20260612-nested-lists">
+    <link rel="stylesheet" href="../styles.css?v={POST_ASSET_VERSION}">
+    {BLOG_FEED_LINK_TAG.format(href="../" + BLOG_FEED_PATH)}
     <script type="application/ld+json">{json_ld}</script>
     <!-- Cloudflare Web Analytics -->
     <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{{"token":"a8f57387064d4f27b1ba086354d6ac5f"}}'></script>
@@ -606,7 +665,7 @@ def build_blog_post_html(post: dict) -> str:
     <header class="site-header" data-header></header>
 
     <main id="main">
-      <article class="article">
+      <article class="article" lang="zh-Hant">
         <header class="article-header">
           <a class="back-link" href="../blog.html">Back to Blog</a>
           <p class="post-category">{escape(post.get("dateLabel") or post.get("date") or "")}</p>
@@ -617,7 +676,7 @@ def build_blog_post_html(post: dict) -> str:
           {hero_image}
           {body}
         </div>
-        {f'<footer class="article-footer">{tags_html}</footer>' if tags_html else ""}
+        {f'<footer class="article-footer">{footer_html}</footer>' if footer_html else ""}
       </article>
     </main>
 
@@ -628,7 +687,7 @@ def build_blog_post_html(post: dict) -> str:
     <script src="../site-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-    <script src="../script.js?v=20260612-nested-lists"></script>
+    <script src="../script.js?v={POST_ASSET_VERSION}"></script>
   </body>
 </html>
 """
@@ -1480,6 +1539,59 @@ def published_blog_posts(content: dict) -> list[dict]:
     ]
 
 
+def rss_date(value: str) -> str:
+    try:
+        date = dt.datetime.strptime(value, "%Y-%m-%d")
+    except (TypeError, ValueError):
+        return ""
+    # Posts carry dates only; publish them at noon Taiwan time.
+    return date.strftime("%a, %d %b %Y 12:00:00 +0800")
+
+
+def build_feed_xml(content: dict) -> str:
+    posts = sorted(
+        published_blog_posts(content),
+        key=lambda post: (post.get("date") or "", post.get("id") or ""),
+        reverse=True,
+    )
+    feed_url = site_url(BLOG_FEED_PATH)
+    items = []
+    for post in posts:
+        url = site_url(blog_path(post))
+        series = post.get("series") if isinstance(post.get("series"), dict) else {}
+        categories = [series.get("label") or ""] + [
+            tag.get("label") or tag.get("slug") or ""
+            for tag in as_list(post.get("tags")) if isinstance(tag, dict)
+        ]
+        lines = [
+            "    <item>",
+            f"      <title>{escape(post.get('title') or '')}</title>",
+            f"      <link>{escape(url)}</link>",
+            f'      <guid isPermaLink="true">{escape(url)}</guid>',
+        ]
+        if rss_date(post.get("date") or ""):
+            lines.append(f"      <pubDate>{rss_date(post.get('date') or '')}</pubDate>")
+        lines.extend(f"      <category>{escape(label)}</category>" for label in categories if label)
+        lines.append(f"      <description>{escape(post.get('excerpt') or '')}</description>")
+        lines.append("    </item>")
+        items.append("\n".join(lines))
+    # Derive lastBuildDate from content so regenerating is deterministic.
+    last_build = rss_date(posts[0].get("date") or "") if posts else ""
+    header = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">',
+        "  <channel>",
+        f"    <title>{escape(BLOG_FEED_TITLE)}</title>",
+        f"    <link>{escape(site_url('blog.html'))}</link>",
+        f"    <description>{escape(BLOG_FEED_DESCRIPTION)}</description>",
+        "    <language>zh-TW</language>",
+        f'    <atom:link href="{escape(feed_url)}" rel="self" type="application/rss+xml"/>',
+    ]
+    if last_build:
+        header.append(f"    <lastBuildDate>{last_build}</lastBuildDate>")
+    return "\n".join([*header, *items, "  </channel>", "</rss>"]) + "\n"
+
+
 def build_blog_index_fallback_html(content: dict) -> str:
     posts = published_blog_posts(content)
 
@@ -1534,6 +1646,7 @@ def replace_blog_index_fallback_html(template: str, content: dict) -> str:
 
 def generate_static_files(content: dict) -> None:
     write_text("sitemap.xml", build_sitemap_xml(content))
+    write_text(BLOG_FEED_PATH, build_feed_xml(content))
     write_text("blog.html", replace_blog_index_fallback_html(read_text("blog.html"), content))
     publications_html = read_text("publications.html")
     publications_html = replace_generated_block(
@@ -1651,9 +1764,9 @@ def generate_static_files(content: dict) -> None:
         "index.html",
     )
     write_text("index.html", index_html)
-    for post in as_list(content.get("blogPosts")):
-        if post.get("status") != "draft" and post.get("id"):
-            write_text(blog_path(post), build_blog_post_html(post))
+    published_posts = published_blog_posts(content)
+    for post in published_posts:
+        write_text(blog_path(post), build_blog_post_html(post, published_posts))
     for activity in as_list(content.get("activities")):
         if activity.get("id"):
             write_text(activity_path(activity), build_activity_html(activity))
@@ -1757,6 +1870,14 @@ def check_generated_files(content: dict) -> None:
     robots = read_text("robots.txt")
     if not sitemap:
         add_error("sitemap.xml is missing.")
+    feed_path = ROOT / BLOG_FEED_PATH
+    if not feed_path.exists():
+        add_error(f"{BLOG_FEED_PATH} is missing. Run python3 scripts/check_site.py --fix.")
+    elif feed_path.read_text(encoding="utf-8") != build_feed_xml(content):
+        add_error(f"{BLOG_FEED_PATH} is stale. Run python3 scripts/check_site.py --fix.")
+    for feed_page in ["blog.html", "index.html"]:
+        if BLOG_FEED_LINK_TAG.format(href=BLOG_FEED_PATH) not in read_text(feed_page):
+            add_error(f"{feed_page} is missing the RSS <link rel=\"alternate\"> tag for {BLOG_FEED_PATH}.")
     if not blog_index_html:
         add_error("blog.html is missing.")
     elif build_blog_index_fallback_html(content) not in blog_index_html:
@@ -1861,7 +1982,7 @@ def check_generated_files(content: dict) -> None:
         post_path = ROOT / path
         if not post_path.exists():
             add_error(f"Missing generated blog page: {path}")
-        elif post_path.read_text(encoding="utf-8") != build_blog_post_html(post):
+        elif post_path.read_text(encoding="utf-8") != build_blog_post_html(post, published_blog_posts(content)):
             add_error(f"Generated blog page is stale: {path}. Run python3 scripts/check_site.py --fix.")
         if sitemap and url not in sitemap:
             add_error(f"sitemap.xml is missing {url}")
@@ -1925,13 +2046,13 @@ def print_results() -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Check website content and generated static pages.")
-    parser.add_argument("--fix", action="store_true", help="Regenerate sitemap, crawler-visible collection pages, and static post pages.")
+    parser.add_argument("--fix", action="store_true", help="Regenerate sitemap, RSS feed, crawler-visible collection pages, and static post pages.")
     args = parser.parse_args()
 
     content = json.loads(read_text("data/site-content.json"))
     if args.fix:
         generate_static_files(content)
-        print("Generated sitemap.xml, crawler-visible collection pages, and static post pages.")
+        print("Generated sitemap.xml, feed.xml, crawler-visible collection pages, and static post pages.")
 
     check_content(content)
     check_generated_files(content)

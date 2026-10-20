@@ -1614,9 +1614,11 @@ const publicationState = {
   query: ""
 };
 
+// blog.html?series=<slug> (linked from post footers) or ?tag=<slug> preselects a filter.
+const blogUrlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
 const blogState = {
-  tag: "all",
-  series: "all"
+  tag: blogUrlParams?.get("tag") || "all",
+  series: blogUrlParams?.get("series") || "all"
 };
 
 const renderContent = (content) => {

@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>陳思翰 Szu-Han Chen｜醫學證據與健康新聞解讀 Blog</title>
+    <link>https://shchen0603.github.io/Personal-Website/blog.html</link>
+    <description>心血管流行病學、臨床醫學、公共衛生與研究方法之間的筆記與觀察。</description>
+    <language>zh-TW</language>
+    <atom:link href="https://shchen0603.github.io/Personal-Website/feed.xml" rel="self" type="application/rss+xml"/>
+    <lastBuildDate>Mon, 07 Sep 2026 12:00:00 +0800</lastBuildDate>
+    <item>
+      <title>流行病學方法教學 06 | Risk Difference、Risk Ratio 與 Odds Ratio：絕對差異與相對差異各自回答什麼？</title>
+      <link>https://shchen0603.github.io/Personal-Website/posts/2026-09-07-06-risk-difference-risk-ratio-odds-ratio.html</link>
+      <guid isPermaLink="true">https://shchen0603.github.io/Personal-Website/posts/2026-09-07-06-risk-difference-risk-ratio-odds-ratio.html</guid>
+      <pubDate>Mon, 07 Sep 2026 12:00:00 +0800</pubDate>
+      <category>流行病學方法教學</category>
+      <category>風險</category>
+      <category>觀察性研究</category>
+      <category>case-control study</category>
+      <description>同一組資料，可以同時得到 Risk Difference、Risk Ratio 與 Odds Ratio。三者使用的分母不同，回答的問題也不同；這篇從同一組臨床試驗數字，說明絕對差異與相對差異該怎麼讀。</description>
+    </item>
+    <item>
+      <title>流行病學方法教學 05 | Risk、Rate、Odds：三個常被混用的風險語言</title>
+      <link>https://shchen0603.github.io/Personal-Website/posts/2026-07-21-05-risk-rate-odds.html</link>
+      <guid isPermaLink="true">https://shchen0603.github.io/Personal-Website/posts/2026-07-21-05-risk-rate-odds.html</guid>
+      <pubDate>Tue, 21 Jul 2026 12:00:00 +0800</pubDate>
+      <category>流行病學方法教學</category>
+      <category>研究筆記</category>
+      <description>上一篇我們建立了Prevalence、Cumulative Incidence、Incidence Rate這幾把尺，但這些「量」最終還是要被拿來比較——這篇比較會用什麼語言、什麼數字來表達，就是這篇要處理的問題。</description>
+    </item>
+    <item>
+      <title>流行病學方法教學 04 | 盛行率與發生率：Prevalence、Incidence 與 Person-Time 的差別</title>
+      <link>https://shchen0603.github.io/Personal-Website/posts/2026-07-17-04-prevalence-incidence.html</link>
+      <guid isPermaLink="true">https://shchen0603.github.io/Personal-Website/posts/2026-07-17-04-prevalence-incidence.html</guid>
+      <pubDate>Fri, 17 Jul 2026 12:00:00 +0800</pubDate>
+      <category>流行病學方法教學</category>
+      <category>研究筆記</category>
+      <description>盛行率、累積發生率、發生率密度，正是描述這個分布最基本的三把尺——它們回答的問題不同，能不能互相比較也不同，一旦混用，很容易把一個單純的數字定義問題，誤讀成疾病風險真的在改變。</description>
+    </item>
+    <item>
+      <title>流行病學方法教學 03 | 追蹤從哪一天開始？Time Zero、Follow-up 與 Censoring</title>
+      <link>https://shchen0603.github.io/Personal-Website/posts/2026-07-11-03-time-zero-follow-up-censoring.html</link>
+      <guid isPermaLink="true">https://shchen0603.github.io/Personal-Website/posts/2026-07-11-03-time-zero-follow-up-censoring.html</guid>
+      <pubDate>Sat, 11 Jul 2026 12:00:00 +0800</pubDate>
+      <category>流行病學方法教學</category>
+      <category>研究筆記</category>
+      <description>追蹤的時鐘，到底是從何開始走、怎麼走、又是怎麼停下來的？</description>
+    </item>
+    <item>
+      <title>流行病學方法教學02 | 研究對象從哪裡來？Target Population、Source Population 與 Study Population</title>
+      <link>https://shchen0603.github.io/Personal-Website/posts/2026-07-06-02-Target-Population.html</link>
+      <guid isPermaLink="true">https://shchen0603.github.io/Personal-Website/posts/2026-07-06-02-Target-Population.html</guid>
+      <pubDate>Mon, 06 Jul 2026 12:00:00 +0800</pubDate>
+      <category>流行病學方法教學</category>
+      <category>研究方法</category>
+      <description>你想研究什麼人群？你有什麼人群？這一篇研究回答的問題是在什麼人群上？</description>
+    </item>
+    <item>
+      <title>流行病學方法教學01 | 研究問題到底在問什麼？PICO／PEO 的問題架構</title>
+      <link>https://shchen0603.github.io/Personal-Website/posts/2026-07-06-01-pico-peo.html</link>
+      <guid isPermaLink="true">https://shchen0603.github.io/Personal-Website/posts/2026-07-06-01-pico-peo.html</guid>
+      <pubDate>Mon, 06 Jul 2026 12:00:00 +0800</pubDate>
+      <category>流行病學方法教學</category>
+      <category>研究方法</category>
+      <description>如何正確地、科學地傳達你的研究問題——PICO/PEO架構。</description>
+    </item>
+    <item>
+      <title>多少算高血壓？為什麼高血壓被稱為沉默殺手？</title>
+      <link>https://shchen0603.github.io/Personal-Website/posts/2026-07-03-HTN_General_Education.html</link>
+      <guid isPermaLink="true">https://shchen0603.github.io/Personal-Website/posts/2026-07-03-HTN_General_Education.html</guid>
+      <pubDate>Fri, 03 Jul 2026 12:00:00 +0800</pubDate>
+      <category>健康與預防</category>
+      <description>從證據的角度出發，帶您了解血壓的基礎概念，包含血壓值的意義、血壓與風險的關係、現有指引如何看待血壓、以及血壓量測的細節。</description>
+    </item>
+    <item>
+      <title>證據思維04 | 不是所有研究都在回答同一種問題</title>
+      <link>https://shchen0603.github.io/Personal-Website/posts/2026-06-20-study-design.html</link>
+      <guid isPermaLink="true">https://shchen0603.github.io/Personal-Website/posts/2026-06-20-study-design.html</guid>
+      <pubDate>Sat, 20 Jun 2026 12:00:00 +0800</pubDate>
+      <category>讀懂健康研究的證據思維</category>
+      <category>流行病學與健康媒體識讀</category>
+      <description>健康新聞常常用「研究發現」來包裝所有的證據。但是在流行病學中，為了回答不同的研究問題，研究者常會採用不同的研究設計。如果錯將某一種研究設計，拿來說明它其實無法回答的問題，就可能產生解讀上的誤差與不妥。</description>
+    </item>
+    <item>
+      <title>心血管、腎臟、代謝：什麼是CKM Health</title>
+      <link>https://shchen0603.github.io/Personal-Website/posts/2026-06-15-ckm-intro.html</link>
+      <guid isPermaLink="true">https://shchen0603.github.io/Personal-Website/posts/2026-06-15-ckm-intro.html</guid>
+      <pubDate>Mon, 15 Jun 2026 12:00:00 +0800</pubDate>
+      <category>健康與預防</category>
+      <category>學術隨筆</category>
+      <description>從單一數字，看向全人健康。預防心血管疾病，要更早看見心腎代謝整體風險。</description>
+    </item>
+    <item>
+      <title>風險判讀 02 | 不是有效就該做：談NNT如何幫助我們理解效益</title>
+      <link>https://shchen0603.github.io/Personal-Website/posts/2026-06-13-NNT.html</link>
+      <guid isPermaLink="true">https://shchen0603.github.io/Personal-Website/posts/2026-06-13-NNT.html</guid>
+      <pubDate>Sat, 13 Jun 2026 12:00:00 +0800</pubDate>
+      <category>風險數字怎麼判讀</category>
+      <category>流行病學與健康媒體識讀</category>
+      <description>利用Number needed to treat (NNT)，我們可以不只是停留在風險的變化，而是納入基礎風險，判斷一個措施的效益有多大。</description>
+    </item>
+    <item>
+      <title>低碳水飲食與第二型糖尿病風險：營養素的來源與品質是關鍵</title>
+      <link>https://shchen0603.github.io/Personal-Website/posts/2026-06-12-LCD-T2DM.html</link>
+      <guid isPermaLink="true">https://shchen0603.github.io/Personal-Website/posts/2026-06-12-LCD-T2DM.html</guid>
+      <pubDate>Fri, 12 Jun 2026 12:00:00 +0800</pubDate>
+      <category>健康與預防</category>
+      <category>研究筆記</category>
+      <description>採取低碳水飲食時，應當同時注意優先攝取植物性蛋白質、好的脂肪來源、高品質碳水化合物來源。</description>
+    </item>
+    <item>
+      <title>證據思維 03 | 微胖更長壽？媒體是在叫我們不要減肥嗎？談反向因果可能造成的錯誤判讀</title>
+      <link>https://shchen0603.github.io/Personal-Website/posts/2026-06-07-reverse-causation.html</link>
+      <guid isPermaLink="true">https://shchen0603.github.io/Personal-Website/posts/2026-06-07-reverse-causation.html</guid>
+      <pubDate>Sun, 07 Jun 2026 12:00:00 +0800</pubDate>
+      <category>讀懂健康研究的證據思維</category>
+      <category>流行病學與健康媒體識讀</category>
+      <description>健康研究中的因果方向，值得我們多花一點時間，雙向思考。談反向因果關係（reverse causation）</description>
+    </item>
+    <item>
+      <title>風險判讀 01 | 增加 50% 風險，到底有多嚴重？相對風險、絕對風險與健康新聞的數字陷阱</title>
+      <link>https://shchen0603.github.io/Personal-Website/posts/2026-06-05-absolute-relative-risk.html</link>
+      <guid isPermaLink="true">https://shchen0603.github.io/Personal-Website/posts/2026-06-05-absolute-relative-risk.html</guid>
+      <pubDate>Fri, 05 Jun 2026 12:00:00 +0800</pubDate>
+      <category>風險數字怎麼判讀</category>
+      <category>流行病學與健康媒體識讀</category>
+      <description>兼聽則明，偏信則暗。相對風險和絕對風險應當被並陳解讀。</description>
+    </item>
+    <item>
+      <title>證據思維 02 | 誰被納入研究，會影響結果：什麼是 Selection Bias？</title>
+      <link>https://shchen0603.github.io/Personal-Website/posts/2026-06-03-02-selection-bias.html</link>
+      <guid isPermaLink="true">https://shchen0603.github.io/Personal-Website/posts/2026-06-03-02-selection-bias.html</guid>
+      <pubDate>Wed, 03 Jun 2026 12:00:00 +0800</pubDate>
+      <category>讀懂健康研究的證據思維</category>
+      <category>流行病學與健康媒體識讀</category>
+      <description>從倖存者偏差、Neyman bias、Berkson bias 到 long COVID 研究，說明 selection bias 如何影響健康新聞與醫學研究解讀。</description>
+    </item>
+    <item>
+      <title>證據思維 01 | 「有關」不等於「造成」：健康新聞最常見的證據誤區</title>
+      <link>https://shchen0603.github.io/Personal-Website/posts/2026-06-01-association-causality.html</link>
+      <guid isPermaLink="true">https://shchen0603.github.io/Personal-Website/posts/2026-06-01-association-causality.html</guid>
+      <pubDate>Mon, 01 Jun 2026 12:00:00 +0800</pubDate>
+      <category>讀懂健康研究的證據思維</category>
+      <category>流行病學與健康媒體識讀</category>
+      <description>用健康新聞、觀察性研究與隨機對照試驗範例，說明相關性不等於因果性，並介紹 confounding 與實證醫學判讀。</description>
+    </item>
+    <item>
+      <title>為什麼我想寫 Blog：用證據思維重新理解醫學與健康</title>
+      <link>https://shchen0603.github.io/Personal-Website/posts/2026-05-26-intro.html</link>
+      <guid isPermaLink="true">https://shchen0603.github.io/Personal-Website/posts/2026-05-26-intro.html</guid>
+      <pubDate>Tue, 26 May 2026 12:00:00 +0800</pubDate>
+      <category>學術隨筆</category>
+      <description>寫給一般讀者、醫學生與研究初學者的醫學新聞解讀與實證醫學筆記，從流行病學與心血管研究理解健康證據。</description>
+    </item>
+  </channel>
+</rss>

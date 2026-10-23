@@ -8,3 +8,6 @@ assets/originals/
 assets/Personal Photo.jpeg
 *.heic
 *.heif
+
+# Local AI-assistant planning notes and drafts; never publish.
+ChatGPT Project Source/

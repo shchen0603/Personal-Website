@@ -6,16 +6,22 @@
     <description>心血管流行病學、臨床醫學、公共衛生與研究方法之間的筆記與觀察。</description>
     <language>zh-TW</language>
     <atom:link href="https://shchen0603.github.io/Personal-Website/feed.xml" rel="self" type="application/rss+xml"/>
-    <lastBuildDate>Mon, 07 Sep 2026 12:00:00 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 23 Oct 2026 12:00:00 +0800</lastBuildDate>
+    <item>
+      <title>鹽分攝取與高血壓：為什麼吃一樣的鹽，對不同人的血壓影響可能不同？</title>
+      <link>https://shchen0603.github.io/Personal-Website/posts/2026-10-23-salt-sensitivity.html</link>
+      <guid isPermaLink="true">https://shchen0603.github.io/Personal-Website/posts/2026-10-23-salt-sensitivity.html</guid>
+      <pubDate>Fri, 23 Oct 2026 12:00:00 +0800</pubDate>
+      <category>健康與預防</category>
+      <description>同樣減少一樣多的鹽，有些人的血壓明顯下降，有些人幾乎沒變。我們統整 160 篇研究發現，年齡、原本的血壓與 BMI，是判斷誰可能從減鹽中獲益較多的簡單線索。</description>
+    </item>
     <item>
       <title>流行病學方法教學 06 | Risk Difference、Risk Ratio 與 Odds Ratio：絕對差異與相對差異各自回答什麼？</title>
       <link>https://shchen0603.github.io/Personal-Website/posts/2026-09-07-06-risk-difference-risk-ratio-odds-ratio.html</link>
       <guid isPermaLink="true">https://shchen0603.github.io/Personal-Website/posts/2026-09-07-06-risk-difference-risk-ratio-odds-ratio.html</guid>
       <pubDate>Mon, 07 Sep 2026 12:00:00 +0800</pubDate>
       <category>流行病學方法教學</category>
-      <category>風險</category>
-      <category>觀察性研究</category>
-      <category>case-control study</category>
+      <category>研究方法</category>
       <description>同一組資料，可以同時得到 Risk Difference、Risk Ratio 與 Odds Ratio。三者使用的分母不同，回答的問題也不同；這篇從同一組臨床試驗數字，說明絕對差異與相對差異該怎麼讀。</description>
     </item>
     <item>
@@ -24,7 +30,7 @@
       <guid isPermaLink="true">https://shchen0603.github.io/Personal-Website/posts/2026-07-21-05-risk-rate-odds.html</guid>
       <pubDate>Tue, 21 Jul 2026 12:00:00 +0800</pubDate>
       <category>流行病學方法教學</category>
-      <category>研究筆記</category>
+      <category>研究方法</category>
       <description>上一篇我們建立了Prevalence、Cumulative Incidence、Incidence Rate這幾把尺，但這些「量」最終還是要被拿來比較——這篇比較會用什麼語言、什麼數字來表達，就是這篇要處理的問題。</description>
     </item>
     <item>
@@ -33,7 +39,7 @@
       <guid isPermaLink="true">https://shchen0603.github.io/Personal-Website/posts/2026-07-17-04-prevalence-incidence.html</guid>
       <pubDate>Fri, 17 Jul 2026 12:00:00 +0800</pubDate>
       <category>流行病學方法教學</category>
-      <category>研究筆記</category>
+      <category>研究方法</category>
       <description>盛行率、累積發生率、發生率密度，正是描述這個分布最基本的三把尺——它們回答的問題不同，能不能互相比較也不同，一旦混用，很容易把一個單純的數字定義問題，誤讀成疾病風險真的在改變。</description>
     </item>
     <item>
@@ -42,11 +48,11 @@
       <guid isPermaLink="true">https://shchen0603.github.io/Personal-Website/posts/2026-07-11-03-time-zero-follow-up-censoring.html</guid>
       <pubDate>Sat, 11 Jul 2026 12:00:00 +0800</pubDate>
       <category>流行病學方法教學</category>
-      <category>研究筆記</category>
+      <category>研究方法</category>
       <description>追蹤的時鐘，到底是從何開始走、怎麼走、又是怎麼停下來的？</description>
     </item>
     <item>
-      <title>流行病學方法教學02 | 研究對象從哪裡來？Target Population、Source Population 與 Study Population</title>
+      <title>流行病學方法教學 02 | 研究對象從哪裡來？Target Population、Source Population 與 Study Population</title>
       <link>https://shchen0603.github.io/Personal-Website/posts/2026-07-06-02-Target-Population.html</link>
       <guid isPermaLink="true">https://shchen0603.github.io/Personal-Website/posts/2026-07-06-02-Target-Population.html</guid>
       <pubDate>Mon, 06 Jul 2026 12:00:00 +0800</pubDate>
@@ -55,7 +61,7 @@
       <description>你想研究什麼人群？你有什麼人群？這一篇研究回答的問題是在什麼人群上？</description>
     </item>
     <item>
-      <title>流行病學方法教學01 | 研究問題到底在問什麼？PICO／PEO 的問題架構</title>
+      <title>流行病學方法教學 01 | 研究問題到底在問什麼？PICO／PEO 的問題架構</title>
       <link>https://shchen0603.github.io/Personal-Website/posts/2026-07-06-01-pico-peo.html</link>
       <guid isPermaLink="true">https://shchen0603.github.io/Personal-Website/posts/2026-07-06-01-pico-peo.html</guid>
       <pubDate>Mon, 06 Jul 2026 12:00:00 +0800</pubDate>
@@ -72,7 +78,7 @@
       <description>從證據的角度出發，帶您了解血壓的基礎概念，包含血壓值的意義、血壓與風險的關係、現有指引如何看待血壓、以及血壓量測的細節。</description>
     </item>
     <item>
-      <title>證據思維04 | 不是所有研究都在回答同一種問題</title>
+      <title>證據思維 04 | 不是所有研究都在回答同一種問題</title>
       <link>https://shchen0603.github.io/Personal-Website/posts/2026-06-20-study-design.html</link>
       <guid isPermaLink="true">https://shchen0603.github.io/Personal-Website/posts/2026-06-20-study-design.html</guid>
       <pubDate>Sat, 20 Jun 2026 12:00:00 +0800</pubDate>
@@ -81,7 +87,7 @@
       <description>健康新聞常常用「研究發現」來包裝所有的證據。但是在流行病學中，為了回答不同的研究問題，研究者常會採用不同的研究設計。如果錯將某一種研究設計，拿來說明它其實無法回答的問題，就可能產生解讀上的誤差與不妥。</description>
     </item>
     <item>
-      <title>心血管、腎臟、代謝：什麼是CKM Health</title>
+      <title>心血管、腎臟、代謝：什麼是 CKM Health</title>
       <link>https://shchen0603.github.io/Personal-Website/posts/2026-06-15-ckm-intro.html</link>
       <guid isPermaLink="true">https://shchen0603.github.io/Personal-Website/posts/2026-06-15-ckm-intro.html</guid>
       <pubDate>Mon, 15 Jun 2026 12:00:00 +0800</pubDate>
@@ -90,7 +96,7 @@
       <description>從單一數字，看向全人健康。預防心血管疾病，要更早看見心腎代謝整體風險。</description>
     </item>
     <item>
-      <title>風險判讀 02 | 不是有效就該做：談NNT如何幫助我們理解效益</title>
+      <title>風險判讀 02 | 不是有效就該做：談 NNT 如何幫助我們理解效益</title>
       <link>https://shchen0603.github.io/Personal-Website/posts/2026-06-13-NNT.html</link>
       <guid isPermaLink="true">https://shchen0603.github.io/Personal-Website/posts/2026-06-13-NNT.html</guid>
       <pubDate>Sat, 13 Jun 2026 12:00:00 +0800</pubDate>

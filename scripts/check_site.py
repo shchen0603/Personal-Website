@@ -73,6 +73,7 @@ INTENTIONAL_NOINDEX_PAGES = {
     "post.html",
     "posts/_template.html",
     "talks/2026-12-ckhs/gene-draw.html",
+    "talks/2026-12-ckhs/live.html",
 }
 PLACEHOLDER_BLOG_TITLES = {"新文章", "New post", "Untitled post"}
 ALLOWED_RAW_ASSETS = {"assets/cardiovascular-epidemiology-hero-og.jpg"}

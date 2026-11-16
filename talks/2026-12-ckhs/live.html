@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>課堂互動</title>
+<style>
+  /* Layout: phone-first single column — the one question the speaker has opened, then an always-on question box */
+  :root {
+    color-scheme: dark;
+    --bg: #000000;
+    --card: #17140f;
+    --card-2: #241f16;
+    --line: #3b3426;
+    --text: #ffffff;
+    --muted: #b3aa98;
+    --gold: #ffc000;
+    --orange: #e97132;
+    --ok: #92d050;
+    --err: #ff6b6b;
+    --font: Arial, "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); }
+  .wrap { max-width: 520px; margin: 0 auto; padding-block: 18px 48px;
+          padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+          display: flex; flex-direction: column; gap: 18px; }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  h1 { margin: 0; color: var(--gold); font-size: 26px; }
+  .conn { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); }
+  .conn.ok .dot { background: var(--ok); }
+  .conn.err .dot { background: var(--err); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .card.live { border-color: var(--gold); }
+  .eyebrow { margin: 0; font-size: 13px; color: var(--gold); letter-spacing: .04em; }
+  .card h2 { margin: 0; font-size: 21px; line-height: 1.45; text-wrap: pretty; }
+  .waiting { align-items: center; text-align: center; padding-block: 34px; color: var(--muted); }
+  .waiting p { margin: 0; line-height: 1.6; }
+  .pulse { width: 14px; height: 14px; border-radius: 50%; background: var(--gold); animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: .25; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.15); } }
+  .opts { display: flex; flex-direction: column; gap: 10px; }
+  .opt { display: grid; grid-template-columns: 40px 1fr 24px; align-items: center; gap: 10px; width: 100%; min-height: 56px;
+         background: var(--card-2); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px;
+         color: var(--text); font: inherit; font-size: 17px; text-align: left; line-height: 1.4; cursor: pointer; }
+  .opt .k { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 8px; background: #000; color: var(--gold); font-weight: 700; font-size: 18px; }
+  .opt .tick { color: var(--gold); font-weight: 700; font-size: 20px; text-align: center; }
+  .opt[aria-pressed="true"] { border-color: var(--gold); background: #3a2f12; }
+  .opt[aria-pressed="true"] .k { background: var(--gold); color: #000; }
+  .opt:focus-visible, .btn:focus-visible, textarea:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+  .btn { display: block; width: 100%; text-align: center; background: var(--gold); color: #000; border: 0; border-radius: 10px;
+         padding: 14px; font: inherit; font-size: 18px; font-weight: 700; text-decoration: none; cursor: pointer; }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); font-weight: 400; font-size: 15px; padding: 10px; }
+  textarea { width: 100%; min-height: 96px; resize: vertical; background: #000; color: var(--text); border: 1px solid var(--line);
+             border-radius: 10px; padding: 12px; font: inherit; font-size: 16px; line-height: 1.5; }
+  .note { margin: 0; font-size: 14px; color: var(--muted); line-height: 1.6; }
+  .note.ok { color: var(--ok); }
+  .note.err { color: var(--err); }
+  .mine { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .mine li { font-size: 14px; color: var(--muted); border-left: 3px solid var(--line); padding: 2px 0 2px 10px; line-height: 1.5; overflow-wrap: anywhere; }
+  .foot { text-align: center; font-size: 13px; color: var(--muted); }
+  .foot a { color: var(--muted); }
+  @media (prefers-reduced-motion: reduce) { .pulse { animation: none; opacity: .8; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>課堂互動</h1>
+    <span class="conn" id="conn" role="status"><span class="dot"></span><span id="connText">連線中…</span></span>
+  </div>
+
+  <!-- 台上開放的那一題（只會出現目前這一題） -->
+  <section class="card waiting" id="waitCard" aria-live="polite">
+    <div class="pulse" aria-hidden="true"></div>
+    <p id="waitText">等台上開放題目。<br>題目一開放，這裡會自動出現，不用重新整理。</p>
+  </section>
+  <section class="card live" id="qCard" hidden aria-live="polite">
+    <p class="eyebrow" id="qTag"></p>
+    <h2 id="qTitle"></h2>
+    <div class="opts" id="qOpts"></div>
+    <textarea id="qText" maxlength="300" placeholder="寫下你的想法（匿名）" hidden></textarea>
+    <button class="btn" id="qSend" type="button" hidden>送出</button>
+    <a class="btn" id="qLink" hidden>打開</a>
+    <p class="note" id="qNote"></p>
+  </section>
+
+  <!-- 提問區：隨時可以用 -->
+  <section class="card" aria-labelledby="askH">
+    <p class="eyebrow">隨時可以問</p>
+    <h2 id="askH">提問區</h2>
+    <textarea id="askText" maxlength="300" placeholder="聽不懂的、想多知道的，都可以問（匿名）"></textarea>
+    <button class="btn" id="askSend" type="button">送出問題</button>
+    <p class="note" id="askNote">講者會在最後的問答時間挑問題回答。</p>
+    <ul class="mine" id="askMine"></ul>
+  </section>
+
+  <p class="foot"><a href="index.html">回演講專區</a></p>
+</div>
+
+<script>
+  // ===== 設定：表單與試算表建好後填這裡 =====
+  const CFG = {
+    formId: "",                       // 表單網址 forms/d/e/<這段>/viewform
+    entry: { q: "", a: "", d: "" },   // 「題目」「回答」「裝置」三題的 entry.xxxxx
+    sheetId: "",                      // 回應試算表 spreadsheets/d/<這段>/edit
+    gid: "",                          // 回應分頁的 gid
+    col: { q: "B", a: "C" }           // 試算表欄位：A 時間戳記、B 題目、C 回答、D 裝置
+  };
+  // 台上換題的指令要有講者簽章才算數（私鑰只在講者電腦上），避免有人自己送假的換題指令
+  const PUBKEY = {"kty":"EC","crv":"P-256","x":"zHHtiEk4oAv4llmbd4vy7Kd3l7LBtKPR6Ip0cTHK_nc","y":"3KZkVw0sQ42kB6l4mwncHDi3ncmMQhKeAPH1LLn86jE","ext":true,"key_ops":["verify"]};
+
+  const MOCK = /[?&]mock\b/.test(location.search) || !CFG.formId;   // 本機測試：用瀏覽器儲存空間假裝試算表
+  const MOCK_KEY = "ckhs-live-mock";
+  const KEY = "ckhs-live.v1";
+  const $ = id => document.getElementById(id);
+
+  // ----- 這支手機的紀錄（投過什麼、問過什麼）
+  let mem = { dev: "", votes: {}, texts: {}, asks: [] };
+  try { const v = JSON.parse(localStorage.getItem(KEY)); if (v && v.dev) mem = Object.assign(mem, v); } catch (e) {}
+  if (!mem.dev) mem.dev = "d" + Array.from(crypto.getRandomValues(new Uint8Array(6)), b => (b % 36).toString(36)).join("");
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(mem)); } catch (e) {} };
+  save();
+
+  // ----- 送出：在背景直接送進 Google 表單，不用跳到表單頁
+  async function send(q, a) {
+    if (MOCK) {
+      try {
+        const rows = JSON.parse(localStorage.getItem(MOCK_KEY) || "[]");
+        rows.push({ t: Date.now(), q, a, d: mem.dev });
+        localStorage.setItem(MOCK_KEY, JSON.stringify(rows));
+        return true;
+      } catch (e) { return false; }
+    }
+    const body = new URLSearchParams();
+    body.set(CFG.entry.q, q); body.set(CFG.entry.a, a); body.set(CFG.entry.d, mem.dev);
+    try {
+      await fetch(`https://docs.google.com/forms/d/e/${CFG.formId}/formResponse`, { method: "POST", mode: "no-cors", body });
+      return true;   // no-cors 看不到回應內容；沒丟錯就代表有送出去
+    } catch (e) { return false; }
+  }
+
+  // ----- 讀台上目前開放哪一題（只讀換題指令那幾列）
+  let seq = 0;
+  function gviz(tq) {
+    return new Promise((resolve, reject) => {
+      const cb = "__g" + (++seq), s = document.createElement("script");
+      const timer = setTimeout(() => { done(); reject(new Error("timeout")); }, 8000);
+      function done() { clearTimeout(timer); try { delete window[cb]; } catch (e) { window[cb] = undefined; } s.remove(); }
+      window[cb] = d => { done(); d && d.status === "error" ? reject(new Error("sheet")) : resolve(d); };
+      s.onerror = () => { done(); reject(new Error("load")); };
+      s.src = `https://docs.google.com/spreadsheets/d/${CFG.sheetId}/gviz/tq?tqx=out:json;responseHandler:${cb}` +
+              `&tq=${encodeURIComponent(tq)}` + (CFG.gid ? `&gid=${CFG.gid}` : "") + `&t=${Date.now()}`;
+      document.head.appendChild(s);
+    });
+  }
+  async function controlRows() {
+    if (MOCK) {
+      const rows = JSON.parse(localStorage.getItem(MOCK_KEY) || "[]");
+      return rows.filter(r => r.q === "__open").slice(-30).map(r => r.a);
+    }
+    const d = await gviz(`select ${CFG.col.a} where ${CFG.col.q} = '__open' order by A desc limit 30`);
+    return d.table.rows.map(r => r.c && r.c[0] && r.c[0].v).filter(Boolean);
+  }
+
+  // ----- 驗證講者簽章：格式是「JSON|簽章」，只接受簽章對、而且時間最新的那一筆
+  let keyP = null;
+  const b64 = s => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0));
+  async function verified(raw) {
+    const i = raw.lastIndexOf("|");
+    if (i < 0) return null;
+    const payload = raw.slice(0, i);
+    try {
+      keyP = keyP || crypto.subtle.importKey("jwk", PUBKEY, { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
+      const ok = await crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, await keyP, b64(raw.slice(i + 1)), new TextEncoder().encode(payload));
+      return ok ? JSON.parse(payload) : null;
+    } catch (e) { return null; }
+  }
+  async function currentQuestion() {
+    let best = null;
+    for (const raw of await controlRows()) {
+      const v = await verified(String(raw));
+      if (v && typeof v.ts === "number" && (!best || v.ts > best.ts)) best = v;
+    }
+    return best;
+  }
+
+  // ----- 畫面
+  let shown = null;   // 目前畫面上的題目（id + 指令時間）
+  function render(cur) {
+    const open = cur && cur.k && cur.k !== "none" ? cur : null;
+    const sig = open ? open.id + "@" + open.ts : "none";
+    if (sig === shown) return;          // 沒換題就不重畫，避免打到一半的字被清掉
+    shown = sig;
+    $("waitCard").hidden = !!open;
+    $("qCard").hidden = !open;
+    if (!open) {
+      $("waitText").innerHTML = mem.lastId ? "這題結束了，等下一題。<br>題目一開放，這裡會自動出現。" : "等台上開放題目。<br>題目一開放，這裡會自動出現，不用重新整理。";
+      return;
+    }
+    mem.lastId = open.id; save();
+    $("qTag").textContent = open.tag || "";
+    $("qTitle").textContent = open.t || "";
+    const opts = $("qOpts"); opts.innerHTML = "";
+    $("qText").hidden = $("qSend").hidden = $("qLink").hidden = true;
+    $("qNote").textContent = ""; $("qNote").className = "note";
+    if (open.k === "single" || open.k === "multi") {
+      const multi = open.k === "multi";
+      let picked = new Set(String(mem.votes[open.id] || "").split(",").filter(Boolean));
+      (open.o || []).forEach((label, i) => {
+        const key = String.fromCharCode(65 + i);
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "opt";
+        b.setAttribute("aria-pressed", String(picked.has(key)));
+        b.innerHTML = `<span class="k">${key}</span><span></span><span class="tick" aria-hidden="true"></span>`;
+        b.children[1].textContent = label;
+        b.children[2].textContent = picked.has(key) ? "✓" : "";
+        b.addEventListener("click", async () => {
+          if (multi) {
+            picked.has(key) ? picked.delete(key) : picked.add(key);
+            [...opts.children].forEach((el, j) => {
+              const on = picked.has(String.fromCharCode(65 + j));
+              el.setAttribute("aria-pressed", String(on)); el.children[2].textContent = on ? "✓" : "";
+            });
+            $("qSend").disabled = !picked.size;
+          } else {
+            picked = new Set([key]);
+            [...opts.children].forEach((el, j) => {
+              const on = j === i;
+              el.setAttribute("aria-pressed", String(on)); el.children[2].textContent = on ? "✓" : "";
+            });
+            await vote(open.id, key);
+          }
+        });
+        opts.appendChild(b);
+      });
+      if (multi) {
+        $("qSend").hidden = false; $("qSend").textContent = "送出";
+        $("qSend").disabled = !picked.size;
+        $("qSend").onclick = () => vote(open.id, [...picked].sort().join(","));
+        note(mem.votes[open.id] ? `你已經選了 ${mem.votes[open.id]}。想改可以重選再送出。` : "可以選不只一個，選好再按送出。");
+      } else {
+        note(mem.votes[open.id] ? `你已經選了 ${mem.votes[open.id]}。想改可以直接按別的。` : "按一下就送出，不用再按確認。");
+      }
+    } else if (open.k === "text") {
+      $("qText").hidden = $("qSend").hidden = false; $("qText").value = "";
+      $("qSend").textContent = "送出"; $("qSend").disabled = false;
+      $("qSend").onclick = async () => {
+        const t = $("qText").value.trim();
+        if (!t) { $("qText").focus(); return; }
+        $("qSend").disabled = true;
+        const ok = await send(open.id, t);
+        $("qSend").disabled = false;
+        if (ok) { mem.texts[open.id] = (mem.texts[open.id] || 0) + 1; save(); $("qText").value = ""; note(`已送出（你在這題送了 ${mem.texts[open.id]} 則）。還想到別的可以再寫。`, "ok"); }
+        else note("沒送出去，請確認網路再按一次。", "err");
+      };
+      note(mem.texts[open.id] ? `你在這題已經送了 ${mem.texts[open.id]} 則，可以再寫。` : "匿名送出，會出現在台上。");
+    } else if (open.k === "link") {
+      $("qLink").hidden = false;
+      $("qLink").textContent = open.label || "打開";
+      $("qLink").href = /^[a-z0-9_-]+\.html$/i.test(open.u || "") ? open.u : "index.html";   // 只接受同資料夾的頁面
+      note(open.hint || "");
+    }
+  }
+  function note(msg, cls) { $("qNote").textContent = msg; $("qNote").className = "note" + (cls ? " " + cls : ""); }
+  async function vote(id, ans) {
+    note("送出中…");
+    const ok = await send(id, ans);
+    if (ok) { mem.votes[id] = ans; save(); note(`已送出：${ans}。想改可以再選一次。`, "ok"); }
+    else note("沒送出去，請確認網路再按一次。", "err");
+  }
+
+  // ----- 提問區
+  function renderAsks() {
+    const ul = $("askMine"); ul.innerHTML = "";
+    mem.asks.slice(-5).reverse().forEach(a => { const li = document.createElement("li"); li.textContent = a; ul.appendChild(li); });
+  }
+  $("askSend").addEventListener("click", async () => {
+    const t = $("askText").value.trim();
+    if (!t) { $("askText").focus(); return; }
+    $("askSend").disabled = true;
+    const ok = await send("ask", t);
+    $("askSend").disabled = false;
+    const n = $("askNote");
+    if (ok) { mem.asks.push(t); save(); renderAsks(); $("askText").value = ""; n.textContent = "收到了！還有問題可以繼續問。"; n.className = "note ok"; }
+    else { n.textContent = "沒送出去，請確認網路再按一次。"; n.className = "note err"; }
+  });
+  renderAsks();
+
+  // ----- 定時看有沒有換題：畫面在前景才看，鎖螢幕就停（全班一起輪詢時比較不會被 Google 擋）
+  let timer = null, fails = 0;
+  function conn(state, text) { $("conn").className = "conn " + state; $("connText").textContent = text; }
+  async function poll() {
+    clearTimeout(timer);
+    if (document.hidden) return;
+    try {
+      render(await currentQuestion());
+      fails = 0; conn("ok", MOCK ? "測試模式" : "已連線");
+    } catch (e) {
+      fails++; conn("err", "連不上，自動重試中");
+    }
+    const base = 5000 * Math.min(2 ** fails, 6);
+    timer = setTimeout(poll, base + Math.random() * 2000);
+  }
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) poll(); });
+  if (MOCK) addEventListener("storage", e => { if (e.key === MOCK_KEY) poll(); });
+  if (!window.crypto || !crypto.subtle) conn("err", "瀏覽器太舊，請換一個瀏覽器");
+  else poll();
+</script>
+</body>
+</html>

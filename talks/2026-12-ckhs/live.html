@@ -104,10 +104,10 @@
 <script>
   // ===== 設定：表單與試算表建好後填這裡 =====
   const CFG = {
-    formId: "",                       // 表單網址 forms/d/e/<這段>/viewform
-    entry: { q: "", a: "", d: "" },   // 「題目」「回答」「裝置」三題的 entry.xxxxx
-    sheetId: "",                      // 回應試算表 spreadsheets/d/<這段>/edit
-    gid: "",                          // 回應分頁的 gid
+    formId: "1FAIpQLScmUM_cUpF7UpfvO0ab_vRbDBSmKkjFvSjFIBkvGCcnE11umg",                      // 表單「建中公開觀課——投票與提問」
+    entry: { q: "entry.215808328", a: "entry.127749023", d: "entry.660155368" },          // 題目、回答、裝置
+    sheetId: "1oot4YzgwnkOiuYd4EZW7BcFHidvMNrAxBiGQMiK3OvU",                              // 回應試算表
+    gid: "1734621924",                                                                    // 回應分頁
     col: { q: "B", a: "C" }           // 試算表欄位：A 時間戳記、B 題目、C 回答、D 裝置
   };
   // 台上換題的指令要有講者簽章才算數（私鑰只在講者電腦上），避免有人自己送假的換題指令
@@ -162,7 +162,8 @@
       const rows = JSON.parse(localStorage.getItem(MOCK_KEY) || "[]");
       return rows.filter(r => r.q === "__open").slice(-30).map(r => r.a);
     }
-    const d = await gviz(`select ${CFG.col.a} where ${CFG.col.q} = '__open' order by A desc limit 30`);
+    // 不靠時間戳記排序（中文日期格式排序會錯）；整堂換題指令只有幾十列，全部讀回來挑簽章時間最新的
+    const d = await gviz(`select ${CFG.col.a} where ${CFG.col.q} = '__open'`);
     return d.table.rows.map(r => r.c && r.c[0] && r.c[0].v).filter(Boolean);
   }
 

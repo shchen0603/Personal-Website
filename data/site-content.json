@@ -675,7 +675,13 @@
         "title": "Introduction to Evidence-based Medicine",
         "description": "Lecturer, Evidence-based Medicine Workshop, Federation of Medical Students in Taiwan.",
         "date": "2025-11-09",
-        "dateLabel": "2025.11.09"
+        "dateLabel": "2025.11.09",
+        "links": [
+          {
+            "label": "Watch full lecture (YouTube)",
+            "href": "https://youtu.be/NjBB2GEPnwU"
+          }
+        ]
       }
     ],
     "presentations": [

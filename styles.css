@@ -2852,3 +2852,185 @@ main {
   font-size: 1.1em;
   font-weight: 900;
 }
+
+/* Featured lecture: full-length teaching video on Speaking & Media */
+.featured-lecture {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 2.4rem;
+  align-items: center;
+  padding-top: 2rem;
+}
+
+.lecture-video {
+  min-width: 0;
+}
+
+.video-facade,
+.video-frame {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #000;
+  box-shadow: var(--shadow);
+}
+
+.video-facade {
+  padding: 0;
+  cursor: pointer;
+}
+
+.video-facade img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform var(--transition-base), opacity var(--transition-base);
+}
+
+.video-facade:hover img,
+.video-facade:focus-visible img {
+  transform: scale(1.02);
+  opacity: 0.88;
+}
+
+.video-facade:focus-visible {
+  outline: 3px solid var(--teal);
+  outline-offset: 3px;
+}
+
+.video-play {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 76px;
+  height: 76px;
+  margin: -38px 0 0 -38px;
+  border-radius: 50%;
+  background: rgba(8, 76, 73, 0.92);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.video-play::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 54%;
+  transform: translate(-50%, -50%);
+  border-style: solid;
+  border-width: 14px 0 14px 23px;
+  border-color: transparent transparent transparent #ffffff;
+}
+
+.video-duration {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  padding: 0.2rem 0.5rem;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.78);
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.video-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.lecture-info h2 {
+  margin: 0.2rem 0 0.9rem;
+  font-size: clamp(1.7rem, 3vw, 2.5rem);
+  line-height: 1.2;
+}
+
+.lecture-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0 0 1.1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.lecture-meta li {
+  padding: 0.3rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.lecture-approach {
+  margin: 0 0 0.8rem;
+  padding-left: 1rem;
+  border-left: 3px solid var(--gold);
+  color: var(--ink);
+  font-size: 1.06rem;
+  line-height: 1.7;
+}
+
+.lecture-note {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.lecture-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: 1.3rem;
+}
+
+.button-solid {
+  background: var(--teal-dark);
+  border-color: var(--teal-dark);
+  color: var(--on-accent);
+}
+
+.button-solid:hover,
+.button-solid:focus-visible {
+  background: var(--teal);
+  border-color: var(--teal);
+}
+
+@media (max-width: 960px) {
+  .featured-lecture {
+    grid-template-columns: 1fr;
+    gap: 1.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .video-play {
+    width: 60px;
+    height: 60px;
+    margin: -30px 0 0 -30px;
+  }
+  .video-play::after {
+    border-width: 11px 0 11px 18px;
+  }
+  .lecture-actions .button {
+    flex: 1 1 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .video-facade img {
+    transition: none;
+  }
+  .video-facade:hover img,
+  .video-facade:focus-visible img {
+    transform: none;
+  }
+}

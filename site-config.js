@@ -5,6 +5,7 @@ window.SITE_CONFIG = {
     { href: "publications.html", label: "Publications", zh: "著作", page: "publications" },
     { href: "blog.html", label: "Blog", zh: "網誌", page: "blog" },
     { href: "honors.html", label: "Honors", zh: "榮譽", page: "honors" },
+    { href: "speaking-media.html", label: "Speaking", zh: "演講", page: "speaking-media" },
     { href: "activities.html", label: "Activities", zh: "活動", page: "activities" },
     { href: "contact.html", label: "Contact", zh: "聯絡", page: "contact" }
   ],

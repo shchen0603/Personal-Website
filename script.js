@@ -5,6 +5,7 @@ const SITE_NAV_ITEMS = SITE_CONFIG.navItems || [
   { href: "publications.html", label: "Publications", zh: "著作", page: "publications" },
   { href: "blog.html", label: "Blog", zh: "網誌", page: "blog" },
   { href: "honors.html", label: "Honors", zh: "榮譽", page: "honors" },
+  { href: "speaking-media.html", label: "Speaking", zh: "演講", page: "speaking-media" },
   { href: "activities.html", label: "Activities", zh: "活動", page: "activities" },
   { href: "contact.html", label: "Contact", zh: "聯絡", page: "contact" }
 ];
@@ -2233,4 +2234,23 @@ const setupStatCounters = () => {
 loadSiteContent().finally(() => {
   renderArticleMath();
   setupStatCounters();
+});
+
+// Lightweight YouTube embed: show the thumbnail first and load the
+// privacy-enhanced player only after the visitor presses play.
+document.querySelectorAll("[data-youtube-id]").forEach((facade) => {
+  facade.addEventListener("click", () => {
+    const id = facade.dataset.youtubeId;
+    const frame = document.createElement("div");
+    frame.className = "video-frame";
+    const iframe = document.createElement("iframe");
+    iframe.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?autoplay=1&rel=0`;
+    iframe.title = facade.getAttribute("aria-label") || "YouTube video";
+    iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+    iframe.referrerPolicy = "strict-origin-when-cross-origin";
+    iframe.allowFullscreen = true;
+    frame.appendChild(iframe);
+    facade.replaceWith(frame);
+    iframe.focus();
+  }, { once: true });
 });

@@ -152,7 +152,7 @@
       function done() { clearTimeout(timer); try { delete window[cb]; } catch (e) { window[cb] = undefined; } s.remove(); }
       window[cb] = d => { done(); d && d.status === "error" ? reject(new Error("sheet")) : resolve(d); };
       s.onerror = () => { done(); reject(new Error("load")); };
-      s.src = `https://docs.google.com/spreadsheets/d/${CFG.sheetId}/gviz/tq?tqx=out:json;responseHandler:${cb}` +
+      s.src = `https://docs.google.com/spreadsheets/d/${CFG.sheetId}/gviz/tq?tqx=out:json;responseHandler:${cb}&headers=1` +
               `&tq=${encodeURIComponent(tq)}` + (CFG.gid ? `&gid=${CFG.gid}` : "") + `&t=${Date.now()}`;
       document.head.appendChild(s);
     });

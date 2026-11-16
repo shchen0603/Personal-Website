@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<!-- 由 gene-draw.html 產生，給個人網站放的獨立版本；改內容請改 gene-draw.html 再重新產生 -->
+<title>我的基因密碼</title>
+<style>
+  /* Layout: phone-first single column — ten SNP rows, each a Rr × Rr cross, then the code */
+  :root {
+    color-scheme: dark;
+    --bg: #000000;
+    --card: #17140f;
+    --card-2: #241f16;
+    --line: #3b3426;
+    --text: #ffffff;
+    --muted: #b3aa98;
+    --gold: #ffc000;
+    --risk: #e97132;
+    --safe: #8a8170;
+    --ok: #92d050;
+    --font: Arial, "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); }
+  .wrap { max-width: 520px; margin: 0 auto; padding-block: 20px 40px;
+          padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+          display: flex; flex-direction: column; gap: 16px; }
+  h1 { margin: 0; color: var(--gold); font-size: 28px; text-wrap: balance; }
+  .lead { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.6; }
+  .lead b { color: var(--text); }
+  .legend { display: flex; gap: 14px; font-size: 14px; color: var(--muted); flex-wrap: wrap; }
+  .al { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 7px; font-weight: 700; font-size: 16px; }
+  .al.risk { background: var(--risk); color: #000; }
+  .al.norm { background: var(--card-2); color: var(--safe); border: 1px solid var(--line); }
+  .list { display: flex; flex-direction: column; gap: 8px; }
+  .snp { display: grid; grid-template-columns: 64px 1fr 1fr 44px; align-items: center; gap: 8px; width: 100%;
+         background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px;
+         color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+  .snp:disabled { cursor: default; }
+  .snp:not(:disabled):active { transform: scale(.985); }
+  .snp:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .snp.todo { border-color: var(--gold); }
+  .name { font-weight: 700; font-size: 16px; }
+  .name small { display: block; color: var(--muted); font-weight: 400; font-size: 12px; margin-top: 2px; }
+  .parent { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .pair { display: inline-flex; gap: 4px; }
+  .pair .al { transition: opacity .15s, transform .15s; }
+  .pair .al.dim { opacity: .25; transform: scale(.85); }
+  .pair .al.pick { box-shadow: 0 0 0 2px var(--text); }
+  .score { font-size: 26px; font-weight: 700; text-align: center; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .score.done { color: var(--gold); }
+  .tap { grid-column: 2 / 4; color: var(--gold); font-size: 15px; }
+  .result { background: var(--card); border: 1px solid var(--gold); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+  .result h2 { margin: 0; font-size: 18px; color: var(--muted); font-weight: 400; }
+  .code { font-family: Menlo, Consolas, "Courier New", monospace; font-size: 34px; letter-spacing: .12em; color: var(--gold);
+          font-weight: 700; word-break: break-all; font-variant-numeric: tabular-nums; }
+  .count { font-size: 16px; color: var(--text); }
+  .count b { color: var(--risk); font-size: 22px; }
+  .btn { display: block; text-align: center; background: var(--gold); color: #000; border: 0; border-radius: 10px;
+         padding: 14px; font: inherit; font-size: 18px; font-weight: 700; text-decoration: none; cursor: pointer; }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); font-weight: 400; font-size: 16px; }
+  .btn:focus-visible { outline: 3px solid var(--risk); outline-offset: 2px; }
+  .hint { color: var(--muted); font-size: 14px; line-height: 1.6; margin: 0; }
+  .progress { color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; }
+  @media (prefers-reduced-motion: reduce) { .pair .al { transition: none; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1>抽出你的 10 個基因</h1>
+  <p class="lead">爸爸和媽媽在每個 SNP 都是 <b>Rr</b>。按一下 SNP，就從爸爸的兩個裡隨機給你一個、媽媽的兩個裡隨機給你一個。拿到幾個 <b>R</b>（風險版本），那一格就是幾分。</p>
+  <div class="legend">
+    <span><span class="al risk">R</span> 風險版本</span>
+    <span><span class="al norm">r</span> 一般版本</span>
+  </div>
+  <div class="progress" id="progress">還有 10 個 SNP 沒抽</div>
+  <div class="list" id="list"></div>
+
+  <section class="result" id="result" hidden>
+    <h2>你的基因密碼</h2>
+    <div class="code" id="code"></div>
+    <div class="count">你一共帶了 <b id="total"></b> 個風險版本（滿分 20）</div>
+    <a class="btn" id="formLink" href="#" target="_blank" rel="noopener" hidden>送出到全班的表單</a>
+    <button class="btn ghost" id="copyBtn" type="button">複製密碼</button>
+    <p class="hint" id="formHint">把這 10 位數填進老師給的表單，就會出現在台上的直方圖。</p>
+  </section>
+</div>
+
+<script>
+  // 老師的 Google 表單「預先填入」連結：預填答案用 0000000000，這裡會換成學生的密碼。
+  // 例：https://docs.google.com/forms/d/e/XXXX/viewform?usp=pp_url&entry.123456789=0000000000
+  const FORM_PREFILL = "https://docs.google.com/forms/d/e/1FAIpQLSeYcOhtP9xfOjIPXXJjdrHTfmfLe0-4I14NMQC0dFNKmTfHpQ/viewform?usp=pp_url&entry.622311653=0000000000";
+
+  const N = 10;
+  const KEY = "gene-draw.v1";
+  let draws = load();   // 每個 SNP：null 或 {dad: 0|1, mom: 0|1}；0 = 拿到 R，1 = 拿到 r
+
+  function load() {
+    try {
+      const v = JSON.parse(localStorage.getItem(KEY));
+      if (Array.isArray(v) && v.length === N) return v;
+    } catch (e) {}
+    return Array(N).fill(null);
+  }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(draws)); } catch (e) {} }
+  function coin() {
+    try { return crypto.getRandomValues(new Uint8Array(1))[0] & 1; } catch (e) { return Math.random() < .5 ? 1 : 0; }
+  }
+  const scoreOf = d => (d.dad === 0) + (d.mom === 0);
+
+  function pairHTML(pick) {
+    return [0, 1].map(i => {
+      const cls = i === 0 ? "risk" : "norm";
+      const state = pick == null ? "" : (pick === i ? " pick" : " dim");
+      return `<span class="al ${cls}${state}">${i === 0 ? "R" : "r"}</span>`;
+    }).join("");
+  }
+  function rowHTML(i) {
+    const d = draws[i];
+    const done = !!d;
+    return `
+      <span class="name">SNP ${i + 1}<small>Rr × Rr</small></span>
+      ${done ? `
+        <span class="parent">爸爸 <span class="pair">${pairHTML(d.dad)}</span></span>
+        <span class="parent">媽媽 <span class="pair">${pairHTML(d.mom)}</span></span>
+        <span class="score done">${scoreOf(d)}</span>` : `
+        <span class="tap">按一下抽</span>
+        <span class="score">?</span>`}`;
+  }
+  function render() {
+    const list = document.getElementById("list");
+    list.innerHTML = "";
+    draws.forEach((d, i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "snp" + (d ? "" : " todo");
+      b.id = "snp" + (i + 1);
+      b.disabled = !!d;
+      b.setAttribute("aria-label", d ? `SNP ${i + 1}：${scoreOf(d)} 分` : `抽 SNP ${i + 1}`);
+      b.innerHTML = rowHTML(i);
+      b.addEventListener("click", () => draw(i, b));
+      list.appendChild(b);
+    });
+    const left = draws.filter(d => !d).length;
+    document.getElementById("progress").textContent = left ? `還有 ${left} 個 SNP 沒抽` : "10 個都抽完了";
+    if (!left) showResult();
+  }
+  function draw(i, btn) {
+    if (draws[i]) return;
+    const result = { dad: coin(), mom: coin() };
+    btn.disabled = true;
+    btn.classList.remove("todo");
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) { draws[i] = result; save(); render(); return; }
+    // 兩邊同時「搖」幾下，再停在抽到的那個
+    let t = 0;
+    btn.innerHTML = `
+      <span class="name">SNP ${i + 1}<small>抽籤中…</small></span>
+      <span class="parent">爸爸 <span class="pair" data-p="dad"></span></span>
+      <span class="parent">媽媽 <span class="pair" data-p="mom"></span></span>
+      <span class="score">…</span>`;
+    const dadEl = btn.querySelector('[data-p="dad"]'), momEl = btn.querySelector('[data-p="mom"]');
+    const tick = () => {
+      dadEl.innerHTML = pairHTML(t % 2);
+      momEl.innerHTML = pairHTML((t + 1) % 2);
+      t++;
+      if (t < 8) setTimeout(tick, 70 + t * 12);
+      else { draws[i] = result; save(); render(); }
+    };
+    tick();
+  }
+  function showResult() {
+    const code = draws.map(scoreOf).join("");
+    const total = draws.reduce((a, d) => a + scoreOf(d), 0);
+    document.getElementById("result").hidden = false;
+    document.getElementById("code").textContent = code;
+    document.getElementById("total").textContent = total;
+    const link = document.getElementById("formLink");
+    if (FORM_PREFILL && FORM_PREFILL.includes("0000000000")) {
+      link.href = FORM_PREFILL.replace("0000000000", code);
+      link.hidden = false;
+      document.getElementById("formHint").textContent = "按上面的按鈕，表單會自動填好你的密碼，再按「提交」就完成。";
+    }
+  }
+  document.getElementById("copyBtn").addEventListener("click", async () => {
+    const code = document.getElementById("code").textContent;
+    const btn = document.getElementById("copyBtn");
+    try { await navigator.clipboard.writeText(code); btn.textContent = "已複製"; }
+    catch (e) {
+      const r = document.createRange(); r.selectNodeContents(document.getElementById("code"));
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+      btn.textContent = "已選取，請長按複製";
+    }
+  });
+  render();
+</script>
+
+</body>
+</html>

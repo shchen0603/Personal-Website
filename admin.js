@@ -469,7 +469,8 @@ if (adminApp) {
       "speaking-media.html",
       "activities.html",
       "blog.html",
-      "contact.html"
+      "contact.html",
+      "talks/2026-12-ckhs/index.html"
     ];
 
     adminNormalizeList(content.blogPosts)

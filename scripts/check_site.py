@@ -24,6 +24,7 @@ BASE_PAGES = [
     "activities.html",
     "blog.html",
     "contact.html",
+    "talks/2026-12-ckhs/index.html",
 ]
 BLOG_INDEX_FALLBACK_START = "<!-- BLOG INDEX STATIC FALLBACK START -->"
 BLOG_INDEX_FALLBACK_END = "<!-- BLOG INDEX STATIC FALLBACK END -->"
@@ -71,6 +72,7 @@ INTENTIONAL_NOINDEX_PAGES = {
     "admin.html",
     "post.html",
     "posts/_template.html",
+    "talks/2026-12-ckhs/gene-draw.html",
 }
 PLACEHOLDER_BLOG_TITLES = {"新文章", "New post", "Untitled post"}
 ALLOWED_RAW_ASSETS = {"assets/cardiovascular-epidemiology-hero-og.jpg"}

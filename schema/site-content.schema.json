@@ -103,6 +103,7 @@
         "venue": { "type": "string" },
         "doi": { "type": "string" },
         "summary": { "type": "string" },
+        "explainer": { "type": "string" },
         "firstAuthor": { "type": "boolean" },
         "correspondingAuthor": { "type": "boolean" },
         "featured": { "type": "boolean" },

@@ -456,7 +456,11 @@ if (adminApp) {
   const BLOG_FEED_DESCRIPTION = "心血管流行病學、臨床醫學、公共衛生與研究方法之間的筆記與觀察。";
   const buildBlogFeedLinkTag = (href) =>
     `<link rel="alternate" type="application/rss+xml" title="陳思翰 Szu-Han Chen Blog RSS" href="${href}">`;
-  const POST_ASSET_VERSION = "20261020-series-nav";
+  const POST_ASSET_VERSION = "20261117-article-end";
+  const DEFAULT_OG_IMAGE = "assets/cardiovascular-epidemiology-hero-og.jpg";
+  const ARTICLE_LICENSE_URL = "https://creativecommons.org/licenses/by-nc/4.0/deed.zh-hant";
+  const AUTHOR_LINKEDIN_URL = "https://www.linkedin.com/in/szu-han-chen-med/";
+  const RELATED_POST_LIMIT = 3;
 
   const buildSitemapXml = (content) => {
     const today = new Date().toISOString().slice(0, 10);
@@ -1073,6 +1077,89 @@ if (adminApp) {
       : [];
   };
 
+  // The helpers below mirror scripts/check_site.py byte for byte: the check
+  // script regenerates every post page and fails the push if they differ.
+  const getSeoTitle = (title = "") => {
+    const value = String(title);
+    const index = value.indexOf(" | ");
+
+    if (index === -1) {
+      return value;
+    }
+
+    const prefix = value.slice(0, index).trim();
+    const topic = value.slice(index + 3).trim();
+
+    return prefix && topic ? `${topic}｜${prefix}` : value;
+  };
+
+  const getFirstBodyImage = (post) => {
+    for (const part of adminNormalizeList(post.body)) {
+      const lines = String(part || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
+
+      for (const line of lines) {
+        const image = line.trim().match(MARKDOWN_IMAGE_PATTERN);
+
+        if (image && isSafeMarkdownImageSrc(image[2])) {
+          return image[2];
+        }
+      }
+    }
+
+    return "";
+  };
+
+  const getPostOgImage = (post) => {
+    const image = post.image || getFirstBodyImage(post);
+
+    return image ? getAbsoluteAssetUrl(image) : `${SITE_ORIGIN}/${DEFAULT_OG_IMAGE}`;
+  };
+
+  const postHasMath = (post) =>
+    adminNormalizeList(post.body).some((part) =>
+      ["$$", "\\(", "\\["].some((marker) => String(part).includes(marker)));
+
+  const getPostTagSlugs = (post) =>
+    adminNormalizeList(post.tags)
+      .map((tag) => (tag && tag.slug) || "")
+      .filter(Boolean);
+
+  const getRelatedPosts = (post, content) => {
+    const seriesSlug = (post.series && post.series.slug) || "";
+    const ownTags = getPostTagSlugs(post);
+    const sharesTag = (item) => getPostTagSlugs(item).some((slug) => ownTags.includes(slug));
+    const candidates = getPublishedBlogPosts(content)
+      .filter((item) => item.id !== post.id
+        && !(seriesSlug && item.series && item.series.slug === seriesSlug))
+      .sort((a, b) => compareByDateThenId(b, a));
+
+    return [
+      ...candidates.filter(sharesTag),
+      ...candidates.filter((item) => !sharesTag(item))
+    ].slice(0, RELATED_POST_LIMIT);
+  };
+
+  const buildArticleEndHtml = (post, content) => {
+    const canonicalUrl = `${SITE_ORIGIN}/${getStaticBlogPath(post)}`;
+    const shareUrl = encodeURIComponent(canonicalUrl);
+    const shareLinks = [
+      ["LINE", `https://social-plugins.line.me/lineit/share?url=${shareUrl}`],
+      ["Facebook", `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`],
+      ["Threads", `https://www.threads.net/intent/post?url=${shareUrl}`],
+      ["LinkedIn", `https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`]
+    ].map(([label, href]) =>
+      `<a class="share-button" href="${escapeHtmlContent(href)}" target="_blank" rel="noopener noreferrer">${label}</a>`).join("");
+    const shareHtml = `<div class="article-share"><p class="article-end-label"><span data-lang="zh">覺得有幫助？分享給需要的人</span><span data-lang="en">Share this article</span></p><div class="article-share-links">${shareLinks}<button class="share-button" type="button" data-copy-link="${escapeHtmlContent(canonicalUrl)}"><span data-lang="zh">複製連結</span><span data-lang="en">Copy link</span></button></div></div>`;
+    const authorHtml = `<div class="article-author"><img class="article-author-photo" src="../assets/portrait-sm.webp" alt="陳思翰 Szu-Han Chen" width="600" height="800" loading="lazy" decoding="async"><div class="article-author-text"><p class="article-end-label"><span data-lang="zh">作者</span><span data-lang="en">About the author</span></p><p class="article-author-name">陳思翰 Szu-Han Chen</p><p class="article-author-bio"><span data-lang="zh">國立陽明交通大學醫學系學生、哈佛大學陳曾熙公共衛生學院研究合作者，研究心血管與營養流行病學，並在這裡用證據思維解讀醫學研究與健康新聞。</span><span data-lang="en">MD candidate at National Yang Ming Chiao Tung University and research collaborator at Harvard T.H. Chan School of Public Health, working in cardiovascular and nutritional epidemiology.</span></p><p class="article-author-links"><a href="../about.html"><span data-lang="zh">關於我</span><span data-lang="en">About</span></a><a href="../blog.html"><span data-lang="zh">所有文章</span><span data-lang="en">All posts</span></a><a href="../${BLOG_FEED_PATH}"><span data-lang="zh">RSS 訂閱</span><span data-lang="en">RSS feed</span></a><a href="${AUTHOR_LINKEDIN_URL}" rel="noreferrer">LinkedIn</a></p></div></div>`;
+    const related = getRelatedPosts(post, content);
+    const relatedHtml = related.length
+      ? `<nav class="article-related" aria-label="延伸閱讀"><p class="article-end-label"><span data-lang="zh">延伸閱讀</span><span data-lang="en">Keep reading</span></p><ul>${related.map((item) => `<li><a href="../${escapeHtmlContent(getStaticBlogPath(item))}">${escapeHtmlContent(item.title || "")}</a></li>`).join("")}</ul></nav>`
+      : "";
+    const licenseHtml = `<p class="article-license"><span data-lang="zh">本文採 <a href="${ARTICLE_LICENSE_URL}" rel="license noreferrer">CC BY-NC 4.0</a> 授權：歡迎註明作者與原文連結後，用於教學、讀書會與非商業分享。文中引用自其他來源的圖表，著作權仍屬原權利人。</span><span data-lang="en">Licensed under <a href="${ARTICLE_LICENSE_URL}" rel="license noreferrer">CC BY-NC 4.0</a>: free to reuse for teaching and non-commercial sharing with attribution and a link back. Figures quoted from other sources remain the property of their rights holders.</span></p>`;
+
+    return `<section class="article-end" aria-label="分享、作者與延伸閱讀">${shareHtml}${authorHtml}${relatedHtml}${licenseHtml}</section>`;
+  };
+
   const buildBlogPostHtml = (post, content = state.content) => {
     if (!post || !post.id) {
       return "";
@@ -1096,11 +1183,10 @@ if (adminApp) {
     };
 
     const title = post.title || "Blog Post";
+    const pageTitle = `${getSeoTitle(title)} | 陳思翰 Szu-Han Chen`;
     const excerpt = post.excerpt || "Research notes and essays on cardiovascular epidemiology, medicine, and public health.";
     const canonicalUrl = `${SITE_ORIGIN}/${getStaticBlogPath(post)}`;
-    const ogImage = post.image
-      ? getAbsoluteAssetUrl(post.image)
-      : `${SITE_ORIGIN}/assets/cardiovascular-epidemiology-hero-og.jpg`;
+    const ogImage = getPostOgImage(post);
     const tags = adminNormalizeList(post.tags)
       .map((tag) => (tag && (tag.label || tag.slug)) || "")
       .filter(Boolean);
@@ -1110,6 +1196,14 @@ if (adminApp) {
     const taxonomyLabels = [series, ...tags].filter(Boolean);
     const tagsHtml = renderStaticArticleTaxonomy(tags, series, (post.series && post.series.slug) || "");
     const footerHtml = tagsHtml + buildSeriesNavHtml(post, content);
+    const endHtml = buildArticleEndHtml(post, content);
+    const hasMath = postHasMath(post);
+    const katexCss = hasMath
+      ? `\n    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">`
+      : "";
+    const katexJs = hasMath
+      ? `\n    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>\n    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>`
+      : "";
     const heroImage = post.image
       ? `<figure class="article-cover-image"><img class="article-image" src="${escapeHtmlContent(getNestedAssetPath(post.image))}" alt="${escapeHtmlContent(post.imageAlt || title)}" loading="lazy" decoding="async"></figure>`
       : "";
@@ -1135,7 +1229,9 @@ if (adminApp) {
         "name": "Szu-Han Chen",
         "url": `${SITE_ORIGIN}/`
       },
-      "keywords": taxonomyLabels.join(", ")
+      "keywords": taxonomyLabels.join(", "),
+      "inLanguage": "zh-Hant",
+      "license": ARTICLE_LICENSE_URL
     };
 
     if (series) {
@@ -1149,20 +1245,23 @@ if (adminApp) {
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>${escapeHtmlContent(title)} | 陳思翰 Szu-Han Chen</title>
+    <title>${escapeHtmlContent(pageTitle)}</title>
     <meta name="description" content="${escapeHtmlContent(excerpt)}">
     <link rel="canonical" href="${escapeHtmlContent(canonicalUrl)}">
-    <meta property="og:title" content="${escapeHtmlContent(title)} | 陳思翰 Szu-Han Chen">
+    <meta property="og:title" content="${escapeHtmlContent(pageTitle)}">
     <meta property="og:description" content="${escapeHtmlContent(excerpt)}">
     <meta property="og:type" content="article">
     <meta property="og:url" content="${escapeHtmlContent(canonicalUrl)}">
     <meta property="og:image" content="${escapeHtmlContent(ogImage)}">
+    <meta property="og:site_name" content="陳思翰 Szu-Han Chen">
+    <meta property="og:locale" content="zh_TW">
+    <meta property="article:published_time" content="${escapeHtmlContent(post.date || "")}">
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="${escapeHtmlContent(ogImage)}">
     <link rel="icon" href="../favicon.svg" type="image/svg+xml">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&amp;family=Noto+Sans+TC:wght@400;700&amp;display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&amp;family=Noto+Sans+TC:wght@400;700&amp;display=swap" rel="stylesheet">${katexCss}
     <link rel="stylesheet" href="../styles.css?v=${POST_ASSET_VERSION}">
     ${buildBlogFeedLinkTag(`../${BLOG_FEED_PATH}`)}
     <script type="application/ld+json">${jsonLd}</script>
@@ -1190,6 +1289,7 @@ if (adminApp) {
           ${body}
         </div>
         ${footerHtml ? `<footer class="article-footer">${footerHtml}</footer>` : ""}
+        ${endHtml}
       </article>
     </main>
 
@@ -1197,9 +1297,7 @@ if (adminApp) {
 
     <button class="back-to-top" data-back-to-top aria-label="回到頂部" title="回到頂部">↑</button>
 
-    <script src="../site-config.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+    <script src="../site-config.js"></script>${katexJs}
     <script src="../script.js?v=${POST_ASSET_VERSION}"></script>
   </body>
 </html>
@@ -3388,6 +3486,7 @@ if (adminApp) {
         ${textarea("authors", "作者", item.authors, 3)}
         ${textarea("venue", "期刊 citation", item.venue, 3)}
         ${textarea("summary", "Take-home（一句話研究結論，可選填）", item.summary || "", 3)}
+        ${field("explainer", "中文解讀文章路徑（例：posts/2026-10-23-salt-sensitivity.html，可選填）", item.explainer || "")}
         ${publicationTagField(item.tags, { showButton: true })}
         <div class="admin-check-row">
           ${checkbox("firstAuthor", "第一作者", item.firstAuthor)}

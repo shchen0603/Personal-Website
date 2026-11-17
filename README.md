@@ -49,7 +49,7 @@ python3 scripts/check_site.py
 
 看到 `Site check passed` 再 commit / push。
 
-`--fix` 會重新產生 sitemap、Blog 與 Activity 靜態頁，以及 Publications、Honors、About、Speaking &amp; Media 的 crawler-visible 區塊與結構化資料，避免搜尋引擎或訪客看到舊內容。
+`--fix` 會重新產生 sitemap、Blog 與 Activity 靜態頁、首頁的「最新文章」與統計數字，以及 Publications、Honors、About、Speaking &amp; Media 的 crawler-visible 區塊與結構化資料，避免搜尋引擎或訪客看到舊內容。
 
 ### 4. 本機預覽
 
@@ -109,6 +109,21 @@ posts/<id>.html
 ```
 
 文章發布後若改 `id`，舊網址會失效，Google 也可能看到重複或消失的頁面。真的要改網址時，記得保留舊頁的 noindex redirect。
+
+### 文章頁會自動產生的東西
+
+每篇文章頁（`posts/<id>.html`）除了內文，產生器還會自動加上：
+
+- **文章結尾區塊**：分享按鈕（LINE、Facebook、Threads、LinkedIn、複製連結）、作者卡、三篇延伸閱讀、CC BY-NC 4.0 授權聲明。延伸閱讀優先挑同標籤的最新文章，同系列的文章已有上一篇／下一篇，不會重複出現。
+- **分享預覽圖**：有設主要圖片就用主要圖片；沒設的話自動取內文第一張圖；都沒有才用首頁通用圖。想要漂亮的預覽，建議每篇放一張 1200×630 左右的橫式圖當主要圖片。
+- **搜尋標題**：標題寫成「系列名 06 | 主題」時，瀏覽器分頁與搜尋結果的標題會自動變成「主題｜系列名 06」，讓關鍵字排在前面；文章頁上看到的標題不變。
+- **數學式**：內文有用到 `$$`、`\(`、`\[` 才會載入 KaTeX。
+
+這些邏輯同時寫在 `scripts/check_site.py` 與 `admin.js`，兩邊輸出必須逐字相同；改其中一邊時記得同步另一邊，並更新兩邊的 `POST_ASSET_VERSION`。
+
+### 著作連到解讀文章
+
+在 `data/site-content.json` 的著作條目加上 `"explainer": "posts/<id>.html"`（或在 admin 的著作編輯畫面填「中文解讀文章路徑」），Publications 頁就會在該篇論文下方顯示「中文白話解讀」連結。
 
 ### 草稿與發布
 

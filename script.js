@@ -84,7 +84,10 @@ const renderSiteChrome = () => {
           "國立陽明交通大學醫學系學生，哈佛大學陳曾熙公共衛生學院研究合作者；研究聚焦心臟衰竭、高血壓與心血管代謝風險的交會。",
           "MD candidate at National Yang Ming Chiao Tung University and research collaborator at Harvard T.H. Chan School of Public Health. Cardiovascular and nutritional epidemiology researcher working at the intersection of heart failure, hypertension, and cardiometabolic risk."
         )}</p>
-        <p>© <span data-year></span> All rights reserved.</p>
+        <p>© <span data-year></span> 陳思翰 Szu-Han Chen. ${bi(
+          '網誌文章採 <a href="https://creativecommons.org/licenses/by-nc/4.0/deed.zh-hant" rel="license noreferrer">CC BY-NC 4.0</a> 授權，歡迎註明出處後用於教學；其餘內容保留所有權利。',
+          'Blog posts are licensed under <a href="https://creativecommons.org/licenses/by-nc/4.0/" rel="license noreferrer">CC BY-NC 4.0</a>; all other content, all rights reserved.'
+        )}</p>
       </div>
       <nav class="footer-links" aria-label="Footer navigation">
         ${linksHtml}
@@ -872,6 +875,9 @@ const renderPublicationItem = (publication, options = {}) => {
   const doiMarkup = doiText
     ? `<p class="publication-doi">DOI: ${escapeHTML(doiText)}</p>`
     : "";
+  const explainer = publication.explainer
+    ? `<p class="publication-explainer"><a href="${escapeHTML(publication.explainer)}">${bi("中文白話解讀", "Plain-language explainer (in Chinese)")}</a></p>`
+    : "";
 
   return `
     <article class="publication-item${options.cta ? " publication-cta" : ""}"${itemAttributes}>
@@ -883,6 +889,7 @@ const renderPublicationItem = (publication, options = {}) => {
         ${publication.venue ? `<p class="publication-venue">${escapeHTML(publication.venue)}</p>` : ""}
         ${doiMarkup}
         ${summary}
+        ${explainer}
         ${tagMarkup}
       </div>
     </article>
@@ -1641,6 +1648,7 @@ const renderContent = (content) => {
   });
   const stats = {
     publications: publications.length,
+    journalArticles: publications.filter((publication) => getPublicationCategory(publication).slug === "journal-publications").length,
     awards: awardHonors.length,
     appearances: talkHonors.length + presentationHonors.length + posterHonors.length,
     activities: activities.length
@@ -2253,4 +2261,50 @@ document.querySelectorAll("[data-youtube-id]").forEach((facade) => {
     facade.replaceWith(frame);
     iframe.focus();
   }, { once: true });
+});
+
+// ===== Article share: copy link =====
+document.addEventListener("click", async (event) => {
+  const button = event.target.closest?.("[data-copy-link]");
+
+  if (!button) {
+    return;
+  }
+
+  const url = button.dataset.copyLink || window.location.href;
+  let copied = false;
+
+  try {
+    await navigator.clipboard.writeText(url);
+    copied = true;
+  } catch (error) {
+    const input = document.createElement("textarea");
+
+    input.value = url;
+    input.setAttribute("readonly", "");
+    input.style.position = "fixed";
+    input.style.opacity = "0";
+    document.body.append(input);
+    input.select();
+
+    try {
+      copied = document.execCommand("copy");
+    } catch (fallbackError) {
+      copied = false;
+    }
+
+    input.remove();
+  }
+
+  if (!button.dataset.copyLabel) {
+    button.dataset.copyLabel = button.innerHTML;
+  }
+
+  button.innerHTML = copied
+    ? bi("已複製連結", "Link copied")
+    : bi("請手動複製網址", "Copy the URL manually");
+  window.clearTimeout(Number(button.dataset.copyTimer));
+  button.dataset.copyTimer = String(window.setTimeout(() => {
+    button.innerHTML = button.dataset.copyLabel;
+  }, 2200));
 });

@@ -32,7 +32,14 @@ BLOG_FEED_PATH = "feed.xml"
 BLOG_FEED_TITLE = "陳思翰 Szu-Han Chen｜醫學證據與健康新聞解讀 Blog"
 BLOG_FEED_DESCRIPTION = "心血管流行病學、臨床醫學、公共衛生與研究方法之間的筆記與觀察。"
 BLOG_FEED_LINK_TAG = '<link rel="alternate" type="application/rss+xml" title="陳思翰 Szu-Han Chen Blog RSS" href="{href}">'
-POST_ASSET_VERSION = "20261020-series-nav"
+POST_ASSET_VERSION = "20261117-article-end"
+DEFAULT_OG_IMAGE = "assets/cardiovascular-epidemiology-hero-og.jpg"
+ARTICLE_LICENSE_URL = "https://creativecommons.org/licenses/by-nc/4.0/deed.zh-hant"
+AUTHOR_LINKEDIN_URL = "https://www.linkedin.com/in/szu-han-chen-med/"
+RELATED_POST_LIMIT = 3
+HOME_POST_LIMIT = 2
+HOME_POSTS_STATIC_START = "<!-- HOME POSTS STATIC START -->"
+HOME_POSTS_STATIC_END = "<!-- HOME POSTS STATIC END -->"
 HOME_JSON_LD_START = "<!-- HOME JSON-LD START -->"
 HOME_JSON_LD_END = "<!-- HOME JSON-LD END -->"
 HOME_HIGHLIGHTS_STATIC_START = "<!-- HOME HIGHLIGHTS STATIC START -->"
@@ -68,6 +75,7 @@ PUBLICATION_CATEGORY_OPTIONS = [
 ]
 PUBLICATION_SELF_NAME_PATTERN = re.compile(r"\b(Szu[- ]?Han\s+Chen)\b", re.I)
 INTENTIONAL_NOINDEX_PAGES = {
+    "404.html",
     "activity.html",
     "admin.html",
     "post.html",
@@ -601,17 +609,152 @@ def series_nav_html(post: dict, posts: list[dict]) -> str:
     )
 
 
+def seo_title(title: str) -> str:
+    # Series posts are titled "<series> NN | <topic>". Search results truncate
+    # long titles, so the browser/social title leads with the topic instead.
+    prefix, separator, topic = str(title).partition(" | ")
+    prefix, topic = prefix.strip(), topic.strip()
+    return f"{topic}｜{prefix}" if separator and prefix and topic else str(title)
+
+
+def post_first_body_image(post: dict) -> str:
+    for part in as_list(post.get("body")):
+        for source in markdown_image_sources(part):
+            if is_safe_markdown_image_src(source):
+                return source
+    return ""
+
+
+def post_og_image(post: dict) -> str:
+    image = post.get("image") or post_first_body_image(post)
+    return absolute_asset_url(image) if image else site_url(DEFAULT_OG_IMAGE)
+
+
+def post_has_math(post: dict) -> bool:
+    return any(
+        marker in str(part)
+        for part in as_list(post.get("body"))
+        for marker in ("$$", "\\(", "\\[")
+    )
+
+
+def post_tag_slugs(post: dict) -> set[str]:
+    return {
+        tag.get("slug")
+        for tag in as_list(post.get("tags"))
+        if isinstance(tag, dict) and tag.get("slug")
+    }
+
+
+def related_posts(post: dict, posts: list[dict]) -> list[dict]:
+    # Series neighbours already have their own prev/next navigation, so the
+    # related list points readers (and crawlers) at the rest of the blog:
+    # newest posts sharing a tag first, then the newest remaining posts.
+    series_slug = post_series_slug(post)
+    own_tags = post_tag_slugs(post)
+    candidates = sorted(
+        (
+            item for item in posts
+            if item.get("id") != post.get("id")
+            and not (series_slug and post_series_slug(item) == series_slug)
+        ),
+        key=lambda item: (item.get("date") or "", item.get("id") or ""),
+        reverse=True,
+    )
+    same_topic = [item for item in candidates if post_tag_slugs(item) & own_tags]
+    others = [item for item in candidates if not (post_tag_slugs(item) & own_tags)]
+    return (same_topic + others)[:RELATED_POST_LIMIT]
+
+
+def article_end_html(post: dict, posts: list[dict]) -> str:
+    canonical = site_url(blog_path(post))
+    share_url = quote(canonical, safe="")
+    share_targets = [
+        ("LINE", f"https://social-plugins.line.me/lineit/share?url={share_url}"),
+        ("Facebook", f"https://www.facebook.com/sharer/sharer.php?u={share_url}"),
+        ("Threads", f"https://www.threads.net/intent/post?url={share_url}"),
+        ("LinkedIn", f"https://www.linkedin.com/sharing/share-offsite/?url={share_url}"),
+    ]
+    share_links = "".join(
+        f'<a class="share-button" href="{escape(href)}" target="_blank" rel="noopener noreferrer">{label}</a>'
+        for label, href in share_targets
+    )
+    share_html = (
+        '<div class="article-share">'
+        '<p class="article-end-label"><span data-lang="zh">覺得有幫助？分享給需要的人</span><span data-lang="en">Share this article</span></p>'
+        '<div class="article-share-links">'
+        f'{share_links}'
+        f'<button class="share-button" type="button" data-copy-link="{escape(canonical)}">'
+        '<span data-lang="zh">複製連結</span><span data-lang="en">Copy link</span></button>'
+        '</div>'
+        '</div>'
+    )
+    author_html = (
+        '<div class="article-author">'
+        '<img class="article-author-photo" src="../assets/portrait-sm.webp" alt="陳思翰 Szu-Han Chen" width="600" height="800" loading="lazy" decoding="async">'
+        '<div class="article-author-text">'
+        '<p class="article-end-label"><span data-lang="zh">作者</span><span data-lang="en">About the author</span></p>'
+        '<p class="article-author-name">陳思翰 Szu-Han Chen</p>'
+        '<p class="article-author-bio"><span data-lang="zh">國立陽明交通大學醫學系學生、哈佛大學陳曾熙公共衛生學院研究合作者，研究心血管與營養流行病學，並在這裡用證據思維解讀醫學研究與健康新聞。</span>'
+        '<span data-lang="en">MD candidate at National Yang Ming Chiao Tung University and research collaborator at Harvard T.H. Chan School of Public Health, working in cardiovascular and nutritional epidemiology.</span></p>'
+        '<p class="article-author-links">'
+        '<a href="../about.html"><span data-lang="zh">關於我</span><span data-lang="en">About</span></a>'
+        '<a href="../blog.html"><span data-lang="zh">所有文章</span><span data-lang="en">All posts</span></a>'
+        f'<a href="../{BLOG_FEED_PATH}"><span data-lang="zh">RSS 訂閱</span><span data-lang="en">RSS feed</span></a>'
+        f'<a href="{AUTHOR_LINKEDIN_URL}" rel="noreferrer">LinkedIn</a>'
+        '</p>'
+        '</div>'
+        '</div>'
+    )
+    related = related_posts(post, posts)
+    related_html = (
+        '<nav class="article-related" aria-label="延伸閱讀">'
+        '<p class="article-end-label"><span data-lang="zh">延伸閱讀</span><span data-lang="en">Keep reading</span></p>'
+        '<ul>'
+        + "".join(
+            f'<li><a href="../{escape(blog_path(item))}">{escape(item.get("title") or "")}</a></li>'
+            for item in related
+        )
+        + '</ul>'
+        '</nav>'
+        if related else ""
+    )
+    license_html = (
+        '<p class="article-license">'
+        f'<span data-lang="zh">本文採 <a href="{ARTICLE_LICENSE_URL}" rel="license noreferrer">CC BY-NC 4.0</a> 授權：歡迎註明作者與原文連結後，用於教學、讀書會與非商業分享。文中引用自其他來源的圖表，著作權仍屬原權利人。</span>'
+        f'<span data-lang="en">Licensed under <a href="{ARTICLE_LICENSE_URL}" rel="license noreferrer">CC BY-NC 4.0</a>: free to reuse for teaching and non-commercial sharing with attribution and a link back. Figures quoted from other sources remain the property of their rights holders.</span>'
+        '</p>'
+    )
+    return (
+        '<section class="article-end" aria-label="分享、作者與延伸閱讀">'
+        f'{share_html}{author_html}{related_html}{license_html}'
+        '</section>'
+    )
+
+
 def build_blog_post_html(post: dict, posts: list[dict] | None = None) -> str:
     title = post.get("title") or "Blog Post"
+    page_title = f"{seo_title(title)} | 陳思翰 Szu-Han Chen"
     excerpt = post.get("excerpt") or "Research notes and essays on cardiovascular epidemiology, medicine, and public health."
     canonical = site_url(blog_path(post))
-    og_image = absolute_asset_url(post["image"]) if post.get("image") else site_url("assets/cardiovascular-epidemiology-hero-og.jpg")
+    og_image = post_og_image(post)
     tags = [tag.get("label") or tag.get("slug") for tag in as_list(post.get("tags")) if isinstance(tag, dict) and (tag.get("label") or tag.get("slug"))]
     series = post.get("series") if isinstance(post.get("series"), dict) else {}
     series_label = series.get("label") or series.get("slug") or ""
     taxonomy_labels = [label for label in [series_label, *tags] if label]
     tags_html = article_taxonomy_html(tags, series_label, series.get("slug") or "")
     footer_html = tags_html + series_nav_html(post, posts or [])
+    end_html = article_end_html(post, posts or [])
+    has_math = post_has_math(post)
+    katex_css = (
+        '\n    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">'
+        if has_math else ""
+    )
+    katex_js = (
+        '\n    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>'
+        '\n    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>'
+        if has_math else ""
+    )
     hero_image = (
         f'<figure class="article-cover-image"><img class="article-image" src="{escape(nested_asset(post["image"]))}" alt="{escape(post.get("imageAlt") or title)}" loading="lazy" decoding="async"></figure>'
         if post.get("image") else ""
@@ -629,6 +772,8 @@ def build_blog_post_html(post: dict, posts: list[dict] | None = None) -> str:
         "author": {"@type": "Person", "@id": f"{SITE_ORIGIN}/#person", "name": "Szu-Han Chen", "url": f"{SITE_ORIGIN}/"},
         "publisher": {"@type": "Person", "@id": f"{SITE_ORIGIN}/#person", "name": "Szu-Han Chen", "url": f"{SITE_ORIGIN}/"},
         "keywords": ", ".join(taxonomy_labels),
+        "inLanguage": "zh-Hant",
+        "license": ARTICLE_LICENSE_URL,
     }
     if series_label:
         json_ld_data["articleSection"] = series_label
@@ -639,20 +784,23 @@ def build_blog_post_html(post: dict, posts: list[dict] | None = None) -> str:
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{escape(title)} | 陳思翰 Szu-Han Chen</title>
+    <title>{escape(page_title)}</title>
     <meta name="description" content="{escape(excerpt)}">
     <link rel="canonical" href="{escape(canonical)}">
-    <meta property="og:title" content="{escape(title)} | 陳思翰 Szu-Han Chen">
+    <meta property="og:title" content="{escape(page_title)}">
     <meta property="og:description" content="{escape(excerpt)}">
     <meta property="og:type" content="article">
     <meta property="og:url" content="{escape(canonical)}">
     <meta property="og:image" content="{escape(og_image)}">
+    <meta property="og:site_name" content="陳思翰 Szu-Han Chen">
+    <meta property="og:locale" content="zh_TW">
+    <meta property="article:published_time" content="{escape(post.get("date") or "")}">
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="{escape(og_image)}">
     <link rel="icon" href="../favicon.svg" type="image/svg+xml">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&amp;family=Noto+Sans+TC:wght@400;700&amp;display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&amp;family=Noto+Sans+TC:wght@400;700&amp;display=swap" rel="stylesheet">{katex_css}
     <link rel="stylesheet" href="../styles.css?v={POST_ASSET_VERSION}">
     {BLOG_FEED_LINK_TAG.format(href="../" + BLOG_FEED_PATH)}
     <script type="application/ld+json">{json_ld}</script>
@@ -680,6 +828,7 @@ def build_blog_post_html(post: dict, posts: list[dict] | None = None) -> str:
           {body}
         </div>
         {f'<footer class="article-footer">{footer_html}</footer>' if footer_html else ""}
+        {end_html}
       </article>
     </main>
 
@@ -687,9 +836,7 @@ def build_blog_post_html(post: dict, posts: list[dict] | None = None) -> str:
 
     <button class="back-to-top" data-back-to-top aria-label="回到頂部" title="回到頂部">↑</button>
 
-    <script src="../site-config.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+    <script src="../site-config.js"></script>{katex_js}
     <script src="../script.js?v={POST_ASSET_VERSION}"></script>
   </body>
 </html>
@@ -867,6 +1014,11 @@ def build_publication_item_html(publication: dict) -> str:
         f'<p class="publication-summary">{escape(publication.get("summary"))}</p>'
         if publication.get("summary") else ""
     )
+    explainer_html = (
+        f'<p class="publication-explainer"><a href="{escape(publication.get("explainer"))}">'
+        '<span data-lang="zh">中文白話解讀</span><span data-lang="en">Plain-language explainer (in Chinese)</span></a></p>'
+        if publication.get("explainer") else ""
+    )
     tag_html = (
         '<div class="publication-tags" aria-label="著作標籤">'
         + "".join(
@@ -882,7 +1034,7 @@ def build_publication_item_html(publication: dict) -> str:
         "            <div>",
         f'              <h3><a href="{escape(link)}" rel="noreferrer">{escape(publication.get("title"))}</a></h3>',
     ]
-    lines.extend(f"              {part}" for part in [badge_html, author_html, venue_html, doi_html, summary_html, tag_html] if part)
+    lines.extend(f"              {part}" for part in [badge_html, author_html, venue_html, doi_html, summary_html, explainer_html, tag_html] if part)
     lines.extend(["            </div>", "          </article>"])
     return "\n".join(lines)
 
@@ -1500,9 +1652,42 @@ def static_counts(content: dict) -> dict[str, int]:
     }
 
 
+def home_stat_counts(content: dict) -> dict[str, int]:
+    # The home page counts peer-reviewed journal articles only; conference
+    # abstracts and cover features are listed separately on publications.html.
+    counts = static_counts(content)
+    counts.pop("publications")
+    return {
+        "journalArticles": publication_category_counts(content)["journal-publications"],
+        **counts,
+    }
+
+
+def build_home_posts_static_html(content: dict) -> str:
+    cards = []
+    latest = sorted(
+        published_blog_posts(content),
+        key=lambda item: (item.get("date") or "", item.get("id") or ""),
+        reverse=True,
+    )[:HOME_POST_LIMIT]
+    for post in latest:
+        cards.append(
+            '        <article class="post-card reveal">\n'
+            f'          <p class="post-meta">{escape(post.get("dateLabel") or post.get("date") or "")}</p>\n'
+            f'          <h3><a href="{escape(blog_path(post))}">{escape(post.get("title") or "")}</a></h3>\n'
+            f'          <p>{render_text_with_breaks(post.get("excerpt") or "")}</p>\n'
+            "        </article>"
+        )
+    return (
+        f"        {HOME_POSTS_STATIC_START}\n"
+        + "\n".join(cards)
+        + f"\n        {HOME_POSTS_STATIC_END}"
+    )
+
+
 def replace_home_stats_html(template: str, content: dict) -> str:
     updated = template
-    for key, count in static_counts(content).items():
+    for key, count in home_stat_counts(content).items():
         pattern = re.compile(
             rf'(<span class="stat-number" data-stat="{re.escape(key)}" data-count=")[^"]+(">)[^<]*(</span>)'
         )
@@ -1766,6 +1951,13 @@ def generate_static_files(content: dict) -> None:
         build_home_json_ld_html(content),
         "index.html",
     )
+    index_html = replace_generated_block(
+        index_html,
+        HOME_POSTS_STATIC_START,
+        HOME_POSTS_STATIC_END,
+        build_home_posts_static_html(content),
+        "index.html",
+    )
     write_text("index.html", index_html)
     published_posts = published_blog_posts(content)
     for post in published_posts:
@@ -1937,6 +2129,8 @@ def check_generated_files(content: dict) -> None:
         add_error("index.html static highlights are stale. Run python3 scripts/check_site.py --fix.")
     if build_home_json_ld_html(content) not in index_html:
         add_error("index.html Person/WebSite JSON-LD is stale. Run python3 scripts/check_site.py --fix.")
+    if build_home_posts_static_html(content) not in index_html:
+        add_error("index.html static latest posts are stale. Run python3 scripts/check_site.py --fix.")
     for crawl_target in ["about.html", "speaking-media.html"]:
         if not re.search(rf'<a\b[^>]*href=["\']{re.escape(crawl_target)}["\']', index_html, re.I):
             add_error(f"index.html raw HTML should link directly to {crawl_target}.")

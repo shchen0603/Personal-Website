@@ -658,6 +658,26 @@
     ],
     "talks": [
       {
+        "date": "2026-12-12",
+        "dateLabel": "2026.12.12 · Upcoming",
+        "year": "2026",
+        "title": "Early Potassium Response to Mineralocorticoid Receptor Antagonist Therapy and Cardiovascular Outcomes in Primary Aldosteronism: A Landmark Cohort Study",
+        "description": "Invited Speaker, International Welcome Seminar 2026: Advances in Primary Aldosteronism and Low-Renin Hypertension, Taiwan Society of Aldosteronism, National Taiwan University Hospital, Taipei, Taiwan."
+      },
+      {
+        "date": "2026-12-10",
+        "dateLabel": "2026.12.10 · Upcoming",
+        "year": "2026",
+        "title": "Applications of Epidemiology and Integrative Bioinformatics in Medical Research",
+        "description": "Invited Lecturer, Public Lesson Observation for Senior High School Biology Teachers, National Biology Subject Center for Senior High Schools, K-12 Education Administration, Ministry of Education, Taiwan. Held at Taipei Municipal Chien Kuo High School.",
+        "links": [
+          {
+            "label": "Talk page",
+            "href": "https://shchen0603.github.io/Personal-Website/talks/2026-12-ckhs/index.html"
+          }
+        ]
+      },
+      {
         "date": "2026-04-10",
         "dateLabel": "2026.04.10",
         "year": "2026",
@@ -667,14 +687,14 @@
       {
         "year": "2025",
         "title": "My Research Journey as a Medical Student",
-        "description": "Guest Lecturer, Introduction to Physician-Scientist Research, School of Medicine, National Yang Ming Chiao Tung University.",
+        "description": "Invited Lecturer, Introduction to Physician-Scientist Research, School of Medicine, National Yang Ming Chiao Tung University.",
         "date": "2025-11-25",
         "dateLabel": "2025.11.25"
       },
       {
         "year": "2025",
         "title": "Introduction to Evidence-based Medicine",
-        "description": "Lecturer, Evidence-based Medicine Workshop, Federation of Medical Students in Taiwan.",
+        "description": "Invited Lecturer, Evidence-based Medicine Workshop, Federation of Medical Students in Taiwan.",
         "date": "2025-11-09",
         "dateLabel": "2025.11.09",
         "links": [
@@ -719,9 +739,9 @@
       {
         "year": "2026",
         "title": "Myocardial strain imaging unmasks subclinical heart failure risk across the cardiovascular–kidney–metabolic syndrome continuum",
-        "description": "European Society of Cardiology Congress, Munich, Germany. Accepted moderated poster presentation.",
+        "description": "European Society of Cardiology Congress, Munich, Germany.",
         "date": "2026-08-28",
-        "dateLabel": "2026.08.28 · Upcoming"
+        "dateLabel": "2026.08.28"
       },
       {
         "year": "2026",

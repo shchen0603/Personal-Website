@@ -80,6 +80,7 @@ PUBLICATION_CATEGORY_OPTIONS = [
 PUBLICATION_SELF_NAME_PATTERN = re.compile(r"\b(Szu[- ]?Han\s+Chen)\b", re.I)
 INTENTIONAL_NOINDEX_PAGES = {
     "404.html",
+    "speaking/high-school-onepage.html",
     "activity.html",
     "admin.html",
     "post.html",

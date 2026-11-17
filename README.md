@@ -198,6 +198,14 @@ https://shchen0603.github.io/Personal-Website/sitemap.xml
 
 `robots.txt` 也有指向這個 sitemap。
 
+### 自動通知 Bing（IndexNow）
+
+每次 push 到 `main` 後，GitHub Actions 的 `Notify search engines (IndexNow)` workflow 會等 GitHub Pages 發布完成，再把這次有變動、且列在 sitemap 裡的頁面網址送給 IndexNow（Bing 與其合作搜尋引擎）。Google 不支援 IndexNow，仍以 Search Console 為主。
+
+- 根目錄的 `d17c9b5366fbfb39f9ff7494c6bb4f6f.txt` 是 IndexNow 的所有權金鑰檔，本來就是公開的，不要刪除或改名。
+- 想重新送出全站網址：到 GitHub 的 Actions 頁面手動執行這個 workflow，或在本機跑 `python3 scripts/indexnow.py --all`。
+- 只想看會送出哪些網址：`python3 scripts/indexnow.py --all --dry-run`。
+
 如果 Google Search Console 顯示「無法擷取」，先確認：
 
 1. 最新修改已經 commit / push。

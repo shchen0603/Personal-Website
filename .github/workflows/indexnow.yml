@@ -1,0 +1,42 @@
+name: Notify search engines (IndexNow)
+
+# Tells Bing and other IndexNow partners which pages changed after a push.
+# It never builds or deploys anything; GitHub Pages branch deployment stays
+# the only deployment path.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: read
+
+concurrency:
+  group: indexnow-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Submit changed pages
+        if: github.event_name == 'push'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: python3 scripts/indexnow.py "$BEFORE_SHA" "$GITHUB_SHA"
+
+      - name: Submit every page (manual run)
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 scripts/indexnow.py --all

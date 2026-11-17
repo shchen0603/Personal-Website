@@ -25,6 +25,10 @@ BASE_PAGES = [
     "blog.html",
     "contact.html",
     "talks/2026-12-ckhs/index.html",
+    "speaking/high-school.html",
+    "speaking/medical-students.html",
+    "speaking/academic.html",
+    "speaking/media.html",
 ]
 BLOG_INDEX_FALLBACK_START = "<!-- BLOG INDEX STATIC FALLBACK START -->"
 BLOG_INDEX_FALLBACK_END = "<!-- BLOG INDEX STATIC FALLBACK END -->"

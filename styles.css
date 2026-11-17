@@ -3193,3 +3193,128 @@ main {
     transform: none;
   }
 }
+
+/* ===== Speaking: audience hub and audience pages ===== */
+.focus-grid.audience-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 1100px) {
+  .focus-grid.audience-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .focus-grid.audience-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+a.audience-card {
+  display: flex;
+  flex-direction: column;
+  color: inherit;
+  text-decoration: none;
+}
+
+a.audience-card:hover,
+a.audience-card:focus-visible {
+  background: var(--wash);
+}
+
+.audience-card .card-cta {
+  margin: auto 0 0;
+  padding-top: 0.9rem;
+  color: var(--teal-dark);
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.audience-actions {
+  margin-top: 1.6rem;
+}
+
+.page-hero .back-link {
+  margin-bottom: 1.4rem;
+}
+
+.talk-offer-grid {
+  width: min(1120px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.talk-offer {
+  display: flex;
+  flex-direction: column;
+  padding: 1.4rem 1.4rem 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.talk-offer.is-featured {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 1px var(--teal);
+}
+
+.talk-tier {
+  margin: 0 0 0.55rem;
+  color: var(--coral);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.talk-offer h3 {
+  margin: 0 0 0.65rem;
+  font-size: 1.22rem;
+  line-height: 1.4;
+}
+
+.talk-offer p {
+  margin: 0 0 1rem;
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+.talk-offer .talk-offer-link {
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.talk-offer-link a,
+.record-list a,
+.focus-card p a {
+  color: var(--teal-dark);
+}
+
+.talk-offer .lecture-meta {
+  margin: auto 0 0;
+}
+
+.record-list {
+  width: min(860px, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.record-list .timeline-item h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1.08rem;
+  line-height: 1.45;
+}
+
+.record-list .timeline-item p:last-child {
+  margin: 0;
+  color: var(--muted);
+}
+
+.invite-card {
+  width: min(860px, 100%);
+  margin: 0 auto;
+}

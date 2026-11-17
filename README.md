@@ -125,6 +125,10 @@ posts/<id>.html
 
 在 `data/site-content.json` 的著作條目加上 `"explainer": "posts/<id>.html"`（或在 admin 的著作編輯畫面填「中文解讀文章路徑」），Publications 頁就會在該篇論文下方顯示「中文白話解讀」連結。
 
+### 演講的客群子頁
+
+`speaking/` 底下的四個頁面（高中老師、醫學生與醫學院、學會醫院與研究單位、媒體）是手寫的 HTML，不由產生器管理，要改講題或邀請說明時直接編輯檔案即可。演講頁（`speaking-media.html`）的四張客群卡片連到這些頁面；新增頁面時，記得把路徑加進 `scripts/check_site.py` 的 `BASE_PAGES` 與 `admin.js` 的 sitemap 清單。
+
 ### 草稿與發布
 
 - `draft`：不會出現在 Blog 列表，也不會進 sitemap。

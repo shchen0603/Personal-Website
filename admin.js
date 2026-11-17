@@ -474,7 +474,11 @@ if (adminApp) {
       "activities.html",
       "blog.html",
       "contact.html",
-      "talks/2026-12-ckhs/index.html"
+      "talks/2026-12-ckhs/index.html",
+      "speaking/high-school.html",
+      "speaking/medical-students.html",
+      "speaking/academic.html",
+      "speaking/media.html"
     ];
 
     adminNormalizeList(content.blogPosts)

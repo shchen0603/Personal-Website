@@ -545,6 +545,18 @@
     "awards": [
       {
         "year": "2026",
+        "title": "Best Debater Award",
+        "description": "Debate Competition, Taiwan Society of Aldosteronism Fall Scientific Congress.",
+        "scope": "domestic"
+      },
+      {
+        "year": "2026",
+        "title": "First Place (as Team Captain)",
+        "description": "Debate Competition, Taiwan Society of Aldosteronism Fall Scientific Congress.",
+        "scope": "domestic"
+      },
+      {
+        "year": "2026",
         "title": "First Place, Oral Presentation Competition",
         "description": "Asian Congress on Occupational Health 2026 (ACOH 2026), Kuching, Malaysia. Presentation: \"Metabolic Health Disparities Among Vietnamese Migrant and Domestic Metal Workers in Taiwan: A 3-Year Retrospective Cohort Study.\"",
         "scope": "international",

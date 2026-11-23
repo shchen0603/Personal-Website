@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 420" width="760" height="420" role="img" aria-labelledby="t d" font-family="'Noto Sans TC','PingFang TC','Microsoft JhengHei','Inter',sans-serif">
+<title id="t">Depletion of susceptibles 造成的 HR 漂移</title><desc id="d">假設性模擬：每位個體的真實 HR 恆為 0.5，但因為高風險者在對照組較快發生事件、離開 risk set，族群層級觀察到的 HR 從第 0 年的 0.50，升到第 1 年 0.54、第 3 年 0.64、第 5 年 0.75、第 8 年 0.85。</desc>
+<rect width="760" height="420" rx="12" fill="#fbfcf8"/>
+<text x="24.0" y="34.0" font-size="17" fill="#17201f" text-anchor="start" font-weight="700">每個人的 HR 都是 0.5，族群的 HR 卻隨時間往 1 靠近</text>
+<line x1="80" x2="600" y1="320.0" y2="320.0" stroke="#d8e0d8" stroke-width="1"/>
+<text x="72.0" y="324.0" font-size="12" fill="#5c6762" text-anchor="end" font-weight="400">0.4</text>
+<line x1="80" x2="600" y1="278.3" y2="278.3" stroke="#d8e0d8" stroke-width="1"/>
+<text x="72.0" y="282.3" font-size="12" fill="#5c6762" text-anchor="end" font-weight="400">0.5</text>
+<line x1="80" x2="600" y1="236.7" y2="236.7" stroke="#d8e0d8" stroke-width="1"/>
+<text x="72.0" y="240.7" font-size="12" fill="#5c6762" text-anchor="end" font-weight="400">0.6</text>
+<line x1="80" x2="600" y1="195.0" y2="195.0" stroke="#d8e0d8" stroke-width="1"/>
+<text x="72.0" y="199.0" font-size="12" fill="#5c6762" text-anchor="end" font-weight="400">0.7</text>
+<line x1="80" x2="600" y1="153.3" y2="153.3" stroke="#d8e0d8" stroke-width="1"/>
+<text x="72.0" y="157.3" font-size="12" fill="#5c6762" text-anchor="end" font-weight="400">0.8</text>
+<line x1="80" x2="600" y1="111.7" y2="111.7" stroke="#d8e0d8" stroke-width="1"/>
+<text x="72.0" y="115.7" font-size="12" fill="#5c6762" text-anchor="end" font-weight="400">0.9</text>
+<line x1="80" x2="600" y1="70.0" y2="70.0" stroke="#d8e0d8" stroke-width="1"/>
+<text x="72.0" y="74.0" font-size="12" fill="#5c6762" text-anchor="end" font-weight="400">1.0</text>
+<text x="80.0" y="338.0" font-size="12" fill="#5c6762" text-anchor="middle" font-weight="400">0</text>
+<text x="145.0" y="338.0" font-size="12" fill="#5c6762" text-anchor="middle" font-weight="400">1</text>
+<text x="210.0" y="338.0" font-size="12" fill="#5c6762" text-anchor="middle" font-weight="400">2</text>
+<text x="275.0" y="338.0" font-size="12" fill="#5c6762" text-anchor="middle" font-weight="400">3</text>
+<text x="340.0" y="338.0" font-size="12" fill="#5c6762" text-anchor="middle" font-weight="400">4</text>
+<text x="405.0" y="338.0" font-size="12" fill="#5c6762" text-anchor="middle" font-weight="400">5</text>
+<text x="470.0" y="338.0" font-size="12" fill="#5c6762" text-anchor="middle" font-weight="400">6</text>
+<text x="535.0" y="338.0" font-size="12" fill="#5c6762" text-anchor="middle" font-weight="400">7</text>
+<text x="600.0" y="338.0" font-size="12" fill="#5c6762" text-anchor="middle" font-weight="400">8</text>
+<line x1="80" x2="600" y1="320" y2="320" stroke="#5c6762" stroke-width="1"/>
+<text x="340.0" y="360.0" font-size="13" fill="#5c6762" text-anchor="middle" font-weight="400">追蹤時間（年）</text>
+<text x="80.0" y="58.0" font-size="13" fill="#5c6762" text-anchor="start" font-weight="400">族群層級的 Hazard Ratio</text>
+<line x1="80" x2="600" y1="278.3" y2="278.3" stroke="#0b6f69" stroke-width="2" stroke-dasharray="6 4"/>
+<path d="M80.0,278.3 L86.5,276.9 L93.0,275.4 L99.5,273.9 L106.0,272.4 L112.5,270.8 L119.0,269.1 L125.5,267.5 L132.0,265.8 L138.5,264.0 L145.0,262.2 L151.5,260.4 L158.0,258.6 L164.5,256.7 L171.0,254.8 L177.5,252.8 L184.0,250.8 L190.5,248.8 L197.0,246.7 L203.5,244.6 L210.0,242.5 L216.5,240.4 L223.0,238.2 L229.5,236.0 L236.0,233.8 L242.5,231.6 L249.0,229.3 L255.5,227.0 L262.0,224.7 L268.5,222.4 L275.0,220.1 L281.5,217.7 L288.0,215.4 L294.5,213.0 L301.0,210.6 L307.5,208.3 L314.0,205.9 L320.5,203.5 L327.0,201.1 L333.5,198.8 L340.0,196.4 L346.5,194.0 L353.0,191.7 L359.5,189.4 L366.0,187.1 L372.5,184.8 L379.0,182.5 L385.5,180.2 L392.0,178.0 L398.5,175.8 L405.0,173.7 L411.5,171.5 L418.0,169.4 L424.5,167.4 L431.0,165.4 L437.5,163.4 L444.0,161.4 L450.5,159.6 L457.0,157.7 L463.5,155.9 L470.0,154.2 L476.5,152.5 L483.0,150.9 L489.5,149.3 L496.0,147.8 L502.5,146.3 L509.0,144.9 L515.5,143.6 L522.0,142.3 L528.5,141.1 L535.0,140.0 L541.5,138.9 L548.0,137.9 L554.5,136.9 L561.0,136.1 L567.5,135.2 L574.0,134.5 L580.5,133.8 L587.0,133.2 L593.5,132.6 L600.0,132.1" fill="none" stroke="#b84232" stroke-width="2.5"/>
+<circle cx="145.0" cy="262.2" r="5" fill="#b84232" stroke="#fbfcf8" stroke-width="2"/>
+<text x="145.0" y="250.2" font-size="12" fill="#17201f" text-anchor="middle" font-weight="700">0.54</text>
+<circle cx="275.0" cy="220.1" r="5" fill="#b84232" stroke="#fbfcf8" stroke-width="2"/>
+<text x="275.0" y="208.1" font-size="12" fill="#17201f" text-anchor="middle" font-weight="700">0.64</text>
+<circle cx="405.0" cy="173.7" r="5" fill="#b84232" stroke="#fbfcf8" stroke-width="2"/>
+<text x="405.0" y="161.7" font-size="12" fill="#17201f" text-anchor="middle" font-weight="700">0.75</text>
+<circle cx="600.0" cy="132.1" r="5" fill="#b84232" stroke="#fbfcf8" stroke-width="2"/>
+<text x="586.0" y="120.1" font-size="12" fill="#17201f" text-anchor="middle" font-weight="700">0.85</text>
+<text x="610.0" y="282.3" font-size="12.5" fill="#17201f" text-anchor="start" font-weight="400">個人層級 HR = 0.5</text>
+<text x="610.0" y="136.1" font-size="12.5" fill="#17201f" text-anchor="start" font-weight="400">族群觀察到的 HR</text>
+<text x="380.0" y="386.0" font-size="12.5" fill="#5c6762" text-anchor="middle" font-weight="400">假設族群一半是高風險（對照組 hazard 0.40/年），一半是低風險（0.05/年），治療讓每個人的 hazard 都減半。</text>
+<text x="380.0" y="406.0" font-size="12.5" fill="#5c6762" text-anchor="middle" font-weight="400">對照組的高風險者比較快「被篩掉」，留下來的對照組越來越健康，族群 HR 因此被稀釋。</text>
+</svg>

@@ -1104,7 +1104,8 @@ if (adminApp) {
       for (const line of lines) {
         const image = line.trim().match(MARKDOWN_IMAGE_PATTERN);
 
-        if (image && isSafeMarkdownImageSrc(image[2])) {
+        // Social platforms cannot render SVG previews, so skip vector figures.
+        if (image && isSafeMarkdownImageSrc(image[2]) && !/\.svg$/i.test(image[2])) {
           return image[2];
         }
       }

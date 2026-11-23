@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 380" width="760" height="380" role="img" aria-labelledby="t d" font-family="'Noto Sans TC','PingFang TC','Microsoft JhengHei','Inter',sans-serif">
+<title id="t">WHI 試驗冠心病逐年 Hazard Ratio</title><desc id="d">荷爾蒙療法組相對安慰劑組的冠心病逐年 HR：第 1 年 1.81、第 2 年 1.34、第 3 年 1.27、第 4 年 1.25、第 5 年 1.45、第 6 年以後 0.70；整體 HR 為 1.24。</desc>
+<rect width="760" height="380" rx="12" fill="#fbfcf8"/>
+<text x="24.0" y="34.0" font-size="17" fill="#17201f" text-anchor="start" font-weight="700">WHI 雌激素＋黃體素試驗：冠心病的逐年 HR</text>
+<line x1="90" x2="650" y1="300.0" y2="300.0" stroke="#d8e0d8" stroke-width="1"/>
+<text x="82.0" y="304.0" font-size="12" fill="#5c6762" text-anchor="end" font-weight="400">0.5</text>
+<line x1="90" x2="650" y1="223.3" y2="223.3" stroke="#d8e0d8" stroke-width="1"/>
+<text x="82.0" y="227.3" font-size="12" fill="#5c6762" text-anchor="end" font-weight="400">1.0</text>
+<line x1="90" x2="650" y1="146.7" y2="146.7" stroke="#d8e0d8" stroke-width="1"/>
+<text x="82.0" y="150.7" font-size="12" fill="#5c6762" text-anchor="end" font-weight="400">1.5</text>
+<line x1="90" x2="650" y1="70.0" y2="70.0" stroke="#d8e0d8" stroke-width="1"/>
+<text x="82.0" y="74.0" font-size="12" fill="#5c6762" text-anchor="end" font-weight="400">2.0</text>
+<line x1="90" x2="650" y1="300" y2="300" stroke="#5c6762" stroke-width="1"/>
+<text x="90.0" y="58.0" font-size="13" fill="#5c6762" text-anchor="start" font-weight="400">Hazard Ratio（荷爾蒙組 vs 安慰劑組）</text>
+<text x="136.7" y="320.0" font-size="12.5" fill="#5c6762" text-anchor="middle" font-weight="400">第 1 年</text>
+<text x="230.0" y="320.0" font-size="12.5" fill="#5c6762" text-anchor="middle" font-weight="400">第 2 年</text>
+<text x="323.3" y="320.0" font-size="12.5" fill="#5c6762" text-anchor="middle" font-weight="400">第 3 年</text>
+<text x="416.7" y="320.0" font-size="12.5" fill="#5c6762" text-anchor="middle" font-weight="400">第 4 年</text>
+<text x="510.0" y="320.0" font-size="12.5" fill="#5c6762" text-anchor="middle" font-weight="400">第 5 年</text>
+<text x="603.3" y="320.0" font-size="12.5" fill="#5c6762" text-anchor="middle" font-weight="400">第 6 年以後</text>
+<line x1="90" x2="650" y1="223.3" y2="223.3" stroke="#5c6762" stroke-width="1.4"/>
+<line x1="90" x2="650" y1="186.5" y2="186.5" stroke="#c6922e" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="658.0" y="190.5" font-size="12.5" fill="#17201f" text-anchor="start" font-weight="400">整體 HR 1.24</text>
+<text x="658.0" y="227.3" font-size="12" fill="#5c6762" text-anchor="start" font-weight="400">無差異 = 1</text>
+<line x1="136.7" x2="136.7" y1="223.3" y2="99.1" stroke="#b84232" stroke-width="2"/>
+<circle cx="136.7" cy="99.1" r="7" fill="#b84232" stroke="#fbfcf8" stroke-width="2"/>
+<text x="136.7" y="85.1" font-size="13" fill="#17201f" text-anchor="middle" font-weight="700">1.81</text>
+<line x1="230.0" x2="230.0" y1="223.3" y2="171.2" stroke="#b84232" stroke-width="2"/>
+<circle cx="230.0" cy="171.2" r="7" fill="#b84232" stroke="#fbfcf8" stroke-width="2"/>
+<text x="230.0" y="157.2" font-size="13" fill="#17201f" text-anchor="middle" font-weight="700">1.34</text>
+<line x1="323.3" x2="323.3" y1="223.3" y2="181.9" stroke="#b84232" stroke-width="2"/>
+<circle cx="323.3" cy="181.9" r="7" fill="#b84232" stroke="#fbfcf8" stroke-width="2"/>
+<text x="323.3" y="167.9" font-size="13" fill="#17201f" text-anchor="middle" font-weight="700">1.27</text>
+<line x1="416.7" x2="416.7" y1="223.3" y2="185.0" stroke="#b84232" stroke-width="2"/>
+<circle cx="416.7" cy="185.0" r="7" fill="#b84232" stroke="#fbfcf8" stroke-width="2"/>
+<text x="416.7" y="171.0" font-size="13" fill="#17201f" text-anchor="middle" font-weight="700">1.25</text>
+<line x1="510.0" x2="510.0" y1="223.3" y2="154.3" stroke="#b84232" stroke-width="2"/>
+<circle cx="510.0" cy="154.3" r="7" fill="#b84232" stroke="#fbfcf8" stroke-width="2"/>
+<text x="510.0" y="140.3" font-size="13" fill="#17201f" text-anchor="middle" font-weight="700">1.45</text>
+<line x1="603.3" x2="603.3" y1="223.3" y2="269.3" stroke="#0b6f69" stroke-width="2"/>
+<circle cx="603.3" cy="269.3" r="7" fill="#0b6f69" stroke="#fbfcf8" stroke-width="2"/>
+<text x="603.3" y="293.3" font-size="13" fill="#17201f" text-anchor="middle" font-weight="700">0.70</text>
+<text x="380.0" y="362.0" font-size="12" fill="#5c6762" text-anchor="middle" font-weight="400">筆者依 Hernán（Epidemiology 2010）Table 2 重繪；原始資料來自 Manson 等人（NEJM 2003）。僅呈現點估計。</text>
+</svg>

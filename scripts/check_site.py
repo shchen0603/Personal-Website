@@ -625,7 +625,8 @@ def seo_title(title: str) -> str:
 def post_first_body_image(post: dict) -> str:
     for part in as_list(post.get("body")):
         for source in markdown_image_sources(part):
-            if is_safe_markdown_image_src(source):
+            # Social platforms cannot render SVG previews, so skip vector figures.
+            if is_safe_markdown_image_src(source) and not source.lower().endswith(".svg"):
                 return source
     return ""
 

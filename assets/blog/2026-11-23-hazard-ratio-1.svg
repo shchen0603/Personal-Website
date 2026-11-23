@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" width="760" height="400" role="img" aria-labelledby="t d" font-family="'Noto Sans TC','PingFang TC','Microsoft JhengHei','Inter',sans-serif">
+<title id="t">Risk set 與 hazard 示意圖</title><desc id="d">八位受試者的追蹤時間線。在時間 t，有六人仍在追蹤，構成 risk set；其中一人在 t 到 t+Δt 之間發生事件，所以 hazard 約為 1 除以 6 乘 Δt。已在 t 之前發生事件或被 censored 的兩人不在分母中。</desc>
+<rect width="760" height="400" rx="12" fill="#fbfcf8"/>
+<text x="24.0" y="34.0" font-size="17" fill="#17201f" text-anchor="start" font-weight="700">Hazard 的分母是「此刻還在 risk set 的人」</text>
+<rect x="386.0" y="64" width="48.0" height="262" fill="#c6922e" fill-opacity="0.16"/>
+<line x1="386.0" x2="386.0" y1="64" y2="326" stroke="#c6922e" stroke-width="2"/>
+<text x="386.0" y="56.0" font-size="14" fill="#17201f" text-anchor="middle" font-weight="700" font-style="italic">t</text>
+<text x="438.0" y="56.0" font-size="13" fill="#17201f" text-anchor="start" font-weight="400" font-style="italic">t + Δt</text>
+<text x="96.0" y="92.0" font-size="12" fill="#a9b3ae" text-anchor="end" font-weight="400">受試者 1</text>
+<line x1="110.0" x2="242.0" y1="88" y2="88" stroke="#a9b3ae" stroke-width="3" stroke-linecap="round"/>
+<circle cx="242.0" cy="88" r="6" fill="#a9b3ae" stroke="#fbfcf8" stroke-width="2"/>
+<text x="96.0" y="122.0" font-size="12" fill="#a9b3ae" text-anchor="end" font-weight="400">受試者 2</text>
+<line x1="110.0" x2="296.0" y1="118" y2="118" stroke="#a9b3ae" stroke-width="3" stroke-linecap="round"/>
+<circle cx="296.0" cy="118" r="5.5" fill="#fbfcf8" stroke="#a9b3ae" stroke-width="2.5"/>
+<text x="96.0" y="152.0" font-size="12" fill="#5c6762" text-anchor="end" font-weight="400">受試者 3</text>
+<line x1="110.0" x2="710.0" y1="148" y2="148" stroke="#0b6f69" stroke-width="3" stroke-linecap="round"/>
+<path d="M708.0,142 l8,6 l-8,6" fill="none" stroke="#0b6f69" stroke-width="2.5" stroke-linejoin="round"/>
+<text x="96.0" y="182.0" font-size="12" fill="#5c6762" text-anchor="end" font-weight="400">受試者 4</text>
+<line x1="110.0" x2="494.0" y1="178" y2="178" stroke="#0b6f69" stroke-width="3" stroke-linecap="round"/>
+<circle cx="494.0" cy="178" r="6" fill="#0b6f69" stroke="#fbfcf8" stroke-width="2"/>
+<text x="96.0" y="212.0" font-size="12" fill="#5c6762" text-anchor="end" font-weight="400">受試者 5</text>
+<line x1="110.0" x2="710.0" y1="208" y2="208" stroke="#0b6f69" stroke-width="3" stroke-linecap="round"/>
+<path d="M708.0,202 l8,6 l-8,6" fill="none" stroke="#0b6f69" stroke-width="2.5" stroke-linejoin="round"/>
+<text x="96.0" y="242.0" font-size="12" fill="#5c6762" text-anchor="end" font-weight="400">受試者 6</text>
+<line x1="110.0" x2="608.0" y1="238" y2="238" stroke="#0b6f69" stroke-width="3" stroke-linecap="round"/>
+<circle cx="608.0" cy="238" r="5.5" fill="#fbfcf8" stroke="#0b6f69" stroke-width="2.5"/>
+<text x="96.0" y="272.0" font-size="12" fill="#5c6762" text-anchor="end" font-weight="400">受試者 7</text>
+<line x1="110.0" x2="410.0" y1="268" y2="268" stroke="#0b6f69" stroke-width="3" stroke-linecap="round"/>
+<circle cx="410.0" cy="268" r="6" fill="#b84232" stroke="#fbfcf8" stroke-width="2"/>
+<text x="96.0" y="302.0" font-size="12" fill="#5c6762" text-anchor="end" font-weight="400">受試者 8</text>
+<line x1="110.0" x2="656.0" y1="298" y2="298" stroke="#0b6f69" stroke-width="3" stroke-linecap="round"/>
+<circle cx="656.0" cy="298" r="6" fill="#0b6f69" stroke="#fbfcf8" stroke-width="2"/>
+<text x="110.0" y="342.0" font-size="12" fill="#5c6762" text-anchor="middle" font-weight="400">0</text>
+<text x="230.0" y="342.0" font-size="12" fill="#5c6762" text-anchor="middle" font-weight="400">2</text>
+<text x="350.0" y="342.0" font-size="12" fill="#5c6762" text-anchor="middle" font-weight="400">4</text>
+<text x="470.0" y="342.0" font-size="12" fill="#5c6762" text-anchor="middle" font-weight="400">6</text>
+<text x="590.0" y="342.0" font-size="12" fill="#5c6762" text-anchor="middle" font-weight="400">8</text>
+<text x="710.0" y="342.0" font-size="12" fill="#5c6762" text-anchor="middle" font-weight="400">10</text>
+<text x="410.0" y="362.0" font-size="13" fill="#5c6762" text-anchor="middle" font-weight="400">追蹤時間（年）</text>
+<circle cx="40" cy="374" r="5.5" fill="#b84232"/><text x="52.0" y="378.0" font-size="12" fill="#5c6762" text-anchor="start" font-weight="400">在 [t, t+Δt) 內發生事件</text>
+<circle cx="220" cy="374" r="5.5" fill="#0b6f69"/><text x="232.0" y="378.0" font-size="12" fill="#5c6762" text-anchor="start" font-weight="400">其他時間的事件</text>
+<circle cx="352" cy="374" r="5" fill="#fbfcf8" stroke="#0b6f69" stroke-width="2.5"/><text x="364.0" y="378.0" font-size="12" fill="#5c6762" text-anchor="start" font-weight="400">censored</text>
+<line x1="452" x2="472" y1="374" y2="374" stroke="#a9b3ae" stroke-width="3"/><text x="478.0" y="378.0" font-size="12" fill="#5c6762" text-anchor="start" font-weight="400">t 之前已離開 risk set</text>
+<text x="736.0" y="34.0" font-size="13" fill="#17201f" text-anchor="end" font-weight="400">t 時 risk set：6 人　區間內事件：1 人　ĥ(t) ≈ 1 ÷ (6 × Δt)</text>
+</svg>

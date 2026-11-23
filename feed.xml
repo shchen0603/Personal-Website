@@ -6,7 +6,16 @@
     <description>心血管流行病學、臨床醫學、公共衛生與研究方法之間的筆記與觀察。</description>
     <language>zh-TW</language>
     <atom:link href="https://shchen0603.github.io/Personal-Website/feed.xml" rel="self" type="application/rss+xml"/>
-    <lastBuildDate>Fri, 23 Oct 2026 12:00:00 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 23 Nov 2026 12:00:00 +0800</lastBuildDate>
+    <item>
+      <title>流行病學方法教學 07 | Hazard Ratio 是什麼？為什麼它不是單純的風險比例？</title>
+      <link>https://shchen0603.github.io/Personal-Website/posts/2026-11-23-07-hazard-ratio.html</link>
+      <guid isPermaLink="true">https://shchen0603.github.io/Personal-Website/posts/2026-11-23-07-hazard-ratio.html</guid>
+      <pubDate>Mon, 23 Nov 2026 12:00:00 +0800</pubDate>
+      <category>流行病學方法教學</category>
+      <category>研究方法</category>
+      <description>Hazard Ratio 比的是「還沒出事的人，事件發生得多快」，不是追蹤期末的風險比例。這篇從 hazard 的定義式出發，推導 S(t)=e^(−H(t)) 與 S₁=S₀^HR，說明 HR 為什麼不等於 RR、PH 假設與內建選擇偏差，並用 WHI 試驗示範。</description>
+    </item>
     <item>
       <title>鹽分攝取與高血壓：為什麼吃一樣的鹽，對不同人的血壓影響可能不同？</title>
       <link>https://shchen0603.github.io/Personal-Website/posts/2026-10-23-salt-sensitivity.html</link>

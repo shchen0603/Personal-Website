@@ -65,6 +65,57 @@
     {
       "year": "2026",
       "category": "Journal Publications",
+      "title": "Cardiometabolic Health Disparities among Vietnamese Migrant and Domestic Metal Workers in Taiwan: a 3-year Retrospective Cohort Study",
+      "authors": "Szu-Han Chen, Tran Thi Thanh Hong, Caroline Olsen, H.-J. Yu, Fan-Yun Lan.",
+      "venue": "Journal of General Internal Medicine. Accepted.",
+      "summary": "A 3-year retrospective cohort study comparing cardiometabolic health between Vietnamese migrant and domestic metal workers in Taiwan, highlighting occupational health disparities faced by migrant workers.",
+      "tags": [
+        {
+          "slug": "cohort-study",
+          "label": "Cohort Study",
+          "group": "Study Design"
+        },
+        {
+          "slug": "metabolic-health",
+          "label": "Metabolic Health",
+          "group": "Topics"
+        },
+        {
+          "slug": "health-equity",
+          "label": "Health Equity",
+          "group": "Topics"
+        }
+      ],
+      "firstAuthor": true,
+      "correspondingAuthor": false,
+      "featured": false
+    },
+    {
+      "year": "2026",
+      "category": "Journal Publications",
+      "title": "Comparative Effectiveness and Safety of Finerenone versus Spironolactone in Non-Diabetic Chronic Kidney Disease: A Multinational Real-World Cohort Study",
+      "authors": "Ssu-Yu Pan, Fan-Yu Chen, Szu-Han Chen, Yu-Hsuan Lee, Chi-Jung Huang, Shu-Mei Yang, Yun-Yu Chen, Hao-Min Cheng.",
+      "venue": "Renal Failure. Accepted.",
+      "summary": "A multinational real-world cohort study comparing the effectiveness and safety of finerenone with spironolactone in adults with non-diabetic chronic kidney disease.",
+      "tags": [
+        {
+          "slug": "cohort-study",
+          "label": "Cohort Study",
+          "group": "Study Design"
+        },
+        {
+          "slug": "ckm-health",
+          "label": "CKM Health",
+          "group": "Topics"
+        }
+      ],
+      "firstAuthor": false,
+      "correspondingAuthor": false,
+      "featured": false
+    },
+    {
+      "year": "2026",
+      "category": "Journal Publications",
       "title": "Recent Advance in Nocturnal Hypertension: Pathophysiology, Emerging Diagnostics, and Precision Management in Asian Populations",
       "authors": "Szu-Han Chen, Hao-Min Cheng.",
       "venue": "JACC: Asia. Accepted.",
